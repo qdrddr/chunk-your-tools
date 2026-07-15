@@ -30,7 +30,7 @@ git push origin "sdk/go/v${version}"
 
 # npm login
 # npm whoami
-# npm view chunk-your-tools-sdk
+# npm view chunk-your-tools
 # cd sdk/typescript
 # npm version 0.1.4 --no-git-tag-version
 # npm ci
@@ -45,5 +45,5 @@ npm ci
 npm run build:js
 # Release publishes all platforms via publish-npm-sdk.yml (single fat package).
 # Manual publish is only for bootstrapping or emergencies; you need every
-# chunk-your-tools-sdk.*.node in this directory before npm publish.
+# chunk-your-tools.*.node in this directory before npm publish.
 npm publish --access public

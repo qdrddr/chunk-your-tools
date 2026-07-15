@@ -199,7 +199,7 @@ jobs:
         shell: bash
         run: |
           shopt -s nullglob
-          files=(sdk/typescript/chunk-your-tools-sdk.*.node)
+          files=(sdk/typescript/chunk-your-tools.*.node)
           if [ ${#files[@]} -eq 0 ]; then
             echo "::error::No .node file produced by napi build"
             ls -la sdk/typescript/

@@ -1,9 +1,9 @@
-# chunk-your-tools-sdk
+# chunk-your-tools
 
 Python SDK for [chunk-your-tools](https://crates.io/crates/chunk-your-tools) — tool schema decomposition and recomposition.
 
 ```bash
-pip install chunk-your-tools-sdk
+pip install chunk-your-tools
 ```
 
 ```python

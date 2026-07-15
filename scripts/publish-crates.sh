@@ -22,15 +22,16 @@ git push origin "sdk/go/v${version}"
 
 cargo test -p chunk-your-tools
 cargo publish --dry-run
-export CARGO_REGISTRY_TOKEN="$(security find-generic-password -s "cyt" -a "CARGO_REGISTRY_TOKEN" -w)"
+CARGO_REGISTRY_TOKEN="$(security find-generic-password -s "cyt" -a "CARGO_REGISTRY_TOKEN" -w)"
+export CARGO_REGISTRY_TOKEN
 # cargo login
 
 # Verify before publishing
-cargo package --list | grep assets    # should show nothing
-cargo package --list | wc -l          # should be much smaller than 297
-cargo package                         # check compressed size
+cargo package --list | grep assets # should show nothing
+cargo package --list | wc -l       # should be much smaller than 297
+cargo package                      # check compressed size
 
-cargo publish --allow-dirty 
+cargo publish --allow-dirty
 
 # bash scripts/sync-version.sh
 # export CARGO_REGISTRY_TOKEN="$(security find-generic-password -s "cyt" -a "CARGO_REGISTRY_TOKEN" -w)"
@@ -42,7 +43,7 @@ cargo publish --allow-dirty
 
 # npm login
 # npm whoami
-# npm view chunk-your-tools-sdk
+# npm view chunk-your-tools
 # cd sdk/typescript
 # npm version 0.1.4 --no-git-tag-version
 # npm ci
@@ -57,5 +58,5 @@ npm ci
 npm run build:js
 # Release publishes all platforms via publish-npm-sdk.yml (single fat package).
 # Manual publish is only for bootstrapping or emergencies; you need every
-# chunk-your-tools-sdk.*.node in this directory before npm publish.
+# chunk-your-tools.*.node in this directory before npm publish.
 npm publish --access public

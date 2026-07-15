@@ -445,9 +445,9 @@ root = Path(sys.argv[1]).resolve()
 sdk_root = (root / "sdk" / "python").resolve()
 
 try:
-    dist = metadata.distribution("chunk-your-tools-sdk")
+    dist = metadata.distribution("chunk-your-tools")
 except metadata.PackageNotFoundError:
-    sys.exit("chunk-your-tools-sdk is not installed; run: ./scripts/local-dev.sh sdk-python")
+    sys.exit("chunk-your-tools is not installed; run: ./scripts/local-dev.sh sdk-python")
 
 install_kind = "editable"
 try:
@@ -455,7 +455,7 @@ try:
     url = str(direct.get("url", "")).replace("\\", "/")
     if "sdk/python" not in url:
         sys.exit(
-            "chunk-your-tools-sdk direct_url.json does not point at sdk/python:\n" + url
+            "chunk-your-tools direct_url.json does not point at sdk/python:\n" + url
         )
 except FileNotFoundError:
     import chunk_your_tools
@@ -463,7 +463,7 @@ except FileNotFoundError:
     pkg_dir = Path(chunk_your_tools.__file__).resolve()
     if sdk_root not in pkg_dir.parents:
         sys.exit(
-            "chunk-your-tools-sdk is not loaded from sdk/python\n"
+            "chunk-your-tools is not loaded from sdk/python\n"
             f"  package file: {pkg_dir}\n"
             f"  expected under: {sdk_root}\n"
             "Run ./scripts/local-dev.sh sdk-python"
@@ -475,7 +475,7 @@ from chunk_your_tools._native import build_catalog_index
 if not callable(build_catalog_index):
     sys.exit("chunk_your_tools._native.build_catalog_index is not callable (rebuild with sdk-python)")
 
-print("OK: local chunk-your-tools-sdk (sdk/python)")
+print("OK: local chunk-your-tools (sdk/python)")
 print(f"  sdk root: {sdk_root}")
 print(f"  install: {install_kind}")
 PY

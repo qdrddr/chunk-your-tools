@@ -5,7 +5,7 @@
 | Old | New |
 | --- | --- |
 | `cyt-indexer` (crates.io) | `chunk-your-tools` |
-| `cyt-indexer-sdk` (PyPI/npm) | `chunk-your-tools-sdk` |
+| `cyt-indexer-sdk` (PyPI/npm) | `chunk-your-tools` |
 | `cyt_indexer` (Python import) | `chunk_your_tools` |
 | `cyt-indexer` CLI | `chunk-your-tools` |
 | `github.com/qdrddr/clear-your-tools/sdk/go` | `github.com/qdrddr/chunk-your-tools/sdk/go` |

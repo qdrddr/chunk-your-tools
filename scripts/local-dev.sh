@@ -167,7 +167,7 @@ EOF
 		# shellcheck disable=SC1091
 		source "${SIM_VENV}/bin/activate"
 		info "install wheels in isolated venv"
-		SDK_WHL=("${SIM_DIR}"/dist-sdk/chunk_your_tools_sdk-*.whl)
+		SDK_WHL=("${SIM_DIR}"/dist-sdk/chunk_your_tools-*.whl)
 		[[ -f "${SDK_WHL[0]}" ]] || die "SDK wheel not found under ${SIM_DIR}/dist-sdk"
 		cyt_run uv pip install "${SDK_WHL[0]}"
 
@@ -181,7 +181,7 @@ from chunk_your_tools.build import build_catalog_index as sdk_build
 assert callable(native_build)
 assert callable(sdk_build)
 print("OK: isolated wheel install")
-print("  chunk-your-tools-sdk:", metadata.version("chunk-your-tools-sdk"))
+print("  chunk-your-tools:", metadata.version("chunk-your-tools"))
 PY
 
 		deactivate 2>/dev/null || true

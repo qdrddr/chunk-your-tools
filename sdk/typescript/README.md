@@ -1,11 +1,11 @@
-# chunk-your-tools-sdk
+# chunk-your-tools
 
 TypeScript/Node bindings for the [chunk-your-tools](https://crates.io/crates/chunk-your-tools) Rust library.
 
 ## Install
 
 ```bash
-npm install chunk-your-tools-sdk
+npm install chunk-your-tools
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ import {
   buildCatalogFromTools,
   recomposeToolsFromNames,
   resolveSurvivorsFromNames,
-} from "chunk-your-tools-sdk";
+} from "chunk-your-tools";
 
 const index = buildCatalogFromTools(tools);
 const pruned = recomposeToolsFromNames(tools, {

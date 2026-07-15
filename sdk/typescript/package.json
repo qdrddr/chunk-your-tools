@@ -1,5 +1,5 @@
 {
-  "name": "chunk-your-tools-sdk",
+  "name": "chunk-your-tools",
   "version": "1.0.0",
   "description": "TypeScript SDK for chunk-your-tools — tool schema decomposition and recomposition",
   "keywords": [
@@ -28,7 +28,7 @@
     "dist",
     "native.cjs",
     "native.d.ts",
-    "chunk-your-tools-sdk.*.node",
+    "chunk-your-tools.*.node",
     "README.md",
     "LICENSE"
   ],
@@ -47,7 +47,7 @@
     "node": ">=20"
   },
   "napi": {
-    "binaryName": "chunk-your-tools-sdk",
+    "binaryName": "chunk-your-tools",
     "targets": [
       "x86_64-unknown-linux-gnu",
       "aarch64-unknown-linux-gnu",

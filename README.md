@@ -12,15 +12,15 @@ and contains **only** decomposition/recomposition — no BM25, proxy, or agent i
 | Channel | Package | Import |
 | --- | --- | --- |
 | Rust crate | `chunk-your-tools` | `chunk_your_tools` |
-| PyPI | `chunk-your-tools-sdk` | `chunk_your_tools` |
-| npm | `chunk-your-tools-sdk` | `chunk-your-tools-sdk` |
+| PyPI | `chunk-your-tools` | `chunk_your_tools` |
+| npm | `chunk-your-tools` | `chunk-your-tools` |
 | Go | `github.com/qdrddr/chunk-your-tools/sdk/go` | `chunkyourtools` |
 | C | `libchunk_your_tools` | `chunk_your_tools.h` |
 
 ```bash
 cargo add chunk-your-tools
-pip install chunk-your-tools-sdk
-npm install chunk-your-tools-sdk
+pip install chunk-your-tools
+npm install chunk-your-tools
 ```
 
 CLI:

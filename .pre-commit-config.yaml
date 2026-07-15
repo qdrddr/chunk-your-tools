@@ -355,7 +355,7 @@ repos:
         entry: bash scripts/prek-hook.sh
         args:
           [
-            'cd "$(git rev-parse --show-toplevel)/sdk/python" && rtk uv run pytest',
+            'cd "$(git rev-parse --show-toplevel)/sdk/python" && rtk uv run maturin develop --release && rtk uv run pytest',
           ]
         pass_filenames: false
         language: system
@@ -396,7 +396,7 @@ repos:
         entry: bash scripts/prek-hook.sh
         args:
           [
-            'cd "$(git rev-parse --show-toplevel)/sdk/python" && rtk uv run python -c "from chunk_your_tools._native import build_catalog_index; assert callable(build_catalog_index)"',
+            'cd "$(git rev-parse --show-toplevel)/sdk/python" && rtk uv run maturin develop --release && rtk uv run python -c "from chunk_your_tools._native import build_catalog_index; assert callable(build_catalog_index)"',
           ]
         language: system
         files: ^(src/|tests/|build\.rs|cbindgen\.toml|sdk/python/)
@@ -460,7 +460,13 @@ repos:
         name: Generate sdk/c compile_commands.json
         entry: bash scripts/prek-hook.sh
         args:
-          - rm -rf sdk/c/build && cmake -S sdk/c -B sdk/c/build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release
+          - |
+            set -euo pipefail
+            root="$(git rev-parse --show-toplevel)"
+            cd "$root"
+            rm -rf sdk/c/build
+            mkdir -p sdk/c/build
+            cmake -S sdk/c -B sdk/c/build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release
         language: system
         files: ^sdk/c/
         pass_filenames: false

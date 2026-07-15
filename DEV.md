@@ -4,8 +4,8 @@
 
 ```text
 ./   # Rust core + CLI
-sdk/python/                  # PyPI chunk-your-tools-sdk
-sdk/typescript/              # npm chunk-your-tools-sdk
+sdk/python/                  # PyPI chunk-your-tools
+sdk/typescript/              # npm chunk-your-tools
 sdk/go/                      # Go module
 sdk/c/                       # C FFI + CMake
 sdk/e2e/                     # Published-package smoke tests
