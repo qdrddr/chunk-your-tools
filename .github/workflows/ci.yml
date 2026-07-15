@@ -57,10 +57,12 @@ jobs:
         run: uv run python -c "from chunk_your_tools._native import build_catalog_index; assert callable(build_catalog_index)"
 
       - name: Install ast-grep
+        working-directory: sdk/python
         run: uv pip install ast-grep-cli==0.41.0
 
       - name: Ast-grep scan
-        run: uv run ast-grep scan sdk/
+        working-directory: sdk/python
+        run: uv run ast-grep scan ..
 
       - name: Pytest (sdk/python)
         working-directory: sdk/python

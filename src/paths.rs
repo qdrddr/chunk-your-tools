@@ -106,7 +106,7 @@ pub fn to_skills_decomposed_key(file_path: &str) -> Option<String> {
             && parts[i + 1] == Component::Normal("decomposed".as_ref())
         {
             let sub: PathBuf = parts[i..].iter().collect();
-            return Some(sub.to_string_lossy().into_owned());
+            return Some(normalize_path_separators(&sub.to_string_lossy()));
         }
     }
     None
@@ -125,7 +125,7 @@ pub fn to_decomposed_key(file_path: &str) -> Option<String> {
             && parts[i + 1] == Component::Normal("decomposed".as_ref())
         {
             let sub: PathBuf = parts[i..].iter().collect();
-            return Some(sub.to_string_lossy().into_owned());
+            return Some(normalize_path_separators(&sub.to_string_lossy()));
         }
     }
     None
@@ -273,6 +273,15 @@ mod tests {
         configure(cfg);
         let rel = format!("{}tool.json", decomposed_prefix());
         assert_eq!(tool_id_from_decomposed_rel(&rel), "tool");
+    }
+
+    #[test]
+    fn to_decomposed_key_uses_forward_slashes() -> Result<(), String> {
+        let key = to_decomposed_key("catalog/schemas/decomposed/Agent.json")
+            .ok_or_else(|| "expected decomposed key".to_string())?;
+        assert_eq!(key, "schemas/decomposed/Agent.json");
+        assert!(!key.contains('\\'));
+        Ok(())
     }
 
     #[test]
