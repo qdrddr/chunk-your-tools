@@ -403,7 +403,24 @@ if [[ -z "${CYT_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 			-DCMAKE_MAKE_PROGRAM="${make_prog}"
 		cyt_run env -u CARGO_TARGET_DIR cmake --build sdk/c/build
 		info "ctest sdk/c"
-		cyt_run env -u CARGO_TARGET_DIR ctest --test-dir sdk/c/build --output-on-failure
+		local lib_dir="${CYT_REPO_ROOT}/target/${triplet}/release"
+		case "${triplet}" in
+		*-apple-darwin)
+			cyt_run env -u CARGO_TARGET_DIR \
+				DYLD_LIBRARY_PATH="${lib_dir}:${lib_dir}/deps:${DYLD_LIBRARY_PATH:-}" \
+				ctest --test-dir sdk/c/build --output-on-failure
+			;;
+		*-pc-windows-msvc)
+			cyt_run env -u CARGO_TARGET_DIR \
+				PATH="${lib_dir}:${PATH}" \
+				ctest --test-dir sdk/c/build --output-on-failure
+			;;
+		*)
+			cyt_run env -u CARGO_TARGET_DIR \
+				LD_LIBRARY_PATH="${lib_dir}:${lib_dir}/deps:${LD_LIBRARY_PATH:-}" \
+				ctest --test-dir sdk/c/build --output-on-failure
+			;;
+		esac
 	}
 
 	cyt_build_sdk_go() {

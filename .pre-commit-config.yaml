@@ -574,17 +574,8 @@ repos:
         files: ^(sdk/python/|src/|Cargo\.toml)
         pass_filenames: false
 
-      - id: local-dev-sdk-typescript
-        name: local-dev sdk-typescript
-        entry: bash scripts/prek-hook.sh
-        args:
-          [
-            'cd "$(git rev-parse --show-toplevel)" && rtk bash scripts/local-dev.sh sdk-typescript',
-          ]
-        language: system
-        files: ^(sdk/typescript/|src/|Cargo\.toml)
-        pass_filenames: false
-
+      # C/Go before TypeScript: napi build uses the same dylib name and would
+      # overwrite the C FFI shared library if TypeScript ran first.
       - id: local-dev-sdk-c
         name: local-dev sdk-c
         entry: bash scripts/prek-hook.sh
@@ -607,6 +598,17 @@ repos:
         files: ^(sdk/go/|sdk/c/|src/ffi/)
         pass_filenames: false
 
+      - id: local-dev-sdk-typescript
+        name: local-dev sdk-typescript
+        entry: bash scripts/prek-hook.sh
+        args:
+          [
+            'cd "$(git rev-parse --show-toplevel)" && rtk bash scripts/local-dev.sh sdk-typescript',
+          ]
+        language: system
+        files: ^(sdk/typescript/|src/|Cargo\.toml)
+        pass_filenames: false
+
       # Keep `suggestion` last
       - id: suggestion
         name: Suggestion
@@ -615,3 +617,4 @@ repos:
         verbose: true
         pass_filenames: false
   # Insert new entries above the `suggestion` entry
+
