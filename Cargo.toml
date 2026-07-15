@@ -9,6 +9,9 @@ license = "Apache-2.0"
 repository = "https://github.com/qdrddr/chunk-your-tools"
 keywords = ["mcp", "json-schema", "tools"]
 categories = ["command-line-utilities", "development-tools"]
+exclude = [
+    "assets/",
+]
 
 [lib]
 name = "chunk_your_tools"
