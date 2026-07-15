@@ -1,0 +1,230 @@
+# Publish C FFI artifacts to an existing GitHub Release when a semver tag vX.Y.Z is pushed.
+#
+# Maintainer flow:
+#   1. Push tag vX.Y.Z (and optionally sdk/go/vX.Y.Z; CI creates the Go tag if missing).
+#   2. Create the GitHub Release for vX.Y.Z manually (title, notes, pre-release flag).
+#   3. This workflow builds libchunk_your_tools and uploads release assets to the existing release.
+#
+# Builds libchunk_your_tools from the tagged monorepo source (no crates.io dependency).
+# Runs in parallel with:
+#   1. Publish chunk-your-tools to crates.io    (publish-crates.yml)
+#   2. Publish chunk-your-tools to npm          (publish-npm-sdk.yml)
+#   2. Publish chunk-your-tools to PyPI         (publish-pypi-sdk.yml)
+#
+# Manual runs: workflow_dispatch (requires version input; vX.Y.Z tag must already exist).
+
+name: 1. Publish C FFI artifacts to GitHub Release
+
+on:
+  push:
+    tags:
+      # GitHub glob: digits only, no prerelease suffix (validated again in the job).
+      - "v[0-9]*.[0-9]*.[0-9]*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver to publish (e.g. 1.2.3)
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  resolve-version:
+    name: Resolve release version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - name: Resolve version
+        id: parse
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            TAG="${{ github.ref_name }}"
+            if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Tag must be vX.Y.Z (e.g. v0.1.2), got: ${TAG}"
+              exit 1
+            fi
+            VERSION="${TAG#v}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+            if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Version must be X.Y.Z (e.g. 0.1.2), got: ${VERSION}"
+              exit 1
+            fi
+          fi
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "CYT_RELEASE_VERSION=${VERSION}"
+
+  ensure-go-module-tag:
+    name: Ensure sdk/go module tag
+    needs: resolve-version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/v${{ needs.resolve-version.outputs.version }}
+          fetch-depth: 1
+
+      - name: Create sdk/go tag if missing
+        env:
+          VERSION: ${{ needs.resolve-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          release_tag="v${VERSION}"
+          go_tag="sdk/go/v${VERSION}"
+
+          if git ls-remote --exit-code origin "refs/tags/${go_tag}" >/dev/null 2>&1; then
+            remote_sha="$(git ls-remote origin "refs/tags/${go_tag}" | awk '{print $1}')"
+            release_sha="$(git rev-parse HEAD)"
+            if [[ "${remote_sha}" != "${release_sha}" ]]; then
+              echo "::warning::Tag ${go_tag} already exists on remote (${remote_sha:0:7}) but points to a different commit than ${release_tag} (${release_sha:0:7}); leaving it unchanged"
+            else
+              echo "Tag ${go_tag} already exists on remote; skipping"
+            fi
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          release_sha="$(git rev-parse HEAD)"
+          git tag "${go_tag}"
+          git push origin "refs/tags/${go_tag}"
+          echo "Created and pushed ${go_tag} at ${release_sha:0:7}"
+
+  build-native:
+    name: Build C FFI (${{ matrix.target }})
+    needs: resolve-version
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+          - runner: macos-latest
+            target: aarch64-apple-darwin
+          - runner: macos-latest
+            target: x86_64-apple-darwin
+          - runner: windows-latest
+            target: x86_64-pc-windows-msvc
+          - runner: windows-11-arm
+            target: aarch64-pc-windows-msvc
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v6
+        with:
+          ref: refs/tags/v${{ needs.resolve-version.outputs.version }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Configure Cargo for Windows network reliability
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p "${HOME}/.cargo"
+          cat >> "${HOME}/.cargo/config.toml" <<'EOF'
+          [http]
+          multiplexing = false
+          EOF
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            . -> target
+          cache-on-failure: true
+
+      - name: Build and package C library
+        shell: bash
+        run: |
+          set -euo pipefail
+          pkg_dir="artifacts/chunk-your-tools-ffi-${{ matrix.target }}"
+          bash sdk/c/scripts/build-c-lib.sh \
+            --target "${{ matrix.target }}" \
+            --sync-header \
+            --package "${pkg_dir}"
+          tar -czf "artifacts/chunk-your-tools-ffi-${{ matrix.target }}.tar.gz" \
+            -C "${pkg_dir}" .
+          ls -la "artifacts/chunk-your-tools-ffi-${{ matrix.target }}.tar.gz"
+          ls -la "${pkg_dir}/"
+
+      - name: Upload triplet archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: chunk-your-tools-ffi-${{ matrix.target }}
+          path: artifacts/chunk-your-tools-ffi-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
+
+      - name: Upload header (once)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        uses: actions/upload-artifact@v7
+        with:
+          name: chunk-your-tools-header
+          path: sdk/c/include/chunk_your_tools.h
+          if-no-files-found: error
+
+  publish-release:
+    name: Upload C FFI to GitHub Release
+    needs: [build-native, resolve-version]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download triplet archives
+        uses: actions/download-artifact@v7
+        with:
+          pattern: chunk-your-tools-ffi-*
+          merge-multiple: true
+          path: release-assets
+
+      - name: Download header
+        uses: actions/download-artifact@v7
+        with:
+          name: chunk-your-tools-header
+          path: release-assets
+
+      - name: Generate SHA256SUMS
+        working-directory: release-assets
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(chunk-your-tools-ffi-*.tar.gz chunk_your_tools.h)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::No release assets found"
+            ls -la
+            exit 1
+          fi
+          sha256sum "${files[@]}" > SHA256SUMS
+          cat SHA256SUMS
+          archives=(chunk-your-tools-ffi-*.tar.gz)
+          expected_archives=6
+          if [ ${#archives[@]} -ne "${expected_archives}" ]; then
+            echo "::error::Expected ${expected_archives} triplet archives, found ${#archives[@]}"
+            ls -la
+            exit 1
+          fi
+
+      - name: Upload GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.resolve-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          tag="v${VERSION}"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            echo "::error::GitHub Release ${tag} not found. Create the release manually, then re-run this workflow."
+            exit 1
+          fi
+          gh release upload "$tag" release-assets/* --clobber

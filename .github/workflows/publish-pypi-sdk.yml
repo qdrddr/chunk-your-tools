@@ -1,0 +1,203 @@
+# Publish chunk-your-tools to PyPI when a GitHub Release is published.
+#
+# One-time setup (repository maintainer with admin access):
+#
+# 1. PyPI — Trusted Publisher (https://pypi.org/manage/account/publishing/):
+#    - PyPI project: chunk-your-tools
+#    - Owner: qdrddr
+#    - Repository: chunk-your-tools
+#    - Workflow: publish-pypi-sdk.yml
+#    - Environment name: (leave blank — upload job does not use a GitHub Environment)
+#
+# 2. GitHub — Environment (Settings → Environments → New environment):
+#    - Name: pypi-sdk (approval gate on the publish job)
+#    - Optional: required reviewers, wait timer, deployment branch rule (main only)
+#    - No secrets needed when using PyPI trusted publishing (OIDC)
+#
+# 3. Push tag vX.Y.Z to trigger publish-crates.yml; when that workflow succeeds,
+#    this workflow runs automatically (workflow_run) in parallel with npm SDK and
+#    C FFI GitHub Release publish. Version comes from the crates publish artifact.
+#
+# Manual runs: workflow_dispatch (optional version input).
+
+name: 2. Publish chunk-your-tools to PyPI
+
+on:
+  workflow_run:
+    workflows: ["1. Publish chunk-your-tools to crates.io"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver to wait for on crates.io (manual runs only)
+        required: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  resolve-version:
+    name: Resolve release version
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve version
+        id: parse
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          PARENT_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: sdk/e2e/scripts/resolve-version-from-parent.sh
+
+  wait-for-crate:
+    name: Wait for chunk-your-tools on crates.io
+    needs: resolve-version
+    if: |
+      (github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')) &&
+      needs.resolve-version.outputs.version != ''
+    runs-on: ubuntu-latest
+    env:
+      CYT_RELEASE_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Wait for crates.io
+        run: sdk/e2e/scripts/wait-registry.sh crate
+
+  build-wheels:
+    name: Build wheels (${{ matrix.os }}${{ matrix.arch && format(' {0}', matrix.arch) || '' }}${{ matrix.linux_archs && format(' {0}', matrix.linux_archs) || '' }}${{ matrix.macos_archs && format(' {0}', matrix.macos_archs) || '' }})
+    needs: [resolve-version, wait-for-crate]
+    if: |
+      (github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')) &&
+      needs.resolve-version.result == 'success' &&
+      (needs.wait-for-crate.result == 'success' || needs.wait-for-crate.result == 'skipped')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            linux_archs: x86_64
+          - os: ubuntu-24.04-arm
+            linux_archs: aarch64
+          - os: macos-latest
+            macos_archs: arm64
+          - os: macos-latest
+            macos_archs: universal2
+          - os: windows-latest
+            arch: AMD64
+          - os: windows-11-arm
+            arch: ARM64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # Do not pin python-version here: setup-uv sets UV_PYTHON, which breaks
+      # cibuildwheel 4.x abi3audit (uv pip install in the audit venv).
+      - name: Install uv
+        uses: astral-sh/setup-uv@d31148d669074a8d0a63714ba94f3201e7020bc3
+        with:
+          enable-cache: true
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Add Rust targets for macOS universal2 wheel
+        if: matrix.macos_archs == 'universal2'
+        run: rustup target add aarch64-apple-darwin x86_64-apple-darwin
+
+      - name: Set package version
+        if: needs.resolve-version.outputs.version != ''
+        run: |
+          echo "Setting chunk-your-tools version to ${{ needs.resolve-version.outputs.version }}"
+          cd sdk/python
+          uv version "${{ needs.resolve-version.outputs.version }}"
+
+      - name: Build wheels with cibuildwheel
+        uses: pypa/cibuildwheel@v4.1.0
+        env:
+          CIBW_BUILD: cp313-*
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_BUILD_FRONTEND: build[uv]
+          CIBW_PROJECT_REQUIRES_PYTHON: ">=3.13"
+          CIBW_ARCHS_LINUX: ${{ matrix.linux_archs }}
+          CIBW_ARCHS_MACOS: ${{ matrix.macos_archs }}
+          CIBW_ARCHS_WINDOWS: ${{ matrix.arch }}
+          CIBW_BEFORE_BUILD_LINUX: rm -f src/chunk_your_tools/_native*.so && pip install maturin
+          CIBW_BEFORE_BUILD_MACOS: rm -f src/chunk_your_tools/_native*.so && pip install maturin
+          CIBW_BEFORE_BUILD_WINDOWS: pip install maturin && if exist src\chunk_your_tools\_native.abi3.so del /q src\chunk_your_tools\_native*.so
+        with:
+          package-dir: sdk/python
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v7
+        with:
+          name: wheels-${{ matrix.os }}-${{ matrix.arch || matrix.linux_archs || matrix.macos_archs || 'default' }}
+          path: wheelhouse/*.whl
+
+  publish:
+    name: Upload SDK to PyPI
+    needs: [build-wheels, resolve-version]
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi-sdk
+      url: https://pypi.org/p/chunk-your-tools
+    permissions:
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d31148d669074a8d0a63714ba94f3201e7020bc3
+        with:
+          python-version: "3.13"
+          enable-cache: true
+
+      - name: Set package version
+        if: needs.resolve-version.outputs.version != ''
+        run: |
+          echo "Setting chunk-your-tools version to ${{ needs.resolve-version.outputs.version }}"
+          cd sdk/python
+          uv version "${{ needs.resolve-version.outputs.version }}"
+
+      - name: Download wheels
+        uses: actions/download-artifact@v7
+        with:
+          pattern: wheels-*
+          merge-multiple: true
+          path: dist
+
+      - name: Build sdist
+        run: |
+          cd sdk/python
+          uv build --sdist --out-dir ../../dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
+
+      - name: Upload release version for downstream workflows
+        if: needs.resolve-version.outputs.version != ''
+        run: printf '%s' "${{ needs.resolve-version.outputs.version }}" > cyt-release-version.txt
+
+      - name: Store release version artifact
+        if: needs.resolve-version.outputs.version != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: cyt-release-version
+          path: cyt-release-version.txt
+          if-no-files-found: error

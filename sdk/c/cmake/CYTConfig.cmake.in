@@ -1,0 +1,32 @@
+@PACKAGE_INIT@
+
+set(CYT_RUST_TARGET "@CYT_RUST_TARGET@")
+set(CYT_LIB_PROFILE "@CYT_LIB_PROFILE@")
+set(CYT_TARGET_DIR "@CYT_TARGET_DIR@")
+set(CYT_INCLUDE_DIR "@CYT_INCLUDE_DIR@")
+
+if(WIN32)
+    set(CYT_SHARED_LIB "${CYT_TARGET_DIR}/${CYT_RUST_TARGET}/${CYT_LIB_PROFILE}/chunk_your_tools.dll")
+    set(CYT_IMPORT_LIB "${CYT_TARGET_DIR}/${CYT_RUST_TARGET}/${CYT_LIB_PROFILE}/chunk_your_tools.dll.lib")
+else()
+    if(APPLE)
+        set(CYT_SHARED_LIB "${CYT_TARGET_DIR}/${CYT_RUST_TARGET}/${CYT_LIB_PROFILE}/libchunk_your_tools.dylib")
+    else()
+        set(CYT_SHARED_LIB "${CYT_TARGET_DIR}/${CYT_RUST_TARGET}/${CYT_LIB_PROFILE}/libchunk_your_tools.so")
+    endif()
+endif()
+
+if(NOT TARGET CYT::chunk_your_tools)
+    add_library(CYT::chunk_your_tools SHARED IMPORTED)
+    set_target_properties(CYT::chunk_your_tools PROPERTIES
+        IMPORTED_LOCATION "${CYT_SHARED_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${CYT_INCLUDE_DIR}"
+    )
+    if(WIN32)
+        set_target_properties(CYT::chunk_your_tools PROPERTIES
+            IMPORTED_IMPLIB "${CYT_IMPORT_LIB}"
+        )
+    endif()
+endif()
+
+check_required_components(CYT)

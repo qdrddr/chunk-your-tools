@@ -1,0 +1,11 @@
+{
+  "name": "chunk-your-tools-registry-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test/run.mjs"
+  },
+  "devDependencies": {
+    "chunk-your-tools": "@CYT_RELEASE_VERSION@"
+  }
+}

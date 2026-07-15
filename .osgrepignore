@@ -1,0 +1,9 @@
+!src/catalog/schemas/decomposed
+!src/catalog/schemas/enums
+*.py
+*.md
+*.yaml
+*.toml
+*.sh
+.env.example
+node_modules/

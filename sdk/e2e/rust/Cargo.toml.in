@@ -1,0 +1,11 @@
+[workspace]
+
+[package]
+name = "chunk-your-tools-registry-e2e"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+chunk-your-tools = { version = "=@CYT_RELEASE_VERSION@" }
+serde_json = "1"

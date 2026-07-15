@@ -1,0 +1,178 @@
+name: SDK C/Go
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/**
+      - tests/**
+      - build.rs
+      - cbindgen.toml
+      - sdk/c/**
+      - sdk/c/scripts/**
+      - sdk/go/**
+      - Cargo.toml
+      - .github/workflows/sdk-c-go.yml
+  pull_request:
+    paths:
+      - src/**
+      - tests/**
+      - build.rs
+      - cbindgen.toml
+      - sdk/c/**
+      - sdk/c/scripts/**
+      - sdk/go/**
+      - Cargo.toml
+      - .github/workflows/sdk-c-go.yml
+
+concurrency:
+  group: sdk-c-go-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sdk-c-go:
+    name: C + Go (${{ matrix.target }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            goarch: amd64
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            goarch: arm64
+          - runner: macos-latest
+            target: aarch64-apple-darwin
+            goarch: arm64
+          - runner: macos-latest
+            target: x86_64-apple-darwin
+            goarch: amd64
+          - runner: windows-latest
+            target: x86_64-pc-windows-msvc
+            goarch: amd64
+            cgo_cc: x86_64-w64-mingw32-gcc
+            cgo_cxx: x86_64-w64-mingw32-g++
+          - runner: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            goarch: arm64
+            cgo_cc: aarch64-w64-mingw32-gcc
+            cgo_cxx: aarch64-w64-mingw32-g++
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.25"
+          cache: false
+
+      - name: Build shared C library
+        shell: bash
+        run: bash sdk/c/scripts/build-c-lib.sh --target ${{ matrix.target }}
+
+      - name: Rust FFI tests
+        shell: bash
+        run: |
+          cargo test -p chunk-your-tools --no-default-features --features ffi \
+            --target ${{ matrix.target }}
+
+      - name: Configure CMake (sdk/c)
+        shell: bash
+        run: |
+          extra_args=()
+          case "${{ matrix.target }}" in
+            x86_64-apple-darwin) extra_args=(-DCMAKE_OSX_ARCHITECTURES=x86_64) ;;
+            aarch64-apple-darwin) extra_args=(-DCMAKE_OSX_ARCHITECTURES=arm64) ;;
+          esac
+          cmake -S sdk/c -B sdk/c/build -DCMAKE_BUILD_TYPE=Release \
+            -DCYT_RUST_TARGET=${{ matrix.target }} "${extra_args[@]}"
+
+      - name: Build and test sdk/c
+        shell: bash
+        run: |
+          build_args=()
+          ctest_args=()
+          case "${{ matrix.target }}" in
+            *-pc-windows-msvc)
+              # MSVC uses a multi-config generator; ctest needs -C <config>.
+              build_args=(--config Release)
+              ctest_args=(-C Release)
+              ;;
+          esac
+          cmake --build sdk/c/build "${build_args[@]}"
+          ctest --test-dir sdk/c/build --output-on-failure "${ctest_args[@]}"
+
+      - name: Install llvm-mingw (Windows ARM64 CGO)
+        if: matrix.target == 'aarch64-pc-windows-msvc'
+        shell: pwsh
+        run: ./sdk/go/scripts/install-llvm-mingw.ps1 -Arch aarch64
+
+      - name: Prepare Windows Go CGO import library
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          lib_dir="${GITHUB_WORKSPACE}/target/${{ matrix.target }}/release"
+          native_dir="${GITHUB_WORKSPACE}/sdk/go/native/${{ matrix.target }}"
+          bash sdk/go/scripts/prepare-windows-cgo.sh "$lib_dir" "$native_dir"
+
+      - name: Go tests (sdk/go)
+        shell: bash
+        working-directory: sdk/go
+        env:
+          CGO_ENABLED: "1"
+          GOARCH: ${{ matrix.goarch }}
+          CYT_REPO_ROOT: ${{ github.workspace }}
+          CYT_RUST_TARGET: ${{ matrix.target }}
+        run: |
+          case "${{ matrix.target }}" in
+            *-pc-windows-msvc)
+              export CC="${{ matrix.cgo_cc }}"
+              export CXX="${{ matrix.cgo_cxx }}"
+              ;;
+          esac
+          ensure_args=(-static-only)
+          case "${{ matrix.target }}" in
+            *-pc-windows-msvc) ensure_args=() ;;
+          esac
+          go run ./cmd/chunk-native-ensure "${ensure_args[@]}"
+          lib_dir="${GITHUB_WORKSPACE}/target/${{ matrix.target }}/release"
+          case "${{ matrix.target }}" in
+            *-apple-darwin) export DYLD_LIBRARY_PATH="${lib_dir}:${DYLD_LIBRARY_PATH:-}" ;;
+            *-pc-windows-msvc) export PATH="${lib_dir}:${PATH}" ;;
+            *) export LD_LIBRARY_PATH="${lib_dir}:${LD_LIBRARY_PATH:-}" ;;
+          esac
+          go test -v ./...
+
+      - name: Verify chunk-native-ensure bootstrap
+        shell: bash
+        working-directory: sdk/go
+        env:
+          CGO_ENABLED: "1"
+          GOARCH: ${{ matrix.goarch }}
+          CYT_REPO_ROOT: ${{ github.workspace }}
+          CYT_RUST_TARGET: ${{ matrix.target }}
+        run: |
+          case "${{ matrix.target }}" in
+            *-pc-windows-msvc)
+              export CC="${{ matrix.cgo_cc }}"
+              export CXX="${{ matrix.cgo_cxx }}"
+              ;;
+          esac
+          lib_dir="${GITHUB_WORKSPACE}/target/${{ matrix.target }}/release"
+          case "${{ matrix.target }}" in
+            *-apple-darwin) export DYLD_LIBRARY_PATH="${lib_dir}:${DYLD_LIBRARY_PATH:-}" ;;
+            *-pc-windows-msvc) export PATH="${lib_dir}:${PATH}" ;;
+            *) export LD_LIBRARY_PATH="${lib_dir}:${LD_LIBRARY_PATH:-}" ;;
+          esac
+          # Use monorepo-built artifacts; -force would re-download from GitHub Releases.
+          go run ./cmd/chunk-native-ensure
+          go test -count=1 ./...

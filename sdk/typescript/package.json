@@ -1,0 +1,60 @@
+{
+  "name": "chunk-your-tools-sdk",
+  "version": "1.0.0",
+  "description": "TypeScript SDK for chunk-your-tools — tool schema decomposition and recomposition",
+  "keywords": [
+    "mcp",
+    "json-schema",
+    "tool-gating",
+    "chunk-your-tools"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qdrddr/chunk-your-tools.git",
+    "directory": "sdk/typescript"
+  },
+  "license": "Apache-2.0",
+  "author": "Damien Berezenko",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "native.cjs",
+    "native.d.ts",
+    "chunk-your-tools-sdk.*.node",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run build:native && npm run build:js",
+    "build:js": "tsc",
+    "build:native": "napi build --platform --release --manifest-path ../../Cargo.toml -p chunk-your-tools --features node --no-default-features --output-dir . --js native.cjs --dts native.d.ts",
+    "test": "npm run build && node --test dist/test/*.test.js"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3.7.0",
+    "@types/node": "^22.15.21",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "napi": {
+    "binaryName": "chunk-your-tools-sdk",
+    "targets": [
+      "x86_64-unknown-linux-gnu",
+      "aarch64-unknown-linux-gnu",
+      "x86_64-pc-windows-msvc",
+      "aarch64-pc-windows-msvc",
+      "x86_64-apple-darwin",
+      "aarch64-apple-darwin"
+    ]
+  }
+}

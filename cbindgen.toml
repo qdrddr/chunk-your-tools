@@ -1,0 +1,63 @@
+# cbindgen configuration for chunk-your-tools FFI
+
+language = "C"
+cpp_compat = true
+
+header = """
+/**
+ * @file chunk_your_tools.h
+ * @brief chunk-your-tools C FFI interface
+ *
+ * Tool schema decomposition and recomposition for MCP tool definitions.
+ *
+ * # Memory Management
+ *
+ * - Strings returned via `char**` out parameters MUST be freed with `cyt_free_string()`.
+ * - Opaque handles (`CytCatalogBuilder`, `CytDecomposedCatalog`)
+ *   MUST be freed with their matching `cyt_*_free()` function.
+ * - Input C strings remain owned by the caller.
+ *
+ * # Thread Safety
+ *
+ * Error messages are stored in thread-local storage. Call `cyt_get_last_error()`
+ * from the same thread that received a non-zero error code.
+ *
+ * # Return Conventions
+ *
+ * - `CYT_OK` (0) on success for status functions.
+ * - Negative error codes on failure; see `cyt_get_last_error()`.
+ * - JSON outputs: int return code + `char**` out param.
+ * - Boolean queries: 1 true, 0 false, negative on error (or `int*` out with `CYT_OK`).
+ */
+"""
+
+include_guard = "CHUNK_YOUR_TOOLS_H"
+pragma_once = true
+
+sys_includes = ["stdint.h", "stdbool.h"]
+
+tab_width = 4
+line_length = 100
+documentation_style = "c"
+documentation_length = "full"
+
+namespace = "cyt"
+
+[export]
+prefix = "CYT_"
+
+[parse]
+parse_deps = false
+clean = true
+include = ["src/bindings/cbindgen_stubs.rs"]
+
+[enum]
+rename_variants = "None"
+
+[struct]
+derive_eq = false
+derive_neq = false
+
+[export.rename]
+"CytCatalogBuilder" = "CytCatalogBuilder"
+"CytDecomposedCatalog" = "CytDecomposedCatalog"
