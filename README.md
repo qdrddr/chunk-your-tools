@@ -23,7 +23,7 @@ trees into addressable chunks (tools, optional properties, enums), then rebuild 
 definitions from survivor lists.
 
 This library is extracted from [clear-your-tools](https://github.com/qdrddr/clear-your-tools)
-and contains **only** decomposition/recomposition — no BM25, proxy, or agent integration.
+and contains **only** decomposition/recomposition.
 
 ## What it does
 
