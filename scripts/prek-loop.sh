@@ -89,7 +89,7 @@ done
 
 load_group_hooks() {
 	local group="$1"
-	uv run python - "$group" "$GROUPS_FILE" <<'PY'
+	uv run --with pyyaml python - "$group" "$GROUPS_FILE" <<'PY'
 import sys
 
 import yaml

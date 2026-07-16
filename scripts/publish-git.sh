@@ -1,0 +1,246 @@
+#!/usr/bin/env bash
+# Bump version manifests, commit, push, tag, and create a GitHub Release for
+# qdrddr/chunk-your-tools.
+#
+# Pushing vX.Y.Z triggers CI publish workflows (crates.io, npm, PyPI, C FFI).
+# This script also creates the GitHub Release that publish-c-ffi.yml uploads to.
+#
+# Usage:
+#   ./scripts/publish-git.sh v1.0.4
+#   ./scripts/publish-git.sh bump-patch
+#   ./scripts/publish-git.sh bump-minor
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+EXPECTED_REPO="qdrddr/chunk-your-tools"
+
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/shorten-paths.sh"
+export SHORTEN_ROOT="${ROOT}"
+
+usage() {
+	cat <<EOF
+Usage: $(basename "$0") TAG | bump-patch | bump-minor
+
+Examples:
+  $(basename "$0") v1.0.4
+  $(basename "$0") bump-patch
+  $(basename "$0") bump-minor
+
+Auto-bump (bump-patch / bump-minor):
+  - Fetch the latest git tags and GitHub releases matching vMAJOR.MINOR.PATCH
+  - Pick the highest version among both
+  - bump-patch: increment PATCH, e.g. v1.0.3 -> v1.0.4
+  - bump-minor: increment MINOR and reset PATCH to 0, e.g. v1.0.3 -> v1.1.0
+
+Steps:
+  1. Run scripts/sync-version.sh with the semver (without the leading v)
+  2. Commit only the version manifest files
+  3. Push the current branch (expected: main)
+  4. Force-create the git tag vX.Y.Z and push it
+  5. Force-create the Go module tag sdk/go/vX.Y.Z and push it
+  6. Create (or recreate) a stable GitHub Release for the tag
+
+Tag push triggers:
+  - publish-crates.yml  -> crates.io chunk-your-tools
+  - publish-npm-sdk.yml / publish-pypi-sdk.yml (after crates publish)
+  - publish-c-ffi.yml   -> GitHub Release assets
+EOF
+}
+
+validate_tag() {
+	local tag="$1"
+	if [[ ! "${tag}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+		echo "error: invalid tag (expected vX.Y.Z): ${tag}" >&2
+		exit 1
+	fi
+}
+
+require_command() {
+	local cmd="$1"
+	if ! command -v "${cmd}" >/dev/null 2>&1; then
+		echo "error: required command not found: ${cmd}" >&2
+		exit 1
+	fi
+}
+
+require_repo() {
+	local repo
+	repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
+	if [[ "${repo}" != "${EXPECTED_REPO}" ]]; then
+		echo "error: expected GitHub repo ${EXPECTED_REPO}, got ${repo}" >&2
+		exit 1
+	fi
+}
+
+version_files() {
+	cat <<EOF
+${ROOT}/Cargo.toml
+${ROOT}/Cargo.lock
+${ROOT}/sdk/python/pyproject.toml
+${ROOT}/sdk/typescript/package.json
+${ROOT}/sdk/typescript/package-lock.json
+${ROOT}/sdk/c/CMakeLists.txt
+${ROOT}/sdk/go/moduleversion/version.go
+EOF
+}
+
+semver_tag_pattern='^v[0-9]+\.[0-9]+\.[0-9]+$'
+
+collect_version_tags() {
+	git fetch origin --tags --quiet 2>/dev/null || true
+
+	git tag -l 'v[0-9]*.[0-9]*.[0-9]*' |
+		grep -E "${semver_tag_pattern}" || true
+
+	gh release list --limit 1000 --json tagName --jq '.[].tagName' |
+		grep -E "${semver_tag_pattern}" || true
+}
+
+latest_version_tag() {
+	local -a versions=()
+
+	mapfile -t versions < <(collect_version_tags | sort -uV)
+	if ((${#versions[@]} == 0)); then
+		echo "error: no vMAJOR.MINOR.PATCH tags or releases found; pass an explicit tag" >&2
+		exit 1
+	fi
+
+	printf '%s\n' "${versions[-1]}"
+}
+
+resolve_bump_tag() {
+	local bump_kind="$1"
+	local latest major minor patch semver
+
+	latest="$(latest_version_tag)"
+	semver="${latest#v}"
+	IFS='.' read -r major minor patch <<<"${semver}"
+
+	case "${bump_kind}" in
+	bump-patch)
+		patch=$((patch + 1))
+		;;
+	bump-minor)
+		minor=$((minor + 1))
+		patch=0
+		;;
+	*)
+		echo "error: unknown bump kind: ${bump_kind}" >&2
+		exit 1
+		;;
+	esac
+
+	printf 'v%s.%s.%s\n' "${major}" "${minor}" "${patch}"
+}
+
+previous_tag() {
+	local tag="$1"
+	git tag -l 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname |
+		while read -r candidate; do
+			if [[ "${candidate}" != "${tag}" ]]; then
+				printf '%s\n' "${candidate}"
+				return 0
+			fi
+		done
+}
+
+release_notes() {
+	local tag="$1"
+	local prev_tag
+
+	prev_tag="$(previous_tag "${tag}")"
+
+	if [[ -n "${prev_tag}" ]]; then
+		printf '**Full Changelog**: https://github.com/%s/compare/%s...%s\n' \
+			"${EXPECTED_REPO}" "${prev_tag}" "${tag}"
+	else
+		printf 'Release %s\n' "${tag}"
+	fi
+}
+
+push_tag() {
+	local tag="$1"
+	git tag -f "${tag}"
+	git push -f origin "${tag}"
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+	usage
+	exit 0
+fi
+
+if [[ $# -ne 1 ]]; then
+	usage >&2
+	exit 1
+fi
+
+require_command git
+require_command gh
+
+arg="$1"
+case "${arg}" in
+bump-patch | bump-minor)
+	tag="$(resolve_bump_tag "${arg}")"
+	echo "${arg} resolved next tag: ${tag}"
+	;;
+*)
+	tag="${arg}"
+	;;
+esac
+
+validate_tag "${tag}"
+semver="${tag#v}"
+go_tag="sdk/go/v${semver}"
+
+cd "${ROOT}"
+
+if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+	echo "error: not inside a git repository" >&2
+	exit 1
+fi
+
+require_repo
+
+branch="$(git branch --show-current)"
+if [[ -z "${branch}" ]]; then
+	echo "error: detached HEAD; checkout a branch before publishing" >&2
+	exit 1
+fi
+if [[ "${branch}" != "main" ]]; then
+	echo "warning: publishing from branch ${branch} (expected main)" >&2
+fi
+
+mapfile -t files < <(version_files)
+
+"${SCRIPT_DIR}/sync-version.sh" "${semver}"
+
+git add -- "${files[@]}"
+if git diff --cached --quiet; then
+	echo "version manifests already at ${semver}; skipping commit"
+else
+	git commit -m "version bump to ${tag}"
+fi
+
+git push origin HEAD
+
+push_tag "${tag}"
+push_tag "${go_tag}"
+
+notes="$(release_notes "${tag}")"
+if gh release view "${tag}" >/dev/null 2>&1; then
+	gh release delete "${tag}" -y
+fi
+gh release create "${tag}" \
+	--title "${tag}" \
+	--notes "${notes}" \
+	--latest
+
+cat <<EOF | shorten_paths
+published ${tag}:
+  branch: ${branch}
+  commit: $(git rev-parse --short HEAD)
+  go tag: ${go_tag}
+  release: https://github.com/${EXPECTED_REPO}/releases/tag/${tag}
+EOF
