@@ -16,6 +16,30 @@ require_cmd() {
 	}
 }
 
+ensure_c_compile_db() {
+	local build_dir="${ROOT}/sdk/c/build"
+	local lock="${build_dir}/.configure.lock"
+	mkdir -p "${build_dir}"
+	if [[ -f "${build_dir}/compile_commands.json" ]]; then
+		return 0
+	fi
+	local i=0
+	while ! mkdir "${lock}" 2>/dev/null; do
+		sleep 0.25
+		[[ -f "${build_dir}/compile_commands.json" ]] && return 0
+		i=$((i + 1))
+		if ((i > 120)); then
+			echo "error: timed out waiting for sdk/c compile database" >&2
+			return 1
+		fi
+	done
+	if [[ ! -f "${build_dir}/compile_commands.json" ]]; then
+		cmake -S "${ROOT}/sdk/c" -B "${build_dir}" \
+			-DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release
+	fi
+	rmdir "${lock}"
+}
+
 tool=${1:?usage: c-sdk-precommit.sh TOOL [args...]}
 shift
 
@@ -27,12 +51,7 @@ clang-format)
 clang-tidy)
 	require_cmd clang-tidy
 	require_cmd cmake
-	build_dir="${ROOT}/sdk/c/build"
-	if [[ ! -f "${build_dir}/compile_commands.json" ]]; then
-		mkdir -p "${build_dir}"
-		cmake -S "${ROOT}/sdk/c" -B "${build_dir}" \
-			-DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release
-	fi
+	ensure_c_compile_db
 	extra=()
 	if sdkroot="$(xcrun --show-sdk-path 2>/dev/null)"; then
 		extra+=("-extra-arg=-isysroot${sdkroot}")
@@ -56,4 +75,3 @@ cpplint)
 	exit 1
 	;;
 esac
-
