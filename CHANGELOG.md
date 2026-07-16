@@ -1,25 +1,40 @@
 # Changelog
 
+All notable changes to [chunk-your-tools](https://github.com/qdrddr/chunk-your-tools) are
+documented here. Version numbers follow [Cargo.toml](Cargo.toml) and are propagated to Python,
+TypeScript, Go, and C SDKs via `./scripts/sync-version.sh`.
+
+## 1.0.6
+
+- Dedicated E2E workflows for crates.io, npm, and PyPI published packages
+- README and examples documentation updates
+
+## 1.0.5
+
+- Shared `_repo_root.sh` for example scripts to resolve the monorepo root reliably
+
+## 1.0.4
+
+- Example `decompose` / `recompose` scripts and catalog output paths
+- C SDK compile-database fix for clang-tidy in local dev
+
+## 1.0.3
+
+- Version sync across Rust, Python, TypeScript, Go, and C packages
+
+## 1.0.2
+
+- CI workflow improvements; normalized path separators in Rust catalog paths
+
+## 1.0.1
+
+- Publish scripts for crates.io, npm, and PyPI
+- SDK naming alignment across language bindings
+
 ## 1.0.0
 
-Major release: agent modules reorganization. Old import paths were removed without deprecation shims.
+### Includes
 
-### Migration
-
-| Old import | New import |
-| --- | --- |
-| `cyt.launch.claude` | `cyt.agents.claude.launch` |
-| `cyt.launch.codex` | `cyt.agents.codex.launch` |
-| `cyt.launch.cursor` | `cyt.agents.cursor.launch` |
-| `cyt.skills.hook_setup` | `cyt.hook.setup_wizard` |
-| Cursor payload normalize in `cyt_client` | Server: `cyt.agents.cursor.skills_hook.normalize_cursor_payload` |
-| Anthropic proxy skills helpers in `cyt.skills.proxy_inject` | `cyt.agents.claude.skills_proxy` (facade re-exports remain) |
-| OpenAI proxy skills helpers in `cyt.skills.proxy_inject` | `cyt.agents.codex.skills_proxy` (facade re-exports remain) |
-| `cyt.common.agents` | Still valid; types also in `cyt.agents._types` |
-
-### Highlights
-
-- `cyt/agents/{claude,codex,cursor}/` — launch, hook install, proxy wiring, skills_hook, skills_proxy
-- `cyt_client` stays stdlib-only; sends `cyt_agent` and raw Cursor JSON; server normalizes
-- Cursor agent-transcript JSONL parsing for skills search query
-- Optional extras: `claude`, `codex`, `cursor`, `agents`
+- Rust library and `chunk-your-tools` CLI (`decompose`, `recompose`)
+- Python, TypeScript, Go (cgo), and C FFI SDKs
+- Semantic survivor format (`tools`, `properties`, `enums`)

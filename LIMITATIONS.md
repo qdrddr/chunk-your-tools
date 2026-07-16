@@ -1,114 +1,82 @@
 # Limitations
 
-This implementation requires running as a reverse proxy with supported agents such as Claude Code,
-and others like Codex, OpenCode, etc (not tested yet). It could be used with Copilot only with the BYOK.
+This document describes what **chunk-your-tools** does and does not handle. For configuration
+and CLI flags, see [CONFIG.md](CONFIG.md).
 
-**Hook path (`pruning.tools.inject_via: hook`):** tool definitions can be pruned and injected via
-`cyt hook --stdin` without a reverse proxy when skills also use hook injection (or skills are
-disabled). This injects pruned tool context into the agent turn; it does not replace native MCP tool
-registration in the agent runtime. Live executor catalog loading requires a running Executor MCP
-aggregator and `EXECUTOR_TOKEN` (or `pruning.tools.hook.executor_token_var`).
+## Scope
 
-Cursor, or VSCode/Copilot for example, does not support reverse proxying and only supports forward proxies.
-In that configuration, requests remain end-to-end encrypted, so the proxy cannot inspect, manipulate,
-or prune the request payload.
+**chunk-your-tools** is a library for MCP tool schema **decomposition** and **recomposition** only.
 
-The token savings applies to **input tokens only** and **only tool definitions**,
-the rest of the request remains unchanged. Output/completion or reasoning tokens are not affected.
+It does **not** provide:
 
-Conceptually, this functionality is better suited to an MCP Aggregator that connects to backend MCP
-servers and exposes only the relevant tools to the agent. However, the current MCP specification
-has several limitations that make this difficult in practice:
+- A reverse proxy or request interceptor
+- BM25, rerank, or LLM pruning pipelines
+- Agent or IDE integration (Claude Code, Cursor, Codex, etc.)
+- Automatic survivor selection from a user query
 
-- MCP is not designed to integrate with agent lifecycle hooks.
-- MCP clients and servers are initialized before the agent session starts, so MCP is not aware of
-  agent sessions, sub-agents, or execution context boundaries.
-- Because of this, an MCP Aggregator cannot reliably determine which agent session or sub-agent should
-  see a specific subset of tools, making dynamic tool pruning unreliable.
+## Survivor lists
 
-Token counts in this repository are placeholders only (`token_count: null` in catalog metadata).
-Reported token savings may differ from a provider's own counts, because the pruned content is never
-actually sent to the LLM provider. However, since the pruned content is never transmitted, this
-discrepancy does not affect the actual billed usage.
+Recompose requires an explicit survivor list. The library does not infer which tools, optional
+properties, or enum values are relevant to a task.
 
-Local applications only. The proxy intercepts outgoing network traffic from locally running agent
-applications before the requests are sent to the LLM provider, allowing it to prune irrelevant
-tools from the payload:
+- **Semantic format** — you supply tool IDs, property names, and enum names.
 
-- Cloud-hosted applications cannot use this approach, because their traffic does not pass through
-  the locally running proxy.
+If survivors omit a tool root, that tool is dropped (subject to the active pruning policy).
 
-If the provider enforces a fixed *tools → system → messages* ordering at the API level, you gain input‑token savings,
-but you also introduce a tradeoff: any change to the tool list invalidates the entire downstream cache.
-This deserves deeper investigation. What is obvious is that excess context leads to
-[context rot](https://www.trychroma.com/research/context-rot),
-[Context Bloat](https://eval.16x.engineer/blog/llm-context-management-guide),
-[Context Delusion](https://diffray.ai/blog/context-dilution/)
-and removing irrelevant information consistently improves an LLM’s cognitive performance.
+## Required properties
 
-Codex already reduces tool sets by removing unused tools, but CYT goes further:
-it also prunes irrelevant optional fields and enums, something Codex never touches.
-Even when both are used together, CYT still cuts input tokens by an additional ~20%.
+Decomposition always keeps **required** properties on tool root chunks. Recomposition never
+removes required fields from tools that survive. Only **optional** properties are split into
+separate chunks and can be pruned independently.
 
-## Model Cache
+## Tool classification
 
-Mutating tools invalidates the provider’s prompt cache, because tool definitions usually
-appear before the system and user messages. Any change to that prefix forces a cache miss
-for everything that follows.
+System vs MCP classification defaults to the `mcp__` name prefix:
 
-That trade-off is usually acceptable: system and user messages are typically short, so the
-lost cache hit rate (often saves 50%) is smaller compared with the token savings from pruning
-the tool list (typically 80–95% of the original size of the tools).
+- `mcp__…` → MCP tool (`prune_all` by default)
+- Everything else → system tool (`prune_optional` by default)
 
-## Pruner Strategy and Accuracy
+Use `--tool-type` or `PolicyContext.tool_kind_override` when your catalog does not follow this
+naming convention.
 
-CYT’s default pruner is BM25: fast, local, and free. It isn’t the most advanced method,
-but you can swap it for a reranker or a small, cheap LLM if you want higher‑quality pruning.
-This is often worthwhile when using Claude Code, since Sonnet is expensive.
+## Token counts
 
-### BM25 language and tokenization
+Token counts in catalog metadata are placeholders only (`token_count: null`). This library does
+not compute tokenizer-accurate sizes. Any savings estimates must come from the host application
+or provider billing data.
 
-Languages with complex morphology (Arabic, Finnish, Turkish) or no whitespace (Chinese, Japanese)
-require specialized tokenizers. CYT’s BM25 stack is built on **Tantivy** (Rust) and aligned with
-its tokenization model.
+## Schema coverage
 
-#### Tantivy (Rust)
+Decomposition targets MCP-style tool definitions with JSON Schema `inputSchema` /
+`input_schema` objects:
 
-- Supports BM25 with tokenizers for English and multilingual ICU.
-- Additional tokenizers are available via plugins.
-- Tantivy’s default tokenizer is language‑agnostic (splits on whitespace + punctuation).
-  It works for any language that uses whitespace.
+- Optional top-level properties are chunked; nested optionals use dotted survivor paths
+  (e.g. `"config.timeout"`).
+- Enum values are extracted into separate Markdown chunks when declared on properties.
+- Both `input_schema` (Anthropic) and `inputSchema` (MCP) field names are accepted.
 
-#### Stemming
+Arbitrary JSON Schema constructs (e.g. `oneOf` / `allOf` at the root, deeply dynamic schemas)
+may not decompose into clean optional-property chunks. Validate output for unusual schemas.
 
-Stemming is only available for these 18 languages:
+## Description policies
 
-Arabic, Danish, Dutch, English, Finnish, French, German, Greek, Hungarian, Italian, Norwegian,
-Portuguese, Romanian, Spanish, Swedish, Tamil, Turkish.
+`prune_optional_descriptions` and `prune_all_descriptions` affect **legacy** recompose paths
+that merge scored chunk lists. They reinstate pruned optional properties without `description`
+fields (names, types, and enum hints remain). Semantic name-based recompose uses survivor lists
+directly and does not apply description stripping unless you use the legacy retrieve pipeline
+with policies.
 
-You can implement your own tokenizer or integrate external ones (e.g., for Chinese/Japanese/Korean).
-Tantivy encourages using `tantivy-tokenizer-api` for custom tokenizers.
+## Empty optional mitigation
 
-A common worry is that pruning might cause multi‑step agents to “lose” tools or degrade semantics
-by removing tools. In practice, we haven’t seen this happen, for two reasons:
+When aggressive pruning would leave a tool root with no `properties`, the library can append
+up to `empty_optional_fallback_k` (default **3**) highest-scoring optional chunks from a scored
+catalog, or drop the tool under LLM-style policies. This behavior applies to legacy retrieve /
+policy-aware recompose, not to bare semantic survivor lists.
 
-1. **The user query is always preserved.**
-Each step is a new agent message, but the original user query is always included.
-Pruning is anchored to that query—not to intermediate reasoning—so every step receives the same stable,
-pruned tool list.
+## Host integration
 
-2. **Losing intent is hallucination, not pruning failure.**
-If an agent drifts away from the user’s goal or tries to use irrelevant tools,
-that’s agent behavior, not missing tools. A larger tool list doesn’t fix hallucinations.
+chunk-your-tools alone is suitable for:
 
-3. **The latest assistant turn refines pruning.**
-On multi-step requests, CYT scores tools against both the original user query and
-the agent's most recent assistant message (`User_Asks: …; Assistant_Says: …`).
-The user's goal stays anchored across steps; the latest turn adds context for what the agent is doing now.
-
-- Dynamic tool reduction remains stable across multi‑step reasoning because pruning
-is tied to the user query.
-- If an agent “forgets” what it’s doing, that’s a hallucination issue,
-not a limitation of the pruning mechanism.
-- Semantic degradation is a legitimate concern that should be tested,
-and it can be reduced by using a stronger pruner pipeline and higher‑quality models.
+- Offline catalog generation and inspection
+- Custom pruning pipelines that produce survivor JSON
+- Embedding decomposition/recompose in another service or SDK
