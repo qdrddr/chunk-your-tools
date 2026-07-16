@@ -191,7 +191,7 @@ Apache-2.0 — see [LICENSE](LICENSE).
 
 [license-badge-shield]: https://img.shields.io/badge/License-Apache_2.0-yellow?style=for-the-badge
 [license-link]: LICENSE
-[version-shield]: https://img.shields.io/github/v/release/qdrddr/chunk-your-tools?style=for-the-badge&label=version&color=4385BE&logoColor=white
+[version-shield]: https://img.shields.io/github/v/release/qdrddr/chunk-your-tools?label=version&color=4385BE&logoColor=white
 [release-link]: https://github.com/qdrddr/chunk-your-tools/releases
 [rust-version-shield]: https://img.shields.io/crates/v/chunk-your-tools?logo=rust&color=e6522c&logoColor=white
 [rust-downloads-shield]: https://img.shields.io/crates/d/chunk-your-tools?logo=rust&color=e6522c&logoColor=white
