@@ -48,13 +48,3 @@ func TestRuntimeDefaultsSmoke(t *testing.T) {
 		t.Fatalf("unexpected decomposed score: %v", RuntimeDecomposedScore())
 	}
 }
-
-func TestCountTokensSmoke(t *testing.T) {
-	count, err := CountTokens("hello world")
-	if err != nil {
-		t.Fatalf("CountTokens: %v", err)
-	}
-	if count < 1 {
-		t.Fatalf("expected token count >= 1, got %d", count)
-	}
-}

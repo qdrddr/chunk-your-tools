@@ -176,38 +176,6 @@ func cgoTruncateDescription(description string, maxTokens uint64) (string, error
 	return takeJSON(&out)
 }
 
-func cgoCountTokens(text string) (int64, error) {
-	cText := cString(text)
-	defer freeCString(cText)
-	count := C.cyt_count_tokens(cText)
-	if count < 0 {
-		return 0, lastError()
-	}
-	return int64(count), nil
-}
-
-func cgoCountJsonTokens(jsonStr string) (int64, error) {
-	cJSON := cString(jsonStr)
-	defer freeCString(cJSON)
-	count := C.cyt_count_json_tokens(cJSON)
-	if count < 0 {
-		return 0, lastError()
-	}
-	return int64(count), nil
-}
-
-func cgoConfigureTokenizerDefaults(configJSON string) error {
-	var cCfg *C.char
-	if configJSON != "" {
-		cCfg = cString(configJSON)
-		defer freeCString(cCfg)
-	}
-	if C.cyt_configure_tokenizer_defaults(cCfg) != ok {
-		return lastError()
-	}
-	return nil
-}
-
 func cgoWriteCatalogIndex(indexJSON, outputDir string, prune bool) error {
 	cIndex := cString(indexJSON)
 	defer freeCString(cIndex)
@@ -892,16 +860,6 @@ func cgoToolIDHadEmptyOriginalRootProperties(catalogIndexJSON, toolID string) (b
 	return cgoBoolFromOutInt("", func(out *C.int) C.int {
 		return C.cyt_tool_id_had_empty_original_root_properties(cIndex, cTool, out)
 	})
-}
-
-func cgoCountTokensBatch(textsJSON string) (string, error) {
-	cTexts := cString(textsJSON)
-	defer freeCString(cTexts)
-	var out *C.char
-	if C.cyt_count_tokens_batch(cTexts, &out) != ok {
-		return "", lastError()
-	}
-	return takeJSON(&out)
 }
 
 func cgoClassifyOptionalChunksBatch(itemsJSON string) (string, error) {

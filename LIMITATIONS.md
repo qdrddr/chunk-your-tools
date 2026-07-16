@@ -26,11 +26,10 @@ has several limitations that make this difficult in practice:
 - Because of this, an MCP Aggregator cannot reliably determine which agent session or sub-agent should
   see a specific subset of tools, making dynamic tool pruning unreliable.
 
-The savings shown in the `cyt stats` output are estimated using `cl100k_base` token counting from
-`cyt-indexer-sdk` (Rust `tiktoken-rs`), because the pruned content is never actually sent to the LLM provider. As a result,
-the reported token savings may slightly differ from the provider's own token counts. However,
-since the pruned content is never transmitted, this discrepancy does not affect the actual billed
-usage.
+Token counts in this repository are placeholders only (`token_count: null` in catalog metadata).
+Reported token savings may differ from a provider's own counts, because the pruned content is never
+actually sent to the LLM provider. However, since the pruned content is never transmitted, this
+discrepancy does not affect the actual billed usage.
 
 Local applications only. The proxy intercepts outgoing network traffic from locally running agent
 applications before the requests are sent to the LLM provider, allowing it to prune irrelevant

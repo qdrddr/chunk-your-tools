@@ -466,49 +466,6 @@ int cyt_runtime_default_system_policy(char **out);
 
 int cyt_runtime_default_mcp_policy(char **out);
 
-/*
- Count tokens in UTF-8 text using the configured tiktoken encoding.
-
- Returns the token count on success, or `-1` on error (`cyt_get_last_error()`).
-
- # Safety
-
- `text` must be a valid null-terminated UTF-8 C string, or null (returns -1).
- */
-long cyt_count_tokens(const char *text);
-
-/*
- Count tokens for compact JSON text.
-
- Returns the token count on success, or `-1` on error.
-
- # Safety
-
- `json` must be a valid null-terminated UTF-8 C string, or null (returns -1).
- */
-long cyt_count_json_tokens(const char *json);
-
-/*
- Override tokenizer defaults. `config_json` may be null or partial JSON:
- `{"encoding":"cl100k_base","allowed_special":"all"|"none"}`.
-
- # Safety
-
- When non-null, `config_json` must be a valid null-terminated UTF-8 C string.
- */
-int cyt_configure_tokenizer_defaults(const char *config_json);
-
-/*
- Count tokens for multiple UTF-8 strings.
-
- `texts_json` must be a JSON array of strings. Writes a JSON array of counts to `out`.
-
- # Safety
-
- When non-null, `texts_json` must be valid UTF-8 JSON; `out` must be non-null.
- */
-int cyt_count_tokens_batch(const char *texts_json, char **out);
-
 #ifdef __cplusplus
 }  // extern "C"
 #endif  // __cplusplus

@@ -27,7 +27,7 @@ func AnthropicToolToCatalogEntry(toolJSON string) (string, error) {
 	return cgoAnthropicToolToCatalogEntry(toolJSON)
 }
 
-// TruncateDescription truncates a tool description to a token budget.
+// TruncateDescription truncates a tool description to a rough character budget (~4 chars/token).
 func TruncateDescription(description string, maxTokens uint64) (string, error) {
 	return cgoTruncateDescription(description, maxTokens)
 }
@@ -37,7 +37,7 @@ func CatalogIndexToCatalogDict(indexJSON, catalogPrefix string) (string, error) 
 	return cgoCatalogIndexToCatalogDict(indexJSON, catalogPrefix)
 }
 
-// CatalogIndexToolSchemaMetadata returns cached full/decomposed tool schema token metadata.
+// CatalogIndexToolSchemaMetadata returns cached full/decomposed tool schema metadata (token_count is null).
 func CatalogIndexToolSchemaMetadata(indexJSON string) (string, error) {
 	return cgoCatalogIndexToolSchemaMetadata(indexJSON)
 }

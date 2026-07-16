@@ -14,7 +14,6 @@ pub mod policies;
 pub mod retrieve;
 pub mod runtime_config;
 pub mod survivors;
-pub mod tiktoken;
 pub mod tool_entries;
 
 #[cfg(feature = "python")]
@@ -73,10 +72,6 @@ pub use runtime_config::{
     snapshot as runtime_snapshot,
 };
 pub use survivors::{NamedSurvivors, recompose_tools_from_names, resolve_survivors_from_names};
-pub use tiktoken::{
-    configure as configure_tiktoken, count_json_tokens, count_tokens, count_tokens_or_min,
-    snapshot as tiktoken_snapshot,
-};
 pub use tool_entries::{
     anthropic_tool_to_catalog_entry, anthropic_tools_to_catalog_entries, build_catalog_from_tools,
     is_catalog_tool_entry, normalize_tools_for_catalog, prepare_tool_entry, truncate_description,

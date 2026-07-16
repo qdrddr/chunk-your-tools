@@ -7,7 +7,7 @@ export function isJsonRecord(value: unknown): value is JsonRecord {
 /** Cached token metadata for one tool schema file in a catalog index. */
 export interface ToolSchemaTokenFileEntry {
   file_path: string;
-  token_count: number;
+  token_count: number | null;
 }
 
 /** Cached full/decomposed tool schema token metadata from catalog index files. */

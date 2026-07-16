@@ -129,11 +129,4 @@ export const classifyOptionalChunksBatchNative =
 export const writeCatalogIndexNative = native.writeCatalogIndex;
 export const CatalogBuilderNative = native.CatalogBuilder;
 
-// Tokens
-export const countTokensNative = native.countTokens;
-export const countTokensBatchNative = native.countTokensBatch;
-export const countJsonTokensNative = native.countJsonTokens;
-export const configureTokenizerDefaultsNative =
-  native.configureTokenizerDefaults;
-
 export type { PolicyOptions, PolicyContextJs } from "../native.d.ts";

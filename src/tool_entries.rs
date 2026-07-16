@@ -5,12 +5,32 @@ use crate::build::{CatalogIndex, build_catalog_index};
 use crate::paths::collect_enums;
 use serde_json::{Value, json};
 
-use crate::tiktoken;
-
-/// Truncate text to at most `max_tokens` (tiktoken), preferring a word boundary.
+/// Truncate text to roughly `max_tokens` (~4 chars/token), preferring a word boundary.
 #[must_use]
 pub fn truncate_description(description: &str, max_tokens: usize) -> String {
-    tiktoken::truncate_description_or_passthrough(description, max_tokens)
+    if description.is_empty() {
+        return String::new();
+    }
+    let max_chars = max_tokens.saturating_mul(4);
+    if description.chars().count() <= max_chars {
+        return description.to_string();
+    }
+
+    let suffix = "...";
+    let body_budget = max_chars.saturating_sub(suffix.chars().count());
+    if body_budget == 0 {
+        return suffix.to_string();
+    }
+
+    let chars: Vec<char> = description.chars().collect();
+    let mut body: String = chars[..body_budget.min(chars.len())].iter().collect();
+    if let Some(sp) = body.rfind(' ')
+        && sp > 0
+    {
+        body.truncate(sp);
+    }
+
+    format!("{body}{suffix}")
 }
 
 fn anthropic_input_schema(tool: &Value) -> Value {
@@ -177,7 +197,17 @@ mod tests {
             .ok_or_else(|| "missing schemas/full/metadata.json".to_string())?;
         let full_meta: Value = serde_json::from_str(full_meta_raw)
             .map_err(|e| format!("invalid schemas/full/metadata.json: {e}"))?;
-        assert!(full_meta.get("token_count").is_some() || full_meta.get("files").is_some());
+        assert!(
+            full_meta.get("token_count").is_some_and(Value::is_null)
+                || full_meta
+                    .get("files")
+                    .and_then(Value::as_array)
+                    .is_some_and(|files| {
+                        files
+                            .iter()
+                            .all(|entry| entry.get("token_count").is_some_and(Value::is_null))
+                    })
+        );
         let decomposed_meta_raw = index
             .files
             .get("schemas/decomposed/metadata.json")
@@ -189,7 +219,7 @@ mod tests {
             .ok_or_else(|| "decomposed metadata is not an array".to_string())?;
         assert!(!entries.is_empty());
         assert!(entries[0].get("file_path").is_some());
-        assert!(entries[0].get("token_count").is_some());
+        assert!(entries[0].get("token_count").is_some_and(Value::is_null));
 
         let catalog = index.to_catalog_dict();
         let json_items = catalog
@@ -199,7 +229,7 @@ mod tests {
         assert!(
             json_items
                 .iter()
-                .any(|item| item.get("token_count").is_some())
+                .any(|item| item.get("token_count").is_some_and(Value::is_null))
         );
         Ok(())
     }

@@ -28,6 +28,16 @@ test("CatalogIndex.toCatalogDict builds json and markdown entries", () => {
   assert.equal(dict.json[0]?.id, "search");
 });
 
+test("CatalogIndex.toCatalogDict includes null token_count placeholders", () => {
+  const index = new CatalogIndex([], {
+    "schemas/decomposed/search.json": '{"id":"search"}',
+    "schemas/decomposed/search.md": "# search",
+  });
+  const dict = index.toCatalogDict("src/catalog");
+  assert.equal(dict.json[0]?.token_count, null);
+  assert.equal(dict.md[0]?.token_count, null);
+});
+
 test("CatalogIndex.toolSchemaMetadata reads cached token metadata", () => {
   const index = buildCatalogFromTools([
     {

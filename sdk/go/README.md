@@ -65,7 +65,7 @@ Attached to each [GitHub Release](https://github.com/qdrddr/chunk-your-tools/rel
 
 The Go package mirrors the C FFI surface:
 
-- `BuildCatalogIndex`, `RetrieveTools`, `CountTokens`
+- `BuildCatalogIndex`, `RetrieveTools`
 - Policy helpers (`PartitionCatalog`, `MergeCatalog`, pass-through checks)
 - Survivor resolution via semantic names or legacy chunk lists
 

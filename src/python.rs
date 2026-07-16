@@ -1,9 +1,6 @@
 #[path = "policies_python.rs"]
 mod policies_python;
 
-#[path = "tokens_python.rs"]
-mod tokens_python;
-
 use crate::build::{build_catalog_index, catalog_index_from_value, catalog_tool_count};
 use crate::paths::{self, PathConfig, collect_enums};
 use crate::policies::{PolicyContext, policy_context_from_values};
@@ -681,6 +678,5 @@ fn _native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(resolve_survivors_from_names_py, m)?)?;
     m.add_function(wrap_pyfunction!(recompose_tools_from_names_py, m)?)?;
     policies_python::register(m)?;
-    tokens_python::register(m)?;
     Ok(())
 }

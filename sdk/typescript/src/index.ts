@@ -56,12 +56,6 @@ export {
 } from "./paths.js";
 export { CatalogBuilder, writeCatalogIndex } from "./catalog-io.js";
 export {
-  configureTokenizerDefaults,
-  countJsonTokens,
-  countTokens,
-  countTokensBatch,
-} from "./tokens.js";
-export {
   recomposeToolsFromNames,
   resolveSurvivorsFromNames,
 } from "./survivors.js";

@@ -54,12 +54,6 @@ from chunk_your_tools.survivors import (
     recompose_tools_from_names,
     resolve_survivors_from_names,
 )
-from chunk_your_tools.tokens import (
-    configure_tokenizer_defaults,
-    count_json_tokens,
-    count_tokens,
-    count_tokens_batch,
-)
 from chunk_your_tools.version import get_version
 
 __all__ = [
@@ -81,10 +75,6 @@ __all__ = [
     "collect_enums",
     "configure_path_constants",
     "configure_runtime_defaults",
-    "configure_tokenizer_defaults",
-    "count_json_tokens",
-    "count_tokens",
-    "count_tokens_batch",
     "decomposed_prefix",
     "decomposed_root",
     "decomposed_score",
