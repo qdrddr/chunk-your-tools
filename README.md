@@ -161,6 +161,7 @@ See [examples/README.md](examples/README.md) for survivor formats, output paths,
 | TypeScript | `sdk/typescript` | [README](sdk/typescript/README.md) |
 | Go | `sdk/go` | [README](sdk/go/README.md) |
 | C | `sdk/c` | [README](sdk/c/README.md) |
+| Rust | `src` | [README](src/README.md) |
 
 ## Development
 
