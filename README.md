@@ -153,21 +153,6 @@ export PATH="$PWD/target/release:$PATH"
 
 See [examples/README.md](examples/README.md) for survivor formats, output paths, and CLI flags.
 
-## CLI
-
-```bash
-# Decompose tools.json into a searchable catalog
-chunk-your-tools decompose --input tools.json --output ./catalog
-
-# Recompose pruned tools from survivor lists (catalog optional)
-chunk-your-tools recompose \
-  --input tools.json \
-  --survivors survivors.json \
-  --output recomposed-tools.json
-```
-
-Survivor lists tool names, optional properties, and enum values to keep.
-
 ## SDKs
 
 | SDK | Path | Docs |
