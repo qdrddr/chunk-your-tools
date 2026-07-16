@@ -22,7 +22,7 @@ and contains **only** decomposition/recomposition — no BM25, proxy, or agent i
 
 ## What it does
 
-1. **Decompose** — parse MCP tool definition JSON into addressable chunks (tools, optional properties, enums).
+1. **Chunk/Decompose** — parse MCP tool definition JSON into addressable chunks (tools, optional properties, enums).
 2. **Cache** — write `metadata.json` and per-chunk files under a catalog directory.
 3. **Recompose** — rebuild pruned tool definitions from survivor lists.
 
