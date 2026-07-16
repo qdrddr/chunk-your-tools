@@ -2,9 +2,10 @@ module chunk-go-git-smoke
 
 go 1.25.0
 
-require github.com/qdrddr/chunk-your-tools/sdk/go v1.0.0
+require github.com/qdrddr/chunk-your-tools/sdk/go/v2 v@CHUNK_YOUR_TOOLS_GIT_VERSION@
 
-replace github.com/qdrddr/chunk-your-tools/sdk/go => @CHUNK_YOUR_TOOLS_GIT_STAGING@/sdk/go
+replace github.com/qdrddr/chunk-your-tools/sdk/go/v2 => @CHUNK_YOUR_TOOLS_GIT_STAGING@/sdk/go
 
-tool github.com/qdrddr/chunk-your-tools/sdk/go/cmd/chunk-native-ensure
+tool github.com/qdrddr/chunk-your-tools/sdk/go/v2/cmd/chunk-native-ensure
+
 

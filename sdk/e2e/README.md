@@ -8,7 +8,7 @@ checkout**—not the active monorepo tree (unless `--workspace` is set).
 | [`rust/`](rust/) | [crates.io](https://crates.io/crates/chunk-your-tools) | `chunk-your-tools` |
 | [`python/`](python/) | [PyPI](https://pypi.org/project/chunk-your-tools/) | `chunk-your-tools` |
 | [`typescript/`](typescript/) | [npm](https://www.npmjs.com/package/chunk-your-tools) | `chunk-your-tools` |
-| [`go/`](go/) | [GitHub tag](https://github.com/qdrddr/chunk-your-tools/tags) | `github.com/qdrddr/chunk-your-tools/sdk/go` |
+| [`go/`](go/) | [GitHub tag](https://github.com/qdrddr/chunk-your-tools/tags) | `github.com/qdrddr/chunk-your-tools/sdk/go/v2` |
 | [`c/`](c/) | [GitHub tag](https://github.com/qdrddr/chunk-your-tools/tags) | `sdk/c` + `libchunk_your_tools` built from tagged crate |
 
 ## CI
@@ -69,7 +69,7 @@ export CHUNK_YOUR_TOOLS_RELEASE_VERSION=0.1.10   # or TAG=v0.1.10
 ```
 
 Low-level registry polling: [`scripts/wait-registry.sh`](scripts/wait-registry.sh) targets `crate`, `pypi-sdk`,
-`npm`, `tag`. Set `SKIP_REGISTRY_WAIT=1` to skip waits in `run-local.sh`, `run-all.sh`, or `run-target.sh`.
+`npm`, `tag`, `go-tag`, `release-assets`. Set `SKIP_REGISTRY_WAIT=1` to skip waits in `run-local.sh`, `run-all.sh`, or `run-target.sh`.
 
 ## Go/C staging
 

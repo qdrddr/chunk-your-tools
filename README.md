@@ -186,8 +186,8 @@ Apache-2.0 — see [LICENSE](LICENSE).
 [npm-link]: https://www.npmjs.com/package/chunk-your-tools
 [c-version-shield]: https://img.shields.io/github/v/release/qdrddr/chunk-your-tools?style=flat-square&label=sdk%2Fc&color=555&logoColor=white
 [c-link]: https://github.com/qdrddr/chunk-your-tools/releases
-[go-version-shield]: https://pkg.go.dev/badge/github.com/qdrddr/chunk-your-tools/sdk/go
-[go-link]: https://pkg.go.dev/github.com/qdrddr/chunk-your-tools/sdk/go
+[go-version-shield]: https://pkg.go.dev/badge/github.com/qdrddr/chunk-your-tools/sdk/go/v2
+[go-link]: https://pkg.go.dev/github.com/qdrddr/chunk-your-tools/sdk/go/v2
 [rust-tech-shield]: https://img.shields.io/badge/-Rust-e6522c?logo=rust&logoColor=white
 [python-tech-shield]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
 [typescript-shield]: https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white

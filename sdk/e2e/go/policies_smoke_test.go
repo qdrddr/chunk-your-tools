@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	chunkyourtools "github.com/qdrddr/chunk-your-tools/sdk/go"
+	chunkyourtools "github.com/qdrddr/chunk-your-tools/sdk/go/v2"
 )
 
 func TestBatchToolPassThroughSmoke(t *testing.T) {

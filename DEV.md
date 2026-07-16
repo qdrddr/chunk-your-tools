@@ -33,7 +33,7 @@ cd sdk/python && uv run pytest
 ./scripts/local-dev.sh sdk-go
 ./scripts/local-dev.sh sdk-c
 
-# Example decompose/recompose against debug/full_example.json
+# Example decompose/recompose against examples/input fixtures
 ./scripts/local-dev.sh indexer all
 ```
 

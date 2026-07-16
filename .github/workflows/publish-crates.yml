@@ -37,6 +37,25 @@ permissions:
   contents: read
 
 jobs:
+  ensure-go-module-tag:
+    name: Ensure sdk/go module tag
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Create sdk/go tag if missing
+        run: |
+          set -euo pipefail
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          bash scripts/ensure-go-module-tag.sh "${VERSION}"
+
   publish-crate:
     name: Upload chunk-your-tools to crates.io
     runs-on: ubuntu-latest

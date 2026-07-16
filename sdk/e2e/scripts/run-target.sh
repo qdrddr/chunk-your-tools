@@ -64,6 +64,7 @@ typescript)
 go)
 	echo "=== Go SDK (GitHub tag + release C FFI) ==="
 	maybe_wait "GitHub tag v${CHUNK_YOUR_TOOLS_RELEASE_VERSION}" tag
+	maybe_wait "GitHub sdk/go module tag v${CHUNK_YOUR_TOOLS_RELEASE_VERSION}" go-tag
 	maybe_wait "GitHub Release C FFI v${CHUNK_YOUR_TOOLS_RELEASE_VERSION}" release-assets
 	prepare_go_c
 	export_native_lib_path

@@ -10,7 +10,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "--file",
         action="store",
         default=None,
-        help="Path to a proxy debug snapshot JSON (e.g. debug/full_example.json)",
+        help="Path to a proxy debug snapshot JSON (e.g. examples/input/tools.json or a full proxy snapshot)",
     )
     parser.addoption(
         "--output",

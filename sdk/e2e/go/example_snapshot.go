@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	chunkindexer "github.com/qdrddr/chunk-your-tools/sdk/go"
+	chunkindexer "github.com/qdrddr/chunk-your-tools/sdk/go/v2"
 )
 
 func repoRoot() string {

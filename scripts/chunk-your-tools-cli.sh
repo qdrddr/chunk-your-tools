@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Example: decompose and recompose tools from debug/full_example.json using the release CLI.
+# Example: decompose and recompose tools from examples/input fixtures using the release CLI.
 
 set -euo pipefail
 
@@ -9,17 +9,16 @@ cd "$ROOT"
 env -u CARGO_TARGET_DIR cargo build -p chunk-your-tools --release
 CLI="${ROOT}/target/release/chunk-your-tools"
 CATALOG="${ROOT}/.catalog"
+TOOLS="${ROOT}/examples/input/tools.json"
+SURVIVORS="${ROOT}/examples/input/survivors-legacy.json"
 
 mkdir -p "${CATALOG}"
 
-jq '.body.tools' debug/full_example.json >"${CATALOG}/input.json"
+cp "${TOOLS}" "${CATALOG}/input.json"
 
 "${CLI}" decompose --input "${CATALOG}/input.json" --output "${CATALOG}"
 
-jq '{
-  json: [.pruning.decomposed_catalog.rerank.json[]? | .score |= (tonumber)],
-  md:   [.pruning.decomposed_catalog.rerank.md[]?   | .score |= (tonumber)]
-}' debug/full_example.json >"${CATALOG}/survivors.json"
+cp "${SURVIVORS}" "${CATALOG}/survivors.json"
 
 "${CLI}" recompose \
 	--input "${CATALOG}/input.json" \

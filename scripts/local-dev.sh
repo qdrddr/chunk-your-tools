@@ -90,7 +90,7 @@ _chunk_your_tools_local_dev_main() {
 			cat <<EOF
 Usage: ./scripts/local-dev.sh indexer [decompose|survivors|recompose|all] [args...]
 
-  decompose   extract tools from debug/full_example.json -> chunk-your-tools decompose -> .catalog/
+  decompose   extract tools from examples/input/tools.json -> chunk-your-tools decompose -> .catalog/
   survivors   extract legacy json/md survivors from example rerank output
   recompose   chunk-your-tools recompose (in-memory, no catalog dir required)
   all         decompose + survivors + recompose

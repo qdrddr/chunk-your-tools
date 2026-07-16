@@ -64,6 +64,10 @@ jobs:
         continue-on-error: true
         run: sdk/e2e/scripts/wait-registry.sh tag
 
+      - name: Wait for sdk/go module tag
+        continue-on-error: true
+        run: sdk/e2e/scripts/wait-registry.sh go-tag
+
       - name: Test published Go module
         run: sdk/e2e/scripts/run-target.sh go
 

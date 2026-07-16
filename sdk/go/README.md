@@ -12,11 +12,11 @@ sdk/go (cgo)  →  chunkyourtools package
 ## Install
 
 ```bash
-go get github.com/qdrddr/chunk-your-tools/sdk/go
+go get github.com/qdrddr/chunk-your-tools/sdk/go/v2
 ```
 
 ```go
-import chunkyourtools "github.com/qdrddr/chunk-your-tools/sdk/go"
+import chunkyourtools "github.com/qdrddr/chunk-your-tools/sdk/go/v2"
 ```
 
 ## Native library bootstrap

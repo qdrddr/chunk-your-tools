@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	chunkyourtools "github.com/qdrddr/chunk-your-tools/sdk/go"
+	chunkyourtools "github.com/qdrddr/chunk-your-tools/sdk/go/v2"
 )
 
 func main() {
@@ -33,3 +33,4 @@ func main() {
 		fmt.Printf("  cwd: %s\n", wd)
 	}
 }
+

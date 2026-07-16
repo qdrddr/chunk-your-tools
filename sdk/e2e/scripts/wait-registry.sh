@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Wait until a published package version is available on a registry.
-# Usage: CHUNK_YOUR_TOOLS_RELEASE_VERSION=0.1.10 ./wait-registry.sh <crate|pypi-sdk|npm|tag|release-assets>
+# Usage: CHUNK_YOUR_TOOLS_RELEASE_VERSION=0.1.10 ./wait-registry.sh <crate|pypi-sdk|npm|tag|go-tag|release-assets>
 set -euo pipefail
 
 TARGET="${1:-}"
 VERSION="${CHUNK_YOUR_TOOLS_RELEASE_VERSION:-}"
 if [[ -z "$TARGET" || -z "$VERSION" ]]; then
-	echo "usage: CHUNK_YOUR_TOOLS_RELEASE_VERSION=x.y.z $0 <crate|pypi-sdk|npm|tag|release-assets>" >&2
+	echo "usage: CHUNK_YOUR_TOOLS_RELEASE_VERSION=x.y.z $0 <crate|pypi-sdk|npm|tag|go-tag|release-assets>" >&2
 	exit 1
 fi
 
@@ -55,6 +55,13 @@ npm_has_version() {
 tag_has_version() {
 	local ver="$1"
 	local tag="v${ver}"
+	local repo="${CHUNK_YOUR_TOOLS_E2E_GIT_REPO:-https://github.com/qdrddr/chunk-your-tools.git}"
+	git ls-remote --tags "$repo" "refs/tags/${tag}" | grep -q .
+}
+
+go_tag_has_version() {
+	local ver="$1"
+	local tag="sdk/go/v${ver}"
 	local repo="${CHUNK_YOUR_TOOLS_E2E_GIT_REPO:-https://github.com/qdrddr/chunk-your-tools.git}"
 	git ls-remote --tags "$repo" "refs/tags/${tag}" | grep -q .
 }
@@ -113,6 +120,9 @@ npm)
 	;;
 tag)
 	wait_loop "GitHub/chunk-your-tools" tag_has_version "$VERSION"
+	;;
+go-tag)
+	wait_loop "GitHub/sdk/go module tag" go_tag_has_version "$VERSION"
 	;;
 release-assets)
 	wait_loop "GitHub Release C FFI assets" release_has_ffi_assets "$VERSION"

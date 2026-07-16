@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	chunkindexer "github.com/qdrddr/chunk-your-tools/sdk/go"
+	chunkindexer "github.com/qdrddr/chunk-your-tools/sdk/go/v2"
 
 	e2esupport "chunk-your-tools-go-registry-e2e"
 )

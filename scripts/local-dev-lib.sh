@@ -199,19 +199,42 @@ if [[ -z "${CHUNK_YOUR_TOOLS_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 	}
 
 	chunk_your_tools_indexer_paths() {
-		CHUNK_YOUR_TOOLS_INDEXER_BIN="${CHUNK_YOUR_TOOLS_REPO_ROOT}/target/release/chunk-your-tools"
+		CHUNK_YOUR_TOOLS_INDEXER_BIN="${CHUNK_YOUR_TOOLS_INDEXER_BIN:-${CHUNK_YOUR_TOOLS_REPO_ROOT}/target/release/chunk-your-tools}"
 		CHUNK_YOUR_TOOLS_CATALOG_DIR="${CHUNK_YOUR_TOOLS_CATALOG_DIR:-${CHUNK_YOUR_TOOLS_REPO_ROOT}/.catalog}"
-		CHUNK_YOUR_TOOLS_EXAMPLE_JSON="${CHUNK_YOUR_TOOLS_EXAMPLE_JSON:-${CHUNK_YOUR_TOOLS_REPO_ROOT}/debug/full_example.json}"
-		CHUNK_YOUR_TOOLS_SURVIVORS_JSON="${CHUNK_YOUR_TOOLS_SURVIVORS_JSON:-${CHUNK_YOUR_TOOLS_CATALOG_DIR}/survivors.json}"
+		CHUNK_YOUR_TOOLS_TOOLS_JSON="${CHUNK_YOUR_TOOLS_TOOLS_JSON:-${CHUNK_YOUR_TOOLS_REPO_ROOT}/examples/input/tools.json}"
+		CHUNK_YOUR_TOOLS_SURVIVORS_JSON="${CHUNK_YOUR_TOOLS_SURVIVORS_JSON:-${CHUNK_YOUR_TOOLS_REPO_ROOT}/examples/input/survivors-legacy.json}"
+		# Optional proxy debug snapshot (legacy debug/full_example.json shape).
+		CHUNK_YOUR_TOOLS_EXAMPLE_JSON="${CHUNK_YOUR_TOOLS_EXAMPLE_JSON:-}"
 		CHUNK_YOUR_TOOLS_RETRIEVE_OUT="${CHUNK_YOUR_TOOLS_RETRIEVE_OUT:-${CHUNK_YOUR_TOOLS_CATALOG_DIR}/out.json}"
+	}
+
+	chunk_your_tools_indexer_tools_source() {
+		chunk_your_tools_indexer_paths
+		if [[ -n "${CHUNK_YOUR_TOOLS_EXAMPLE_JSON}" ]]; then
+			echo "${CHUNK_YOUR_TOOLS_EXAMPLE_JSON}"
+		else
+			echo "${CHUNK_YOUR_TOOLS_TOOLS_JSON}"
+		fi
+	}
+
+	chunk_your_tools_indexer_write_tools_json() {
+		local src="$1" dest="$2"
+		if jq -e '.body.tools' "${src}" >/dev/null 2>&1; then
+			chunk_your_tools_run jq '.body.tools' "${src}" >"${dest}"
+		elif jq -e 'type == "array"' "${src}" >/dev/null 2>&1; then
+			chunk_your_tools_run jq '.' "${src}" >"${dest}"
+		else
+			die "expected tool array or proxy snapshot with .body.tools: ${src}"
+		fi
 	}
 
 	chunk_your_tools_indexer_build_catalog() {
 		require_cmd jq
 		chunk_your_tools_indexer_paths
 
-		local example="${CHUNK_YOUR_TOOLS_EXAMPLE_JSON}"
-		[[ -f "${example}" ]] || die "missing ${example}"
+		local tools_source
+		tools_source="$(chunk_your_tools_indexer_tools_source)"
+		[[ -f "${tools_source}" ]] || die "missing ${tools_source}"
 
 		chunk_your_tools_indexer_release
 		[[ -x "${CHUNK_YOUR_TOOLS_INDEXER_BIN}" ]] || die "chunk-your-tools binary not found at ${CHUNK_YOUR_TOOLS_INDEXER_BIN}"
@@ -219,8 +242,8 @@ if [[ -z "${CHUNK_YOUR_TOOLS_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 		local tools_json
 		tools_json="$(mktemp "${TMPDIR:-/tmp}/chunk-your-tools-tools.XXXXXX")"
 
-		info "extract tools from example json"
-		chunk_your_tools_run jq '.body.tools' "${example}" >"${tools_json}"
+		info "prepare tools json from ${tools_source}"
+		chunk_your_tools_indexer_write_tools_json "${tools_source}" "${tools_json}"
 
 		mkdir -p "${CHUNK_YOUR_TOOLS_CATALOG_DIR}"
 		info "chunk-your-tools decompose"
@@ -236,22 +259,29 @@ if [[ -z "${CHUNK_YOUR_TOOLS_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 	chunk_your_tools_indexer_extract_survivors() {
 		require_cmd jq
 		chunk_your_tools_indexer_paths
-
-		local example="${CHUNK_YOUR_TOOLS_EXAMPLE_JSON}"
-		[[ -f "${example}" ]] || die "missing ${example}"
 		mkdir -p "${CHUNK_YOUR_TOOLS_CATALOG_DIR}"
 
-		info "extract rerank survivors"
-		chunk_your_tools_run jq '{
-		  json: [.pruning.decomposed_catalog.rerank.json[]? | .score |= (tonumber)],
-		  md:   [.pruning.decomposed_catalog.rerank.md[]?   | .score |= (tonumber)]
-		}' "${example}" >"${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}"
+		if [[ -n "${CHUNK_YOUR_TOOLS_EXAMPLE_JSON}" ]]; then
+			local example="${CHUNK_YOUR_TOOLS_EXAMPLE_JSON}"
+			[[ -f "${example}" ]] || die "missing ${example}"
+
+			info "extract rerank survivors from proxy snapshot"
+			chunk_your_tools_run jq '{
+			  json: [.pruning.decomposed_catalog.rerank.json[]? | .score |= (tonumber)],
+			  md:   [.pruning.decomposed_catalog.rerank.md[]?   | .score |= (tonumber)]
+			}' "${example}" >"${CHUNK_YOUR_TOOLS_CATALOG_DIR}/survivors.json"
+			CHUNK_YOUR_TOOLS_SURVIVORS_JSON="${CHUNK_YOUR_TOOLS_CATALOG_DIR}/survivors.json"
+		else
+			[[ -f "${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}" ]] ||
+				die "missing survivors fixture ${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}"
+			info "use survivors fixture ${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}"
+		fi
 
 		local json_count md_count
 		json_count="$(jq '.json | length' "${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}")"
 		md_count="$(jq '.md | length' "${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}")"
 		[[ "${json_count}" -gt 0 || "${md_count}" -gt 0 ]] ||
-			die "no rerank survivors in ${example} (.pruning.decomposed_catalog.rerank)"
+			die "no survivors in ${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}"
 		info "survivors ok (json=${json_count}, md=${md_count})"
 	}
 
@@ -261,12 +291,13 @@ if [[ -z "${CHUNK_YOUR_TOOLS_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 		[[ -x "${CHUNK_YOUR_TOOLS_INDEXER_BIN}" ]] || chunk_your_tools_indexer_release
 		[[ -x "${CHUNK_YOUR_TOOLS_INDEXER_BIN}" ]] || die "chunk-your-tools binary not found at ${CHUNK_YOUR_TOOLS_INDEXER_BIN}"
 
-		local example="${CHUNK_YOUR_TOOLS_EXAMPLE_JSON}"
-		[[ -f "${example}" ]] || die "missing ${example}"
+		local tools_source
+		tools_source="$(chunk_your_tools_indexer_tools_source)"
+		[[ -f "${tools_source}" ]] || die "missing ${tools_source}"
 
 		local tools_json
 		tools_json="$(mktemp "${TMPDIR:-/tmp}/chunk-your-tools-tools.XXXXXX")"
-		chunk_your_tools_run jq '.body.tools' "${example}" >"${tools_json}"
+		chunk_your_tools_indexer_write_tools_json "${tools_source}" "${tools_json}"
 
 		local system_policy="${CHUNK_YOUR_TOOLS_INDEXER_SYSTEM_POLICY:-prune_optional}"
 		local mcp_policy="${CHUNK_YOUR_TOOLS_INDEXER_MCP_POLICY:-prune_all}"
@@ -374,7 +405,7 @@ if [[ -z "${CHUNK_YOUR_TOOLS_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 		chunk_your_tools_sync_sdk_python
 		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/python" || die "cd failed"
 		info "maturin develop --release"
-		chunk_your_tools_run uv run maturin develop --release
+		chunk_your_tools_run env -u CARGO_TARGET_DIR uv run maturin develop --release
 	}
 
 	chunk_your_tools_build_sdk_typescript() {

@@ -18,7 +18,9 @@ if [[ ! -f "${STAGING}/sdk/go/go.mod" ]]; then
 	)
 fi
 
-sed "s|@CHUNK_YOUR_TOOLS_GIT_STAGING@|${STAGING}|g" "${ROOT}/go.mod.in" >"${ROOT}/go.mod"
+sed -e "s|@CHUNK_YOUR_TOOLS_GIT_STAGING@|${STAGING}|g" \
+	-e "s/@CHUNK_YOUR_TOOLS_GIT_VERSION@/${VERSION}/g" \
+	"${ROOT}/go.mod.in" >"${ROOT}/go.mod"
 
 # When developing inside the monorepo, overlay the fixed chunk-native-ensure tool onto the tag checkout.
 MONOREPO_ROOT="$(cd "${ROOT}/../.." && pwd)"
