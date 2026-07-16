@@ -14,7 +14,8 @@ use std::path::{Path, PathBuf};
 
 #[derive(Parser)]
 #[command(name = "chunk-your-tools")]
-#[command(about = "Decompose and recompose MCP tool definition schemas")]
+#[command(about = "Chunk/Decompose and recompose MCP tool definition schemas")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
