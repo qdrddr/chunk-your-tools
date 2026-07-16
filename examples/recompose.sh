@@ -13,13 +13,30 @@
 # Prerequisites (pick one):
 #   cargo install chunk-your-tools
 #   cargo build -p chunk-your-tools --release   # from repo root
+#   ./examples/recompose.sh --dev               # build/use target/release if needed
 #
 # Usage (from repo root or examples/):
 #   ./examples/recompose.sh
+#   ./examples/recompose.sh --dev
 #   ./examples/decompose.sh
 #   ./recompose.sh
 
 set -euo pipefail
+
+DEV=0
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+	--dev)
+		DEV=1
+		shift
+		;;
+	*)
+		echo "Unknown option: $1" >&2
+		echo "Usage: $(basename "$0") [--dev]" >&2
+		exit 1
+		;;
+	esac
+done
 
 SCRIPT="${BASH_SOURCE[0]:-$0}"
 EXAMPLES_DIR=""
@@ -36,7 +53,7 @@ if [[ -z "$EXAMPLES_DIR" ]]; then
 	echo "Could not locate examples/_repo_root.sh (run from repo root or examples/)" >&2
 	exit 1
 fi
-# shellcheck disable=SC1091
+# shellcheck source=examples/_repo_root.sh
 source "${EXAMPLES_DIR}/_repo_root.sh"
 ROOT="$(chunk_your_tools_repo_root_from "$SCRIPT")"
 cd "$ROOT"
@@ -52,15 +69,7 @@ if [[ ! -d "${CATALOG}/schemas/decomposed" ]]; then
 	exit 1
 fi
 
-if [[ -x "${ROOT}/target/release/chunk-your-tools" ]]; then
-	CLI="${ROOT}/target/release/chunk-your-tools"
-elif command -v chunk-your-tools >/dev/null 2>&1; then
-	CLI=chunk-your-tools
-else
-	echo "Building chunk-your-tools (release)..." >&2
-	env -u CARGO_TARGET_DIR cargo build -p chunk-your-tools --release
-	CLI="${ROOT}/target/release/chunk-your-tools"
-fi
+CLI="$(chunk_your_tools_resolve_cli "$ROOT" "$DEV")"
 
 mkdir -p "${OUT}"
 

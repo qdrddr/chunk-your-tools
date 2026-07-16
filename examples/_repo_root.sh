@@ -56,3 +56,38 @@ chunk_your_tools_repo_root_from() {
 
 	(cd "${examples_dir}/.." && pwd)
 }
+
+chunk_your_tools_build_release_cli() {
+	local root="$1"
+	echo "Building chunk-your-tools (release)..." >&2
+	(
+		cd "$root" || exit
+		env -u CARGO_TARGET_DIR cargo build -p chunk-your-tools --release
+	)
+}
+
+# Resolve the chunk-your-tools CLI binary.
+# With dev=1: always use target/release/chunk-your-tools (build if missing).
+# Otherwise: prefer local release build, then cargo install on PATH, then build.
+chunk_your_tools_resolve_cli() {
+	local root="$1"
+	local dev="${2:-0}"
+	local cli="${root}/target/release/chunk-your-tools"
+
+	if [[ "$dev" == "1" ]]; then
+		if [[ ! -x "$cli" ]]; then
+			chunk_your_tools_build_release_cli "$root"
+		fi
+		echo "$cli"
+		return 0
+	fi
+
+	if [[ -x "$cli" ]]; then
+		echo "$cli"
+	elif command -v chunk-your-tools >/dev/null 2>&1; then
+		echo "chunk-your-tools"
+	else
+		chunk_your_tools_build_release_cli "$root"
+		echo "$cli"
+	fi
+}
