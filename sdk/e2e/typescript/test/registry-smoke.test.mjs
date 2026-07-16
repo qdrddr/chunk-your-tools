@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildCatalogFromTools,
   buildCatalogIndex,
   CatalogIndex,
   DecomposedCatalog,
@@ -33,6 +34,43 @@ test("buildCatalogIndex from npm package", () => {
   assert.ok(
     Object.hasOwn(index.files, "schemas/decomposed/mcp__test__foo.json"),
   );
+
+  const meta = index.toolSchemaMetadata();
+  const types = Object.fromEntries(
+    (meta.decomposed ?? []).map((entry) => [entry.file_path, entry.type]),
+  );
+  assert.equal(types["schemas/decomposed/mcp__test__foo.json"], "tool");
+  assert.equal(
+    types["schemas/decomposed/mcp__test__foo/optional_field.json"],
+    "property",
+  );
+});
+
+test("buildCatalogFromTools classifies decomposed metadata entry types", () => {
+  const index = buildCatalogFromTools([
+    {
+      name: "Agent",
+      description: "Launch agents",
+      input_schema: {
+        type: "object",
+        properties: {
+          prompt: { type: "string" },
+          model: { type: "string", enum: ["opus", "haiku"] },
+        },
+        required: ["prompt"],
+      },
+    },
+  ]);
+  const types = Object.fromEntries(
+    (index.toolSchemaMetadata().decomposed ?? []).map((entry) => [
+      entry.file_path,
+      entry.type,
+    ]),
+  );
+  assert.equal(types["schemas/decomposed/Agent.json"], "tool");
+  assert.equal(types["schemas/decomposed/Agent/model.json"], "property");
+  assert.equal(types["schemas/decomposed/haiku.md"], "enum");
+  assert.equal(types["schemas/decomposed/opus.md"], "enum");
 });
 
 test("removedChunks from npm package", () => {

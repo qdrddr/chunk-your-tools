@@ -37,7 +37,8 @@ func CatalogIndexToCatalogDict(indexJSON, catalogPrefix string) (string, error) 
 	return cgoCatalogIndexToCatalogDict(indexJSON, catalogPrefix)
 }
 
-// CatalogIndexToolSchemaMetadata returns cached full/decomposed tool schema metadata (token_count is null).
+// CatalogIndexToolSchemaMetadata returns cached full/decomposed tool schema metadata.
+// Decomposed entries include a type field: tool, property, or enum.
 func CatalogIndexToolSchemaMetadata(indexJSON string) (string, error) {
 	return cgoCatalogIndexToolSchemaMetadata(indexJSON)
 }

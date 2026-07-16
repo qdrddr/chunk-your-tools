@@ -1,4 +1,5 @@
 use crate::build::CatalogIndex;
+use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -121,4 +122,112 @@ fn collect_paths(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+fn catalog_rel_path(root: &Path, path: &Path) -> Result<String, String> {
+    Ok(path
+        .strip_prefix(root)
+        .map_err(|e| e.to_string())?
+        .to_string_lossy()
+        .replace('\\', "/"))
+}
+
+fn load_tools_from_catalog_file(path: &Path) -> Result<Vec<Value>, String> {
+    let raw = fs::read_to_string(path).map_err(|e| e.to_string())?;
+    let val: Value = serde_json::from_str(&raw).map_err(|e| e.to_string())?;
+    val.as_array()
+        .cloned()
+        .or_else(|| val.get("tools").and_then(Value::as_array).cloned())
+        .ok_or_else(|| format!("{} must contain a tools array", path.display()))
+}
+
+fn collect_catalog_files(
+    root: &Path,
+    dir: &Path,
+    files: &mut HashMap<String, String>,
+) -> Result<(), String> {
+    for entry in fs::read_dir(dir).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if path.is_dir() {
+            collect_catalog_files(root, &path, files)?;
+            continue;
+        }
+        if !path.is_file() {
+            continue;
+        }
+        let rel_str = catalog_rel_path(root, &path)?;
+        let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+        files.insert(rel_str, content);
+    }
+    Ok(())
+}
+
+/// Load a catalog index written by [`write_catalog_index`] or the `decompose` CLI.
+///
+/// Reads `tools.json` into [`CatalogIndex::tools`] and every other file under the
+/// catalog root into [`CatalogIndex::files`].
+///
+/// # Errors
+/// Returns an error when the directory is missing, unreadable, or `tools.json` is invalid.
+pub fn load_catalog_index_from_dir(dir: &Path) -> Result<CatalogIndex, String> {
+    if !dir.is_dir() {
+        return Err(format!("Catalog directory not found: {}", dir.display()));
+    }
+
+    let tools_path = dir.join("tools.json");
+    let tools = if tools_path.is_file() {
+        load_tools_from_catalog_file(&tools_path)?
+    } else {
+        Vec::new()
+    };
+
+    let mut files = HashMap::new();
+    collect_catalog_files(dir, dir, &mut files)?;
+
+    Ok(CatalogIndex { tools, files })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::build::build_catalog_index;
+    use serde_json::json;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    fn temp_catalog_dir() -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_or(0, |duration| duration.as_nanos());
+        std::env::temp_dir().join(format!("cyt-catalog-{nanos}"))
+    }
+
+    #[test]
+    fn load_catalog_index_from_dir_round_trip() -> Result<(), String> {
+        let dir = temp_catalog_dir();
+        let tools = [json!({
+            "id": "Agent",
+            "full_schema": {
+                "id": "Agent",
+                "name": "Agent",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {"prompt": {"type": "string"}},
+                    "required": ["prompt"]
+                }
+            }
+        })];
+        let index = build_catalog_index(&tools, &[]);
+        write_catalog_index(&index, &dir, false)?;
+        let loaded = load_catalog_index_from_dir(&dir)?;
+        assert_eq!(loaded.tools.len(), index.tools.len());
+        assert!(loaded.files.contains_key("schemas/decomposed/Agent.json"));
+        assert!(
+            loaded
+                .files
+                .contains_key("schemas/decomposed/metadata.json")
+        );
+        let _ = fs::remove_dir_all(&dir);
+        Ok(())
+    }
 }

@@ -1,0 +1,33 @@
+[
+  {
+    "description": "Launch a new agent to handle complex, multi-step tasks.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "description": "A short (3-5 word) description of the task",
+          "type": "string"
+        },
+        "model": {
+          "description": "Optional model override for this agent.",
+          "enum": [
+            "opus",
+            "haiku",
+            "sonnet"
+          ],
+          "type": "string"
+        },
+        "prompt": {
+          "description": "The task for the agent to perform",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description",
+        "prompt"
+      ],
+      "type": "object"
+    },
+    "name": "Agent"
+  }
+]

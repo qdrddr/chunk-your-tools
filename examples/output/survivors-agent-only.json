@@ -1,0 +1,13 @@
+{
+  "tools": [
+    "Agent"
+  ],
+  "properties": {
+    "Agent": [
+      "model"
+    ]
+  },
+  "enums": [
+    "opus"
+  ]
+}

@@ -62,6 +62,32 @@ test("CatalogIndex.toolSchemaMetadata reads cached token metadata", () => {
   assert.ok(Array.isArray(meta.decomposed));
 });
 
+test("CatalogIndex.toolSchemaMetadata classifies decomposed entry types", () => {
+  const index = buildCatalogFromTools([
+    {
+      name: "Agent",
+      description: "Launch agents",
+      input_schema: {
+        type: "object",
+        properties: {
+          prompt: { type: "string" },
+          model: { type: "string", enum: ["opus", "haiku"] },
+        },
+        required: ["prompt"],
+      },
+    },
+  ]);
+  const meta = index.toolSchemaMetadata();
+  const decomposed = meta.decomposed ?? [];
+  const byPath = new Map(
+    decomposed.map((entry) => [entry.file_path, entry.type]),
+  );
+  assert.equal(byPath.get("schemas/decomposed/Agent.json"), "tool");
+  assert.equal(byPath.get("schemas/decomposed/Agent/model.json"), "property");
+  assert.equal(byPath.get("schemas/decomposed/haiku.md"), "enum");
+  assert.equal(byPath.get("schemas/decomposed/opus.md"), "enum");
+});
+
 test("CatalogIndex.toCatalogDict skips non-object JSON", () => {
   const dict = new CatalogIndex([], {
     "schemas/decomposed/broken.json": "[]",

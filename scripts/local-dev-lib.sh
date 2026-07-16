@@ -381,9 +381,9 @@ if [[ -z "${CYT_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 		require_cmd npm
 		cd "${CYT_REPO_ROOT}/sdk/typescript" || die "cd failed"
 		info "npm ci, build, test"
-		cyt_run cyt_npm ci
-		cyt_run cyt_npm run build
-		cyt_run cyt_npm test
+		cyt_run env -u CARGO_TARGET_DIR -u npm_config_devdir npm ci
+		cyt_run env -u CARGO_TARGET_DIR -u npm_config_devdir npm run build
+		cyt_run env -u CARGO_TARGET_DIR -u npm_config_devdir npm test
 	}
 
 	cyt_build_sdk_c() {

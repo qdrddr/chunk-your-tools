@@ -33,14 +33,14 @@ pub use build::{
     tool_schema_metadata_from_files,
 };
 pub use catalog_builder::CatalogBuilder;
-pub use catalog_io::write_catalog_index;
+pub use catalog_io::{load_catalog_index_from_dir, write_catalog_index};
 pub use paths::{
     PathConfig, collect_enums, configure as configure_paths, get_root_tool_key,
     is_catalog_decomposed_path, snapshot as path_snapshot, to_decomposed_key,
     tool_id_from_decomposed_rel,
 };
 pub use policies::{
-    PolicyContext, ToolPolicy, anthropic_tool_is_mcp, anthropic_tool_is_system,
+    PolicyContext, ToolKind, ToolPolicy, anthropic_tool_is_mcp, anthropic_tool_is_system,
     append_description_reinstate_entries, apply_per_tool_overrides, batch_tool_pass_through,
     catalog_needs_partition, catalog_needs_pruned_recompose, chunk_tool_id,
     direct_root_optional_chunks_for_tool, drop_recomposed_tools_with_empty_properties,
@@ -51,7 +51,7 @@ pub use policies::{
     is_system_root_chunk, is_system_tool_id, merge_catalog, merge_tools_preserving_order,
     mitigate_empty_optional_properties, needs_description_reinstate,
     needs_empty_optional_mitigation, needs_partition, needs_pruned_recompose,
-    optional_chunks_for_tool, optional_leaf_survived_rerank, parse_tool_policy,
+    optional_chunks_for_tool, optional_leaf_survived_rerank, parse_tool_kind, parse_tool_policy,
     parse_tool_policy_pair, partition_catalog, per_tool_policies_from_value,
     policy_context_from_values, request_pass_through, restore_mcp_tools, restore_system_tools,
     root_chunk_properties_empty, root_tool_id_from_chunk, scoring_policy, split_anthropic_tools,
@@ -71,7 +71,10 @@ pub use runtime_config::{
     default_system_policy, empty_optional_fallback_k, enum_score, rerank_score,
     snapshot as runtime_snapshot,
 };
-pub use survivors::{NamedSurvivors, recompose_tools_from_names, resolve_survivors_from_names};
+pub use survivors::{
+    NamedSurvivors, recompose_tools_from_index, recompose_tools_from_names,
+    resolve_survivors_from_names,
+};
 pub use tool_entries::{
     anthropic_tool_to_catalog_entry, anthropic_tools_to_catalog_entries, build_catalog_from_tools,
     is_catalog_tool_entry, normalize_tools_for_catalog, prepare_tool_entry, truncate_description,

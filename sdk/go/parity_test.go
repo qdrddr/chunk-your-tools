@@ -251,6 +251,86 @@ print(json.dumps(catalog_index_tool_schema_metadata({"tools": [], "files": {}}))
 	assertJSONEqual(t, got, want)
 }
 
+func TestParityDecomposedMetadataEntryTypes(t *testing.T) {
+	if os.Getenv("CYT_SKIP_PARITY") == "1" {
+		t.Skip("CYT_SKIP_PARITY=1")
+	}
+	if !pythonAvailable(t) {
+		t.Skip("python chunk_your_tools not available")
+	}
+
+	want := pythonJSON(t, `
+import json
+from chunk_your_tools import build_catalog_from_tools
+tool = {
+    "name": "Agent",
+    "description": "Launch agents",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "prompt": {"type": "string"},
+            "model": {"type": "string", "enum": ["opus", "haiku"]},
+        },
+        "required": ["prompt"],
+    },
+}
+index = build_catalog_from_tools([tool])
+meta = index.tool_schema_metadata()
+types = {
+    entry["file_path"]: entry["type"]
+    for entry in meta.get("decomposed") or []
+}
+print(json.dumps(types))
+`)
+
+	tool := map[string]any{
+		"name":        "Agent",
+		"description": "Launch agents",
+		"input_schema": map[string]any{
+			"type": "object",
+			"properties": map[string]any{
+				"prompt": map[string]any{"type": "string"},
+				"model": map[string]any{
+					"type": "string",
+					"enum": []any{"opus", "haiku"},
+				},
+			},
+			"required": []any{"prompt"},
+		},
+	}
+	toolsJSON, err := json.Marshal([]any{tool})
+	if err != nil {
+		t.Fatalf("marshal tool: %v", err)
+	}
+	indexJSON, err := BuildCatalogFromTools(string(toolsJSON))
+	if err != nil {
+		t.Fatalf("BuildCatalogFromTools: %v", err)
+	}
+	metaJSON, err := CatalogIndexToolSchemaMetadata(indexJSON)
+	if err != nil {
+		t.Fatalf("CatalogIndexToolSchemaMetadata: %v", err)
+	}
+
+	var meta struct {
+		Decomposed []struct {
+			FilePath string `json:"file_path"`
+			Type     string `json:"type"`
+		} `json:"decomposed"`
+	}
+	if err := json.Unmarshal([]byte(metaJSON), &meta); err != nil {
+		t.Fatalf("unmarshal metadata: %v", err)
+	}
+	got := make(map[string]string, len(meta.Decomposed))
+	for _, entry := range meta.Decomposed {
+		got[entry.FilePath] = entry.Type
+	}
+	gotBytes, err := json.Marshal(got)
+	if err != nil {
+		t.Fatalf("marshal got: %v", err)
+	}
+	assertJSONEqual(t, string(gotBytes), want)
+}
+
 func TestParityGetVersion(t *testing.T) {
 	if os.Getenv("CYT_SKIP_PARITY") == "1" {
 		t.Skip("CYT_SKIP_PARITY=1")

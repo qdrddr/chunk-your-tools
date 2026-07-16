@@ -528,6 +528,21 @@ fn serialize_metadata_json(value: &Value) -> String {
     serialized
 }
 
+/// Classify a decomposed catalog file for `schemas/decomposed/metadata.json`.
+fn decomposed_metadata_entry_type(rel_path: &str) -> &'static str {
+    if rel_path.ends_with(&md_ext()) {
+        return "enum";
+    }
+    let rest = rel_path
+        .strip_prefix(&decomposed_prefix())
+        .unwrap_or(rel_path);
+    if rest.contains('/') {
+        "property"
+    } else {
+        "tool"
+    }
+}
+
 pub(crate) fn attach_tool_schema_metadata(files: &mut HashMap<String, String>) {
     let full_prefix = "schemas/full/";
     let mut full_entries: Vec<Value> = files
@@ -569,6 +584,7 @@ pub(crate) fn attach_tool_schema_metadata(files: &mut HashMap<String, String>) {
         .map(|(rel, _content)| {
             json!({
                 "file_path": rel,
+                "type": decomposed_metadata_entry_type(rel),
                 "token_count": Value::Null,
             })
         })

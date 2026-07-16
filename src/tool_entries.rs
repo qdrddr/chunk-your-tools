@@ -140,7 +140,7 @@ mod tests {
     use serde_json::{Value, json};
 
     #[test]
-    fn anthropic_tool_produces_decomposed_files() {
+    fn anthropic_tool_produces_decomposed_files() -> Result<(), String> {
         let tool = json!({
             "name": "Agent",
             "description": "Launch agents",
@@ -159,6 +159,29 @@ mod tests {
         assert!(index.files.contains_key("schemas/decomposed/haiku.md"));
         assert!(index.files.contains_key("schemas/full/metadata.json"));
         assert!(index.files.contains_key("schemas/decomposed/metadata.json"));
+        let decomposed_meta_raw = index
+            .files
+            .get("schemas/decomposed/metadata.json")
+            .ok_or_else(|| "missing schemas/decomposed/metadata.json".to_string())?;
+        let decomposed_meta: Value = serde_json::from_str(decomposed_meta_raw)
+            .map_err(|e| format!("invalid schemas/decomposed/metadata.json: {e}"))?;
+        let entries = decomposed_meta
+            .as_array()
+            .ok_or_else(|| "decomposed metadata is not an array".to_string())?;
+        assert!(entries.iter().any(|entry| {
+            entry.get("file_path").and_then(Value::as_str) == Some("schemas/decomposed/Agent.json")
+                && entry.get("type").and_then(Value::as_str) == Some("tool")
+        }));
+        assert!(entries.iter().any(|entry| {
+            entry.get("file_path").and_then(Value::as_str)
+                == Some("schemas/decomposed/Agent/model.json")
+                && entry.get("type").and_then(Value::as_str) == Some("property")
+        }));
+        assert!(entries.iter().any(|entry| {
+            entry.get("file_path").and_then(Value::as_str) == Some("schemas/decomposed/haiku.md")
+                && entry.get("type").and_then(Value::as_str) == Some("enum")
+        }));
+        Ok(())
     }
 
     #[test]
@@ -220,6 +243,22 @@ mod tests {
         assert!(!entries.is_empty());
         assert!(entries[0].get("file_path").is_some());
         assert!(entries[0].get("token_count").is_some_and(Value::is_null));
+        assert!(entries.iter().all(|entry| {
+            entry
+                .get("type")
+                .and_then(Value::as_str)
+                .is_some_and(|t| matches!(t, "tool" | "property" | "enum"))
+        }));
+        assert!(entries.iter().any(|entry| {
+            entry.get("file_path").and_then(Value::as_str)
+                == Some("schemas/decomposed/mcp__test__foo.json")
+                && entry.get("type").and_then(Value::as_str) == Some("tool")
+        }));
+        assert!(entries.iter().any(|entry| {
+            entry.get("file_path").and_then(Value::as_str)
+                == Some("schemas/decomposed/mcp__test__foo/optional_field.json")
+                && entry.get("type").and_then(Value::as_str) == Some("property")
+        }));
 
         let catalog = index.to_catalog_dict();
         let json_items = catalog

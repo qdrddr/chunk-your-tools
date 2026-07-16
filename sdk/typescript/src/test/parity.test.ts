@@ -12,7 +12,11 @@ import {
   policyContextFromValues,
   scoringPolicyContext,
 } from "../policies.js";
-import { buildCatalogIndex, catalogIndexToolSchemaMetadata } from "../build.js";
+import {
+  buildCatalogFromTools,
+  buildCatalogIndex,
+  catalogIndexToolSchemaMetadata,
+} from "../build.js";
 import { getVersion } from "../core.js";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "../../../..");
@@ -165,6 +169,58 @@ from chunk_your_tools import catalog_index_tool_schema_metadata
 print(json.dumps(catalog_index_tool_schema_metadata({"tools": [], "files": {}})))
 `);
   const got = catalogIndexToolSchemaMetadata({ tools: [], files: {} });
+  assertJsonEqual(got, want);
+});
+
+test("parity decomposed metadata entry types match Python reference", () => {
+  if (skipParity() || !pythonAvailable()) {
+    return;
+  }
+
+  const want = pythonJSON(`
+import json
+from chunk_your_tools import build_catalog_from_tools
+tool = {
+    "name": "Agent",
+    "description": "Launch agents",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "prompt": {"type": "string"},
+            "model": {"type": "string", "enum": ["opus", "haiku"]},
+        },
+        "required": ["prompt"],
+    },
+}
+index = build_catalog_from_tools([tool])
+meta = index.tool_schema_metadata()
+types = {
+    entry["file_path"]: entry["type"]
+    for entry in meta.get("decomposed") or []
+}
+print(json.dumps(types))
+`) as Record<string, string>;
+
+  const index = buildCatalogFromTools([
+    {
+      name: "Agent",
+      description: "Launch agents",
+      input_schema: {
+        type: "object",
+        properties: {
+          prompt: { type: "string" },
+          model: { type: "string", enum: ["opus", "haiku"] },
+        },
+        required: ["prompt"],
+      },
+    },
+  ]);
+  const got = Object.fromEntries(
+    (index.toolSchemaMetadata().decomposed ?? []).map((entry) => [
+      entry.file_path,
+      entry.type,
+    ]),
+  );
   assertJsonEqual(got, want);
 });
 

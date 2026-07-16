@@ -45,6 +45,30 @@ func TestBuildCatalogIndexFromReleaseModule(t *testing.T) {
 	if !strings.Contains(indexJSON, "schemas/decomposed/mcp__test__foo.json") {
 		t.Fatalf("expected decomposed path in index JSON: %s", indexJSON)
 	}
+
+	metaJSON, err := cytindexer.CatalogIndexToolSchemaMetadata(indexJSON)
+	if err != nil {
+		t.Fatalf("CatalogIndexToolSchemaMetadata: %v", err)
+	}
+	var meta struct {
+		Decomposed []struct {
+			FilePath string `json:"file_path"`
+			Type     string `json:"type"`
+		} `json:"decomposed"`
+	}
+	if err := json.Unmarshal([]byte(metaJSON), &meta); err != nil {
+		t.Fatalf("unmarshal metadata: %v", err)
+	}
+	byPath := make(map[string]string, len(meta.Decomposed))
+	for _, entry := range meta.Decomposed {
+		byPath[entry.FilePath] = entry.Type
+	}
+	if byPath["schemas/decomposed/mcp__test__foo.json"] != "tool" {
+		t.Fatalf("expected tool metadata type, got %#v", byPath)
+	}
+	if byPath["schemas/decomposed/mcp__test__foo/optional_field.json"] != "property" {
+		t.Fatalf("expected property metadata type, got %#v", byPath)
+	}
 }
 
 func TestDecomposeFromExampleFile(t *testing.T) {

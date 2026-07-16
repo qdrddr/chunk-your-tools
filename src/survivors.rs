@@ -164,6 +164,24 @@ pub fn resolve_survivors_from_names(index: &CatalogIndex, survivors: &NamedSurvi
     })
 }
 
+/// Resolve semantic survivor names, then recompose pruned tool schemas from `index`.
+#[must_use]
+pub fn recompose_tools_from_index(
+    index: &CatalogIndex,
+    survivors: &NamedSurvivors,
+    ctx: &PolicyContext,
+) -> Vec<Value> {
+    let survivor_data = resolve_survivors_from_names(index, survivors);
+    let build_catalog = index.to_catalog_dict();
+    let mut store = DecomposedCatalog::from_catalog_index(index);
+    let process_groups = build_process_groups_options(ctx, &build_catalog, &store, None);
+    let opts = RetrieveOptions {
+        apply_decomposed_score_filter: false,
+        process_groups,
+    };
+    retrieve_tools_from_catalog(ctx, &survivor_data, &build_catalog, &mut store, &opts)
+}
+
 /// Build catalog in memory, resolve named survivors, and recompose pruned tool schemas.
 #[must_use]
 pub fn recompose_tools_from_names(
@@ -172,15 +190,7 @@ pub fn recompose_tools_from_names(
     ctx: &PolicyContext,
 ) -> Vec<Value> {
     let index = build_catalog_from_tools(tools);
-    let survivor_data = resolve_survivors_from_names(&index, survivors);
-    let build_catalog = index.to_catalog_dict();
-    let mut store = DecomposedCatalog::from_catalog_index(&index);
-    let process_groups = build_process_groups_options(ctx, &build_catalog, &store, None);
-    let opts = RetrieveOptions {
-        apply_decomposed_score_filter: false,
-        process_groups,
-    };
-    retrieve_tools_from_catalog(ctx, &survivor_data, &build_catalog, &mut store, &opts)
+    recompose_tools_from_index(&index, survivors, ctx)
 }
 
 #[cfg(test)]

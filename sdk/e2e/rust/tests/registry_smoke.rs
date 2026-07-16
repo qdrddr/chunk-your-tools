@@ -33,6 +33,29 @@ fn build_catalog_index_from_registry_crate() {
     assert!(index
         .files
         .contains_key("schemas/decomposed/mcp__test__foo.json"));
+
+    let meta = index.tool_schema_metadata();
+    let decomposed = meta
+        .get("decomposed")
+        .and_then(|v| v.as_array())
+        .expect("decomposed metadata array");
+    let types: std::collections::HashMap<&str, &str> = decomposed
+        .iter()
+        .filter_map(|entry| {
+            Some((
+                entry.get("file_path")?.as_str()?,
+                entry.get("type")?.as_str()?,
+            ))
+        })
+        .collect();
+    assert_eq!(
+        types.get("schemas/decomposed/mcp__test__foo.json"),
+        Some(&"tool")
+    );
+    assert_eq!(
+        types.get("schemas/decomposed/mcp__test__foo/optional_field.json"),
+        Some(&"property")
+    );
 }
 
 #[test]

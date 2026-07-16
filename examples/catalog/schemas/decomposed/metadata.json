@@ -1,34 +1,42 @@
 [
   {
     "file_path": "schemas/decomposed/Agent.json",
-    "token_count": 81
+    "token_count": null,
+    "type": "tool"
   },
   {
     "file_path": "schemas/decomposed/Agent/model.json",
-    "token_count": 40
+    "token_count": null,
+    "type": "property"
   },
   {
     "file_path": "schemas/decomposed/haiku.md",
-    "token_count": 2
+    "token_count": null,
+    "type": "enum"
   },
   {
     "file_path": "schemas/decomposed/mcp__github__create_issue.json",
-    "token_count": 57
+    "token_count": null,
+    "type": "tool"
   },
   {
     "file_path": "schemas/decomposed/mcp__github__create_issue/body.json",
-    "token_count": 38
+    "token_count": null,
+    "type": "property"
   },
   {
     "file_path": "schemas/decomposed/mcp__github__create_issue/labels.json",
-    "token_count": 44
+    "token_count": null,
+    "type": "property"
   },
   {
     "file_path": "schemas/decomposed/opus.md",
-    "token_count": 1
+    "token_count": null,
+    "type": "enum"
   },
   {
     "file_path": "schemas/decomposed/sonnet.md",
-    "token_count": 2
+    "token_count": null,
+    "type": "enum"
   }
 ]

@@ -38,6 +38,15 @@ def test_build_catalog_index_from_registry() -> None:
     index = build_catalog_index([tool], [])
     assert "schemas/decomposed/mcp__test__foo.json" in index.files
 
+    meta = index.tool_schema_metadata()
+    types = {
+        entry["file_path"]: entry["type"]
+        for entry in meta.get("decomposed") or []
+        if isinstance(entry, dict)
+    }
+    assert types["schemas/decomposed/mcp__test__foo.json"] == "tool"
+    assert types["schemas/decomposed/mcp__test__foo/optional_field.json"] == "property"
+
 
 def test_retrieve_from_example_file(
     example_file: str | None,
