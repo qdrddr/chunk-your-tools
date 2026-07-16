@@ -91,7 +91,7 @@ C library via CMake / `build-c-lib.sh`
     </td>
     <td valign="top">
 
-[![GitHub][c-version-shield]][c-link]
+[![GitHub sdk/c][c-version-shield]][c-link]
     </td>
   </tr>
   <tr>
@@ -199,7 +199,7 @@ Apache-2.0 — see [LICENSE](LICENSE).
 [npm-version-shield]: https://img.shields.io/npm/v/chunk-your-tools?logo=npm&color=3178C6&logoColor=white
 [npm-downloads-shield]: https://img.shields.io/npm/dm/chunk-your-tools?logo=npm&color=3178C6&logoColor=white
 [npm-link]: https://www.npmjs.com/package/chunk-your-tools
-[c-version-shield]: https://img.shields.io/github/v/release/qdrddr/chunk-your-tools?style=flat-square&label=libchunk_your_tools&color=555&logoColor=white
+[c-version-shield]: https://img.shields.io/github/v/release/qdrddr/chunk-your-tools?style=flat-square&label=sdk%2Fc&color=555&logoColor=white
 [c-link]: https://github.com/qdrddr/chunk-your-tools/releases
 [go-version-shield]: https://pkg.go.dev/badge/github.com/qdrddr/chunk-your-tools/sdk/go
 [go-link]: https://pkg.go.dev/github.com/qdrddr/chunk-your-tools/sdk/go
