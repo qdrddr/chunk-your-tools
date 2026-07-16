@@ -20,15 +20,109 @@ definitions from survivor lists.
 This library is extracted from [clear-your-tools](https://github.com/qdrddr/clear-your-tools)
 and contains **only** decomposition/recomposition — no BM25, proxy, or agent integration.
 
-## Install
+## What it does
 
-| Channel | Package | Import | Status |
-| --- | --- | --- | --- |
-| Rust crate | `chunk-your-tools` ([crates.io](https://crates.io/crates/chunk-your-tools)) | `chunk_your_tools` | [![crates.io chunk-your-tools][rust-version-shield]][rust-link] <br> [![crates.io downloads][rust-downloads-shield]][rust-link] |
-| PyPI | `chunk-your-tools` ([PyPI](https://pypi.org/project/chunk-your-tools/)) | `chunk_your_tools` | [![PyPI chunk-your-tools][pypi-version-shield]][pypi-link] <br> [![PyPI downloads][pypi-downloads-shield]][pypi-link] |
-| npm | `chunk-your-tools` ([npm](https://www.npmjs.com/package/chunk-your-tools)) | `chunk-your-tools` | [![npm chunk-your-tools][npm-version-shield]][npm-link] <br> [![npm downloads][npm-downloads-shield]][npm-link] |
-| Go | [`sdk/go`](https://pkg.go.dev/github.com/qdrddr/chunk-your-tools/sdk/go) | `chunkyourtools` | [![pkg.go.dev sdk/go][go-version-shield]][go-link] |
-| C | [`libchunk_your_tools`](https://github.com/qdrddr/chunk-your-tools/releases) | `chunk_your_tools.h` | [![GitHub libchunk_your_tools][c-version-shield]][c-link] |
+1. **Decompose** — parse MCP tool definition JSON into addressable chunks (tools, optional properties, enums).
+2. **Cache** — write `metadata.json` and per-chunk files under a catalog directory.
+3. **Recompose** — rebuild pruned tool definitions from survivor lists.
+
+## Packages
+
+<details open>
+<summary><strong>Published packages</strong></summary>
+
+<table border="0">
+  <tr>
+    <td valign="top">
+
+**`chunk-your-tools`** ([crates.io][rust-link])
+    </td>
+    <td valign="top">
+
+Rust library and CLI
+    </td>
+    <td valign="top">
+
+[![crates.io chunk-your-tools][rust-version-shield]][rust-link]
+
+[![crates.io downloads][rust-downloads-shield]][rust-link]
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+
+**`chunk-your-tools`** ([PyPI][pypi-link])
+    </td>
+    <td valign="top">
+
+Python SDK (`import chunk_your_tools`)
+    </td>
+    <td valign="top">
+
+[![PyPI chunk-your-tools][pypi-version-shield]][pypi-link]
+
+[![PyPI downloads][pypi-downloads-shield]][pypi-link]
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+
+**`chunk-your-tools`** ([npm][npm-link])
+    </td>
+    <td valign="top">
+
+TypeScript SDK
+    </td>
+    <td valign="top">
+
+[![npm chunk-your-tools][npm-version-shield]][npm-link]
+
+[![npm downloads][npm-downloads-shield]][npm-link]
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+
+**`libchunk_your_tools`** ([GitHub Release][c-link])
+    </td>
+    <td valign="top">
+
+C library via CMake / `build-c-lib.sh`
+    </td>
+    <td valign="top">
+
+[![GitHub libchunk_your_tools][c-version-shield]][c-link]
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+
+**`sdk/go`** ([pkg.go.dev][go-link])
+    </td>
+    <td valign="top">
+
+Go SDK via cgo (`import chunkyourtools`)
+    </td>
+    <td valign="top">
+
+[![pkg.go.dev sdk/go][go-version-shield]][go-link]
+    </td>
+  </tr>
+</table>
+
+</details>
+
+## Quick start
+
+Install the CLI:
+
+```bash
+cargo install chunk-your-tools
+```
+
+Or build locally: `cargo build -p chunk-your-tools --release`.
+
+Library installs:
 
 ```bash
 cargo add chunk-your-tools
@@ -36,11 +130,18 @@ pip install chunk-your-tools
 npm install chunk-your-tools
 ```
 
-CLI:
+Try the bundled walkthrough — decompose a sample tool catalog, then recompose pruned variants:
 
 ```bash
-cargo install chunk-your-tools
+./examples/decompose.sh
+export PATH="$PWD/target/release:$PATH"
+./examples/recompose.sh
 ```
+
+See [examples/README.md](examples/README.md) for survivor formats, output paths, and CLI flags.
+Go SDK smoke test: [examples/go-git-smoke/README.md](examples/go-git-smoke/README.md).
+
+For SDK usage, see the language READMEs below. Python quick start: [sdk/python/README.md](sdk/python/README.md).
 
 ## CLI
 
@@ -55,19 +156,7 @@ chunk-your-tools recompose \
   --output recomposed-tools.json
 ```
 
-Survivor lists name tools, optional properties, and enum values to keep. See
-[examples/README.md](examples/README.md) for the full format, runnable scripts, and sample
-output.
-
-## Examples
-
-```bash
-./examples/decompose.sh
-./examples/recompose.sh
-```
-
-Covers catalog-based and in-memory workflows, legacy survivor formats, and pruning policies.
-Go SDK smoke test: [examples/go-git-smoke/README.md](examples/go-git-smoke/README.md).
+Survivor lists name tools, optional properties, and enum values to keep.
 
 ## SDKs
 
@@ -96,10 +185,10 @@ See [DEV.md](DEV.md) and run `./scripts/local-dev.sh all` for the full monorepo 
 
 ## License
 
-Apache-2.0
+Apache-2.0 — see [LICENSE](LICENSE).
 
 [license-badge-shield]: https://img.shields.io/badge/License-Apache_2.0-yellow?style=for-the-badge
-[license-link]: https://github.com/qdrddr/chunk-your-tools/blob/main/LICENSE
+[license-link]: LICENSE
 [version-shield]: https://img.shields.io/github/v/release/qdrddr/chunk-your-tools?style=flat-square&label=version&color=4385BE&logoColor=white
 [release-link]: https://github.com/qdrddr/chunk-your-tools/releases
 [rust-version-shield]: https://img.shields.io/crates/v/chunk-your-tools?logo=rust&color=e6522c&logoColor=white
