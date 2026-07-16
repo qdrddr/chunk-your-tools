@@ -1,0 +1,56 @@
+[
+  {
+    "name": "Agent",
+    "description": "Launch a new agent to handle complex, multi-step tasks.",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "A short (3-5 word) description of the task"
+        },
+        "prompt": {
+          "type": "string",
+          "description": "The task for the agent to perform"
+        },
+        "model": {
+          "type": "string",
+          "description": "Optional model override for this agent.",
+          "enum": ["opus", "haiku", "sonnet"]
+        }
+      },
+      "required": ["description", "prompt"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "id": "mcp__github__create_issue",
+    "server": "github",
+    "tool": "mcp__github__create_issue",
+    "summary": "Create a GitHub issue",
+    "full_schema": {
+      "id": "mcp__github__create_issue",
+      "name": "mcp__github__create_issue",
+      "description": "Create a new issue in a GitHub repository.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Issue title"
+          },
+          "body": {
+            "type": "string",
+            "description": "Issue body"
+          },
+          "labels": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Optional labels"
+          }
+        },
+        "required": ["title"]
+      }
+    }
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "tools": ["Agent", "mcp__github__create_issue"],
+  "properties": {
+    "Agent": ["model"],
+    "mcp__github__create_issue": ["body"]
+  },
+  "enums": ["opus", "haiku"]
+}

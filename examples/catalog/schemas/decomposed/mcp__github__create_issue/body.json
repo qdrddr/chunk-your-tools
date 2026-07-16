@@ -1,0 +1,12 @@
+{
+  "id": "mcp__github__create_issue",
+  "inputSchema": {
+    "properties": {
+      "body": {
+        "description": "Issue body",
+        "type": "string"
+      }
+    }
+  },
+  "name": "mcp__github__create_issue"
+}

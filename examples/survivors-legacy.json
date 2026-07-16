@@ -1,0 +1,26 @@
+{
+  "json": [
+    {
+      "file_path": "schemas/decomposed/Agent.json",
+      "score": 0.9
+    },
+    {
+      "file_path": "schemas/decomposed/Agent/model.json",
+      "score": 0.8
+    },
+    {
+      "file_path": "schemas/decomposed/mcp__github__create_issue.json",
+      "score": 0.7
+    }
+  ],
+  "md": [
+    {
+      "file_path": "schemas/decomposed/opus.md",
+      "score": 0.6
+    },
+    {
+      "file_path": "schemas/decomposed/haiku.md",
+      "score": 0.5
+    }
+  ]
+}

@@ -128,6 +128,8 @@ sdk/e2e/go/go.mod
 sdk/e2e/go/go.sum
 
 .catalog/
+examples/catalog/
+examples/out/
 # Stray manual C compiles (CMake uses sdk/c/build/)
 sdk/c/**/*.o
 sdk/c/**/*.obj

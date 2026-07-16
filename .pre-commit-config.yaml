@@ -86,7 +86,7 @@ repos:
     hooks:
       - id: prettier
         types_or: [yaml, json5, bash, javascript, ts, tsx]
-        exclude: ^\.github/workflows/.*\.ya?ml$
+        exclude: ^(\.github/workflows/.*\.ya?ml|examples/)
       - id: prettier
         name: prettier github workflow yaml
         files: ^\.github/workflows/.*\.ya?ml$
@@ -276,7 +276,7 @@ repos:
       - id: markdownlint-cli2
         language_version: lts
         args: [--fix]
-        exclude: ^(CLAUDE|AGENTS|GEMINI)\.md$
+        exclude: ^((CLAUDE|AGENTS|GEMINI)\.md|examples/)
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.15
@@ -309,6 +309,7 @@ repos:
         args: ["--maxkb=1024"]
         exclude: ^assets/.*\.gif$
       - id: trailing-whitespace
+        exclude: ^examples/
       - id: check-yaml
         exclude: ^(.ast-grep/rules/.*|\.github/workflows/.*)$
       - id: check-yaml
@@ -318,7 +319,9 @@ repos:
       - id: check-json
       - id: check-toml
       - id: end-of-file-fixer
+        exclude: ^examples/
       - id: mixed-line-ending
+        exclude: ^examples/
       - id: detect-private-key
       - id: check-case-conflict
       - id: check-merge-conflict

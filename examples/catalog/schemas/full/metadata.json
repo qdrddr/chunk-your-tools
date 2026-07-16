@@ -1,0 +1,12 @@
+{
+  "files": [
+    {
+      "file_path": "schemas/full/Agent.json",
+      "token_count": 106
+    },
+    {
+      "file_path": "schemas/full/mcp__github__create_issue.json",
+      "token_count": 85
+    }
+  ]
+}

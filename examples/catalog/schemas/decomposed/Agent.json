@@ -1,0 +1,23 @@
+{
+  "description": "Launch a new agent to handle complex, multi-step tasks.",
+  "id": "Agent",
+  "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+      "description": {
+        "description": "A short (3-5 word) description of the task",
+        "type": "string"
+      },
+      "prompt": {
+        "description": "The task for the agent to perform",
+        "type": "string"
+      }
+    },
+    "required": [
+      "description",
+      "prompt"
+    ],
+    "type": "object"
+  },
+  "name": "Agent"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "Agent",
+  "inputSchema": {
+    "properties": {
+      "model": {
+        "description": "Optional model override for this agent.",
+        "enum": [
+          "opus",
+          "haiku",
+          "sonnet"
+        ],
+        "type": "string"
+      }
+    }
+  },
+  "name": "Agent"
+}

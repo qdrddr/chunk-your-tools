@@ -1,0 +1,15 @@
+{
+  "id": "mcp__github__create_issue",
+  "inputSchema": {
+    "properties": {
+      "labels": {
+        "description": "Optional labels",
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      }
+    }
+  },
+  "name": "mcp__github__create_issue"
+}

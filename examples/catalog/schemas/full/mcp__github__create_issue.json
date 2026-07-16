@@ -1,0 +1,28 @@
+{
+  "description": "Create a new issue in a GitHub repository.",
+  "id": "mcp__github__create_issue",
+  "inputSchema": {
+    "properties": {
+      "body": {
+        "description": "Issue body",
+        "type": "string"
+      },
+      "labels": {
+        "description": "Optional labels",
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "title": {
+        "description": "Issue title",
+        "type": "string"
+      }
+    },
+    "required": [
+      "title"
+    ],
+    "type": "object"
+  },
+  "name": "mcp__github__create_issue"
+}
