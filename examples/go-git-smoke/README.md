@@ -1,15 +1,30 @@
 # Go SDK git smoke test
 
-Minimal app that consumes `github.com/qdrddr/chunk-your-tools/sdk/go` from a git tag checkout
-and checks that:
+`go-git-smoke/` is a end-to-end check for the **Go SDK**: a minimal app that consumes
+`github.com/qdrddr/chunk-your-tools/sdk/go` from a git tag checkout and verifies that:
+
+| Concern | Where to look |
+| --- | --- |
+| Decompose/recompose MCP tool schemas (CLI) | [`../decompose.sh`](../decompose.sh), [`../recompose.sh`](../recompose.sh), [`../README.md`](../README.md) |
+| Go SDK + C FFI from a git tag (this folder) | `prepare.sh`, `ensure-ffi.sh`, `run.sh` below |
+
+It checks that:
 
 1. A sparse clone of the release tag provides the Go SDK sources and root Rust crate
 2. C FFI artifacts can be fetched from the matching GitHub Release
 3. The binary links and runs with CGO outside the monorepo
 
-## Run anywhere
+## Run
 
-Copy this folder to any directory, then:
+From the monorepo:
+
+```bash
+cd examples/go-git-smoke
+chmod +x prepare.sh ensure-ffi.sh run.sh
+./run.sh
+```
+
+Or copy this folder anywhere and run the same commands:
 
 ```bash
 cd go-git-smoke
@@ -60,3 +75,16 @@ chunk-your-tools Go git smoke OK
   empty catalog index bytes: 40
   cwd: /path/to/your/copy
 ```
+
+## CLI examples (elsewhere)
+
+Decompose/recompose walkthroughs live in the parent `examples/` directory, not here:
+
+```bash
+# from repo root
+./examples/decompose.sh
+./examples/recompose.sh
+```
+
+See [`../README.md`](../README.md) for survivor formats, fixtures, and output files.
+

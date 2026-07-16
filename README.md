@@ -44,63 +44,30 @@ cargo install chunk-your-tools
 
 ## CLI
 
-### Decompose
-
 ```bash
+# Decompose tools.json into a searchable catalog
 chunk-your-tools decompose --input tools.json --output ./catalog
-```
 
-Writes decomposed JSON/Markdown chunks under `./catalog/schemas/decomposed/`.
-
-### Recompose (in-memory)
-
-```bash
+# Recompose pruned tools from survivor lists (catalog optional)
 chunk-your-tools recompose \
   --input tools.json \
   --survivors survivors.json \
   --output recomposed-tools.json
 ```
 
-No catalog directory is required — decomposition runs in memory.
+Survivor lists name tools, optional properties, and enum values to keep. See
+[examples/README.md](examples/README.md) for the full format, runnable scripts, and sample
+output.
 
-### Survivors format (semantic names)
+## Examples
 
-```json
-{
-  "tools": ["mcp__github__create_issue", "Agent"],
-  "properties": {
-    "Agent": ["model", "optional_field"],
-    "mcp__github__create_issue": ["title"]
-  },
-  "enums": ["opus", "haiku", "Bash"]
-}
+```bash
+./examples/decompose.sh
+./examples/recompose.sh
 ```
 
-- `tools`: tool IDs/names to keep (omitted tools are dropped)
-- `properties`: per-tool optional property names (required properties always survive;
-  use dotted paths for nested optionals, e.g. `"config.timeout"`)
-- `enums`: enum value names to keep
-
-Legacy `{json, md}` chunk lists (with `file_path`) are also accepted for integration with
-clear-your-tools pruners.
-
-## Library (Rust)
-
-```rust
-use chunk_your_tools::{
-    NamedSurvivors, PolicyContext, build_catalog_from_tools, recompose_tools_from_names,
-};
-use serde_json::json;
-
-let tools = vec![/* MCP tool definitions */];
-let survivors = NamedSurvivors::from_value(&json!({
-    "tools": ["Agent"],
-    "properties": { "Agent": ["model"] },
-    "enums": ["opus"]
-})).unwrap();
-let ctx = PolicyContext::new();
-let recomposed = recompose_tools_from_names(&tools, &survivors, &ctx);
-```
+Covers catalog-based and in-memory workflows, legacy survivor formats, and pruning policies.
+Go SDK smoke test: [examples/go-git-smoke/README.md](examples/go-git-smoke/README.md).
 
 ## SDKs
 
