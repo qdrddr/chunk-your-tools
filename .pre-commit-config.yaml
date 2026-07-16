@@ -318,6 +318,7 @@ repos:
         files: ^\.github/workflows/.*\.ya?ml$
         always_run: true
       - id: check-json
+        exclude: ^examples/
       - id: check-toml
       - id: end-of-file-fixer
         exclude: ^examples/
@@ -528,6 +529,7 @@ repos:
           ]
         language: system
         files: ^sdk/(typescript/package\.json|e2e/typescript/package\.json\.in)$
+        exclude: ^examples/
         pass_filenames: false
 
       - id: ast-scan
@@ -621,3 +623,4 @@ repos:
         verbose: true
         pass_filenames: false
   # Insert new entries above the `suggestion` entry
+

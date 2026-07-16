@@ -1,5 +1,25 @@
 [
   {
+    "description": "Create a new issue in a GitHub repository.",
+    "inputSchema": {
+      "properties": {
+        "body": {
+          "description": "Issue body",
+          "type": "string"
+        },
+        "title": {
+          "description": "Issue title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    },
+    "name": "mcp__github__create_issue"
+  },
+  {
     "description": "Launch a new agent to handle complex, multi-step tasks.",
     "inputSchema": {
       "additionalProperties": false,
@@ -29,25 +49,5 @@
       "type": "object"
     },
     "name": "Agent"
-  },
-  {
-    "description": "Create a new issue in a GitHub repository.",
-    "inputSchema": {
-      "properties": {
-        "body": {
-          "description": "Issue body",
-          "type": "string"
-        },
-        "title": {
-          "description": "Issue title",
-          "type": "string"
-        }
-      },
-      "required": [
-        "title"
-      ],
-      "type": "object"
-    },
-    "name": "mcp__github__create_issue"
   }
 ]
