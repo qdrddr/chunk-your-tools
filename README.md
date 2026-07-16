@@ -83,7 +83,7 @@ TypeScript SDK
   <tr>
     <td valign="top">
 
-**`libchunk_your_tools`** ([GitHub Release][c-link])
+**`libchunk_your_tools`** ([Release][c-link])
     </td>
     <td valign="top">
 
@@ -91,7 +91,7 @@ C library via CMake / `build-c-lib.sh`
     </td>
     <td valign="top">
 
-[![GitHub libchunk_your_tools][c-version-shield]][c-link]
+[![GitHub][c-version-shield]][c-link]
     </td>
   </tr>
   <tr>
