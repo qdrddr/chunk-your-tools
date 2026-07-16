@@ -28,6 +28,14 @@ and contains **only** decomposition/recomposition — no BM25, proxy, or agent i
 
 ## Packages
 
+<div align="center">
+
+[![Windows][windows-shield]](#supported-platforms)
+[![macOS][macos-shield]](#supported-platforms)
+[![Linux][linux-shield]](#supported-platforms)
+
+</div>
+
 <details open>
 <summary><strong>Published packages</strong></summary>
 
@@ -165,16 +173,6 @@ Survivor lists tool names, optional properties, and enum values to keep.
 | C | `sdk/c` | [README](sdk/c/README.md) |
 
 Go SDK smoke test: [examples/go-git-smoke/README.md](examples/go-git-smoke/README.md).
-
-## Supported platforms
-
-<div align="center">
-
-[![Windows][windows-shield]](#supported-platforms)
-[![macOS][macos-shield]](#supported-platforms)
-[![Linux][linux-shield]](#supported-platforms)
-
-</div>
 
 The Rust crate, Python/npm SDKs, and `libchunk_your_tools` FFI support **Windows**, **macOS**, and **Linux**.
 
