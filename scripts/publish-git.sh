@@ -40,7 +40,7 @@ Steps:
   3. Push the current branch (expected: main)
   4. Force-create the git tag vX.Y.Z and push it
   5. Force-create the Go module tag sdk/go/vX.Y.Z and push it
-  6. Create (or recreate) a stable GitHub Release for the tag
+  6. Create (or recreate) a GitHub Release for the tag (marked as pre-release)
 
 Tag push triggers:
   - publish-crates.yml  -> crates.io chunk-your-tools
@@ -235,7 +235,7 @@ fi
 gh release create "${tag}" \
 	--title "${tag}" \
 	--notes "${notes}" \
-	--latest
+	--prerelease
 
 cat <<EOF | shorten_paths
 published ${tag}:
