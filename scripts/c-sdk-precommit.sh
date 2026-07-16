@@ -26,6 +26,13 @@ clang-format)
 	;;
 clang-tidy)
 	require_cmd clang-tidy
+	require_cmd cmake
+	build_dir="${ROOT}/sdk/c/build"
+	if [[ ! -f "${build_dir}/compile_commands.json" ]]; then
+		mkdir -p "${build_dir}"
+		cmake -S "${ROOT}/sdk/c" -B "${build_dir}" \
+			-DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Release
+	fi
 	extra=()
 	if sdkroot="$(xcrun --show-sdk-path 2>/dev/null)"; then
 		extra+=("-extra-arg=-isysroot${sdkroot}")
@@ -49,3 +56,4 @@ cpplint)
 	exit 1
 	;;
 esac
+

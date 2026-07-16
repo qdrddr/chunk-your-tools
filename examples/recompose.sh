@@ -27,6 +27,11 @@ OUT="${ROOT}/examples/out"
 NAMED_SURVIVORS="${ROOT}/examples/survivors-named.json"
 LEGACY_SURVIVORS="${ROOT}/examples/survivors-legacy.json"
 
+if [[ ! -d "${CATALOG}/schemas/decomposed" ]]; then
+	echo "Missing catalog at ${CATALOG}. Run ./examples/decompose.sh first." >&2
+	exit 1
+fi
+
 if command -v chunk-your-tools >/dev/null 2>&1; then
 	CLI=chunk-your-tools
 elif [[ -x "${ROOT}/target/release/chunk-your-tools" ]]; then
