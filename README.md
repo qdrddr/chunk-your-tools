@@ -162,10 +162,6 @@ See [examples/README.md](examples/README.md) for survivor formats, output paths,
 | Go | `sdk/go` | [README](sdk/go/README.md) |
 | C | `sdk/c` | [README](sdk/c/README.md) |
 
-Go SDK smoke test: [examples/go-git-smoke/README.md](examples/go-git-smoke/README.md).
-
-The Rust crate, Python/npm SDKs, and `libchunk_your_tools` FFI support **Windows**, **macOS**, and **Linux**.
-
 ## Development
 
 See [DEV.md](DEV.md) and run `./scripts/local-dev.sh all` for the full monorepo check.
