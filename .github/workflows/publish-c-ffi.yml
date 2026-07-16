@@ -8,8 +8,8 @@
 # Builds libchunk_your_tools from the tagged monorepo source (no crates.io dependency).
 # Runs in parallel with:
 #   1. Publish chunk-your-tools to crates.io    (publish-crates.yml)
-#   2. Publish chunk-your-tools to npm          (publish-npm-sdk.yml)
-#   2. Publish chunk-your-tools to PyPI         (publish-pypi-sdk.yml)
+#   3. Publish chunk-your-tools to npm          (publish-npm-sdk.yml)
+#   3. Publish chunk-your-tools to PyPI         (publish-pypi-sdk.yml)
 #
 # Manual runs: workflow_dispatch (requires version input; vX.Y.Z tag must already exist).
 

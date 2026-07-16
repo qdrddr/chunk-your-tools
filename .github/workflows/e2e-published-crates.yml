@@ -1,0 +1,60 @@
+# End-to-end tests for chunk-your-tools published to crates.io.
+# Runs after publish-crates.yml succeeds (workflow_run).
+
+name: 2. E2E published (crates.io)
+
+on:
+  workflow_run:
+    workflows: ["1. Publish chunk-your-tools to crates.io"]
+    types: [completed]
+
+concurrency:
+  group: e2e-published-crates-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  resolve-version:
+    name: Resolve release version
+    if: |
+      github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve version
+        id: parse
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PARENT_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: sdk/e2e/scripts/resolve-version-from-parent.sh
+
+  e2e-rust:
+    name: E2E chunk-your-tools (crates.io)
+    needs: resolve-version
+    if: |
+      github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      CYT_RELEASE_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Render manifests
+        run: sdk/e2e/scripts/render-manifests.sh
+
+      - name: Wait for crates.io
+        continue-on-error: true
+        run: sdk/e2e/scripts/wait-registry.sh crate
+
+      - name: Test published crate
+        working-directory: sdk/e2e/rust
+        run: cargo test

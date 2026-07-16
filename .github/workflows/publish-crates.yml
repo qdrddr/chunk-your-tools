@@ -17,9 +17,10 @@
 # 3. Push a semver tag: v0.2.0, v1.0.0 (exact form vX.Y.Z only). On success,
 #    these run in parallel on tag push:
 #      1. Publish C FFI artifacts to GitHub Release (publish-c-ffi.yml)
-#      2. Publish chunk-your-tools to npm      (publish-npm-sdk.yml)
-#      2. Publish chunk-your-tools to PyPI     (publish-pypi-sdk.yml)
-#      4. E2E published packages              (e2e-published-sdk.yml)
+#      3. Publish chunk-your-tools to npm      (publish-npm-sdk.yml)
+#      3. Publish chunk-your-tools to PyPI     (publish-pypi-sdk.yml)
+#      2. E2E published (crates.io)            (e2e-published-crates.yml)
+#      2. E2E published packages              (e2e-published-sdk.yml)
 #
 # See RFC 3691: https://rust-lang.github.io/rfcs/3691-trusted-publishing-cratesio.html
 

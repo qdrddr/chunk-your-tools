@@ -16,11 +16,12 @@
 #
 # 3. Push tag vX.Y.Z to trigger publish-crates.yml; when that workflow succeeds,
 #    this workflow runs automatically (workflow_run) in parallel with npm SDK and
-#    C FFI GitHub Release publish. Version comes from the crates publish artifact.
+#    C FFI GitHub Release publish. On success, 4. E2E published (PyPI) runs.
+#    Version comes from the crates publish artifact.
 #
 # Manual runs: workflow_dispatch (optional version input).
 
-name: 2. Publish chunk-your-tools to PyPI
+name: 3. Publish chunk-your-tools to PyPI
 
 on:
   workflow_run:

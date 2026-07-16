@@ -13,17 +13,24 @@ checkout**—not the active monorepo tree (unless `--workspace` is set).
 
 ## CI
 
-Workflow: [`.github/workflows/e2e-published-sdk.yml`](../../.github/workflows/e2e-published-sdk.yml)
+Registry E2E workflows (each runs after its publish workflow succeeds via `workflow_run`):
 
-Runs after **`publish-crates.yml`** succeeds (`workflow_run`), reads semver from the crates publish artifact, polls
-each registry until that version is available, then runs the harness tests.
+| Workflow | Trigger | Harness |
+| -------- | ------- | ------- |
+| `2. E2E published (crates.io)` | `1. Publish chunk-your-tools to crates.io` | `rust/` |
+| `4. E2E published (PyPI)` | `3. Publish chunk-your-tools to PyPI` | `python/` |
+| `4. E2E published (npm)` | `3. Publish chunk-your-tools to npm` | `typescript/` |
+| `2. E2E published packages` | `1. Publish chunk-your-tools to crates.io` | `go/`, `c/` |
+
+Each workflow reads semver from the parent publish artifact (`cyt-release-version`), polls the relevant registry or
+GitHub tag until that version is available, then runs the harness tests.
 
 Complements:
 
 - [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) — source-tree tests on PR/push
 - [`.github/workflows/sdk-c-go.yml`](../../.github/workflows/sdk-c-go.yml) — monorepo C/Go matrix on PR/push
-- Publish chain — push tag `vX.Y.Z` → `publish-crates.yml` → (`publish-pypi-sdk.yml`, `publish-npm-sdk.yml`,
-`e2e-published-sdk.yml` via `workflow_run`)
+- Publish chain — push tag `vX.Y.Z` → `1. Publish chunk-your-tools to crates.io` → (`3. Publish PyPI`, `3. Publish npm`,
+  `2. E2E published (crates.io)`, `2. E2E published packages`; then `4. E2E published (PyPI/npm)` after each publish)
 
 ## Local run
 

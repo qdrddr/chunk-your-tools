@@ -1,0 +1,64 @@
+# End-to-end tests for chunk-your-tools published to npm.
+# Runs after publish-npm-sdk.yml succeeds (workflow_run).
+
+name: 4. E2E published (npm)
+
+on:
+  workflow_run:
+    workflows: ["3. Publish chunk-your-tools to npm"]
+    types: [completed]
+
+concurrency:
+  group: e2e-published-npm-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  resolve-version:
+    name: Resolve release version
+    if: |
+      github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve version
+        id: parse
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PARENT_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: sdk/e2e/scripts/resolve-version-from-parent.sh
+
+  e2e-typescript:
+    name: E2E chunk-your-tools (npm)
+    needs: resolve-version
+    if: |
+      github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      CYT_RELEASE_VERSION: ${{ needs.resolve-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Render manifests
+        run: sdk/e2e/scripts/render-manifests.sh
+
+      - name: Wait for npm
+        continue-on-error: true
+        run: sdk/e2e/scripts/wait-registry.sh npm
+
+      - name: Test published npm package
+        working-directory: sdk/e2e/typescript
+        run: |
+          npm install
+          npm test

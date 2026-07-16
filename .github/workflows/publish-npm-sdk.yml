@@ -22,7 +22,8 @@
 #
 # 4. Push tag vX.Y.Z to trigger publish-crates.yml; when that workflow succeeds,
 #    this workflow runs automatically (workflow_run) in parallel with PyPI SDK and
-#    C FFI GitHub Release publish. Polls crates.io briefly before building native bindings.
+#    C FFI GitHub Release publish. On success, 4. E2E published (npm) runs.
+#    Polls crates.io briefly before building native bindings.
 #
 # Manual runs: workflow_dispatch (optional version input).
 #
@@ -31,7 +32,7 @@
 #   - npm CLI must be >= 11.5.1 (this workflow upgrades npm explicitly)
 #   - Cannot republish an existing version (bump semver before re-running CI)
 
-name: 2. Publish chunk-your-tools to npm
+name: 3. Publish chunk-your-tools to npm
 
 on:
   workflow_run:
@@ -311,3 +312,15 @@ jobs:
       - name: Publish to npm
         working-directory: sdk/typescript
         run: npm publish --access public
+
+      - name: Upload release version for downstream workflows
+        if: needs.resolve-version.outputs.version != ''
+        run: printf '%s' "${{ needs.resolve-version.outputs.version }}" > cyt-release-version.txt
+
+      - name: Store release version artifact
+        if: needs.resolve-version.outputs.version != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: cyt-release-version
+          path: cyt-release-version.txt
+          if-no-files-found: error
