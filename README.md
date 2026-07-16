@@ -31,9 +31,9 @@ and contains **only** decomposition/recomposition — no BM25, proxy, or agent i
 2. **Cache** — write `metadata.json` and per-chunk files under a catalog directory.
 3. **Recompose** — rebuild pruned tool definitions from survivor lists.
 
-## Packages
+## Packages C/Go/Rust/TypeScript/Python
 
-<details open>
+<details closed>
 <summary><strong>Published packages</strong></summary>
 
 <div align="center">
