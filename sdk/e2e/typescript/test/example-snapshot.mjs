@@ -20,8 +20,14 @@ const REPO_ROOT = resolve(
 /** @returns {{ file: string | null; output: string | null }} */
 function readEnvArgs() {
   return {
-    file: process.env.CYT_E2E_FILE ?? process.env.npm_config_file ?? null,
-    output: process.env.CYT_E2E_OUTPUT ?? process.env.npm_config_output ?? null,
+    file:
+      process.env.CHUNK_YOUR_TOOLS_E2E_FILE ??
+      process.env.npm_config_file ??
+      null,
+    output:
+      process.env.CHUNK_YOUR_TOOLS_E2E_OUTPUT ??
+      process.env.npm_config_output ??
+      null,
   };
 }
 

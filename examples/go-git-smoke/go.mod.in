@@ -4,6 +4,7 @@ go 1.25.0
 
 require github.com/qdrddr/chunk-your-tools/sdk/go v1.0.0
 
-replace github.com/qdrddr/chunk-your-tools/sdk/go => @CYT_GIT_STAGING@/sdk/go
+replace github.com/qdrddr/chunk-your-tools/sdk/go => @CHUNK_YOUR_TOOLS_GIT_STAGING@/sdk/go
 
 tool github.com/qdrddr/chunk-your-tools/sdk/go/cmd/chunk-native-ensure
+

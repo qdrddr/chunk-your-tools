@@ -2,7 +2,10 @@
 #![allow(clippy::panic, clippy::expect_used, clippy::unwrap_used)]
 
 use chunk_your_tools::bindings::manifest::{CBINDGEN_STUB_SYMBOLS, EXPORTS};
-use chunk_your_tools::ffi::{CYT_OK, cyt_classify_optional_chunks_batch, cyt_free_string};
+use chunk_your_tools::ffi::{
+    CHUNK_YOUR_TOOLS_OK, chunk_your_tools_classify_optional_chunks_batch,
+    chunk_your_tools_free_string,
+};
 use std::ffi::CStr;
 use std::fs;
 use std::os::raw::{c_char, c_int};
@@ -10,20 +13,24 @@ use std::path::PathBuf;
 use std::ptr;
 
 unsafe extern "C" {
-    fn cyt_full_pass_through(ctx_json: *const c_char) -> c_int;
-    fn cyt_is_non_system_chunk(item_json: *const c_char) -> c_int;
-    fn cyt_tool_pass_through(ctx_json: *const c_char, tool_id: *const c_char) -> c_int;
-    fn cyt_effective_policy(
+    fn chunk_your_tools_full_pass_through(ctx_json: *const c_char) -> c_int;
+    fn chunk_your_tools_is_non_system_chunk(item_json: *const c_char) -> c_int;
+    fn chunk_your_tools_tool_pass_through(ctx_json: *const c_char, tool_id: *const c_char)
+    -> c_int;
+    fn chunk_your_tools_effective_policy(
         ctx_json: *const c_char,
         tool_id: *const c_char,
         out: *mut *mut c_char,
     ) -> c_int;
-    fn cyt_batch_tool_pass_through(
+    fn chunk_your_tools_batch_tool_pass_through(
         ctx_json: *const c_char,
         tool_ids_json: *const c_char,
         out: *mut *mut c_char,
     ) -> c_int;
-    fn cyt_stash_system_tools(input_json: *const c_char, out: *mut *mut c_char) -> c_int;
+    fn chunk_your_tools_stash_system_tools(
+        input_json: *const c_char,
+        out: *mut *mut c_char,
+    ) -> c_int;
 }
 
 const fn cstr(bytes: &'static [u8]) -> &'static CStr {
@@ -33,7 +40,7 @@ const fn cstr(bytes: &'static [u8]) -> &'static CStr {
 
 unsafe fn read_out(out: *mut c_char) -> String {
     let s = unsafe { CStr::from_ptr(out).to_string_lossy().into_owned() };
-    unsafe { cyt_free_string(out) };
+    unsafe { chunk_your_tools_free_string(out) };
     s
 }
 
@@ -68,11 +75,13 @@ struct BoolCase {
 }
 
 fn run_bool_ctx(ctx: *const c_char, _: Option<*const c_char>) -> i32 {
-    unsafe { cyt_full_pass_through(ctx) }
+    unsafe { chunk_your_tools_full_pass_through(ctx) }
 }
 
 fn run_tool_pass(ctx: *const c_char, tool: Option<*const c_char>) -> i32 {
-    unsafe { cyt_tool_pass_through(ctx, tool.expect("tool required for run_tool_pass")) }
+    unsafe {
+        chunk_your_tools_tool_pass_through(ctx, tool.expect("tool required for run_tool_pass"))
+    }
 }
 
 #[test]
@@ -135,15 +144,15 @@ struct JsonCase {
 }
 
 fn run_batch_pass(ctx: *const c_char, payload: *const c_char, out: *mut *mut c_char) -> i32 {
-    unsafe { cyt_batch_tool_pass_through(ctx, payload, out) }
+    unsafe { chunk_your_tools_batch_tool_pass_through(ctx, payload, out) }
 }
 
 fn run_classify_optional(payload: *const c_char, _: *const c_char, out: *mut *mut c_char) -> i32 {
-    unsafe { cyt_classify_optional_chunks_batch(payload, out) }
+    unsafe { chunk_your_tools_classify_optional_chunks_batch(payload, out) }
 }
 
 fn run_stash_system(payload: *const c_char, _: *const c_char, out: *mut *mut c_char) -> i32 {
-    unsafe { cyt_stash_system_tools(payload, out) }
+    unsafe { chunk_your_tools_stash_system_tools(payload, out) }
 }
 
 #[test]
@@ -186,7 +195,7 @@ fn policy_json_exports_table() {
             case.payload.as_ptr(),
             ptr::addr_of_mut!(out),
         );
-        assert_eq!(code, CYT_OK, "{} returned error", case.name);
+        assert_eq!(code, CHUNK_YOUR_TOOLS_OK, "{} returned error", case.name);
         assert!(!out.is_null(), "{} returned null out", case.name);
         let json = unsafe { read_out(out) };
         assert!(
@@ -206,8 +215,10 @@ fn effective_policy_honors_tool_kind_in_ctx_json() {
     );
     let tool = cstr(b"tools.demo.org.search\0");
     let mut out: *mut c_char = ptr::null_mut();
-    let code = unsafe { cyt_effective_policy(ctx.as_ptr(), tool.as_ptr(), ptr::addr_of_mut!(out)) };
-    assert_eq!(code, CYT_OK);
+    let code = unsafe {
+        chunk_your_tools_effective_policy(ctx.as_ptr(), tool.as_ptr(), ptr::addr_of_mut!(out))
+    };
+    assert_eq!(code, CHUNK_YOUR_TOOLS_OK);
     assert!(!out.is_null());
     let policy = unsafe { read_out(out) };
     assert_eq!(policy, "prune_all");
@@ -216,6 +227,6 @@ fn effective_policy_honors_tool_kind_in_ctx_json() {
 #[test]
 fn chunk_classifier_macros_smoke() {
     let item = cstr(b"{\"file_path\":\"schemas/decomposed/mcp__test__read.json\"}\0");
-    let code = unsafe { cyt_is_non_system_chunk(item.as_ptr()) };
+    let code = unsafe { chunk_your_tools_is_non_system_chunk(item.as_ptr()) };
     assert!(code >= 0, "is_non_system_chunk errored");
 }

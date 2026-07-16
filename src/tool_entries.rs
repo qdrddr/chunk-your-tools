@@ -1,5 +1,5 @@
 //! Convert Anthropic API tools or catalog entries into the format expected by [`build_catalog_index`].
-//! Port of `src/cyt/indexer/build.py` + `anthropic_tools_to_catalog_entries` in the proxy.
+//! Port of `src/clear-your-tools/indexer/build.py` + `anthropic_tools_to_catalog_entries` in the proxy.
 
 use crate::build::{CatalogIndex, build_catalog_index};
 use crate::paths::collect_enums;

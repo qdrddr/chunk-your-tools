@@ -7,5 +7,5 @@ edition = "2021"
 publish = false
 
 [dependencies]
-chunk-your-tools = { version = "=@CYT_RELEASE_VERSION@" }
+chunk-your-tools = { version = "=@CHUNK_YOUR_TOOLS_RELEASE_VERSION@" }
 serde_json = "1"

@@ -27,15 +27,15 @@ import (
 const ok = 0
 
 type catalogBuilderHandle struct {
-	h *C.CYT_CytCatalogBuilder
+	h *C.ChunkYourToolsCatalogBuilder
 }
 
 type decomposedCatalogHandle struct {
-	h *C.CYT_CytDecomposedCatalog
+	h *C.ChunkYourToolsDecomposedCatalog
 }
 
 func lastError() error {
-	msg := C.cyt_get_last_error()
+	msg := C.chunk_your_tools_get_last_error()
 	if msg == nil {
 		return errors.New("chunk-your-tools error")
 	}
@@ -59,7 +59,7 @@ func takeJSON(out **C.char) (string, error) {
 	if ptr == nil {
 		return "", errors.New("null JSON output")
 	}
-	defer C.cyt_free_string(ptr)
+	defer C.chunk_your_tools_free_string(ptr)
 	return C.GoString(ptr), nil
 }
 
@@ -79,11 +79,11 @@ func cgoBoolFromOutInt(name string, fn func(out *C.int) C.int) (bool, error) {
 }
 
 func cgoClearError() {
-	C.cyt_clear_error()
+	C.chunk_your_tools_clear_error()
 }
 
 func cgoGetLastError() string {
-	msg := C.cyt_get_last_error()
+	msg := C.chunk_your_tools_get_last_error()
 	if msg == nil {
 		return ""
 	}
@@ -92,7 +92,7 @@ func cgoGetLastError() string {
 
 func cgoGetVersion() (string, error) {
 	var out *C.char
-	if C.cyt_get_version(&out) != ok {
+	if C.chunk_your_tools_get_version(&out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -101,7 +101,7 @@ func cgoGetVersion() (string, error) {
 func cgoCatalogToolCount(dataJSON string) (int64, error) {
 	cData := cString(dataJSON)
 	defer freeCString(cData)
-	count := C.cyt_catalog_tool_count(cData)
+	count := C.chunk_your_tools_catalog_tool_count(cData)
 	if count < 0 {
 		return 0, lastError()
 	}
@@ -114,7 +114,7 @@ func cgoBuildCatalogIndex(toolsJSON, enumsJSON string) (string, error) {
 	cEnums := cString(enumsJSON)
 	defer freeCString(cEnums)
 	var out *C.char
-	if C.cyt_build_catalog_index(cTools, cEnums, &out) != ok {
+	if C.chunk_your_tools_build_catalog_index(cTools, cEnums, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -124,7 +124,7 @@ func cgoAnthropicToolsToCatalogEntries(toolsJSON string) (string, error) {
 	cTools := cString(toolsJSON)
 	defer freeCString(cTools)
 	var out *C.char
-	if C.cyt_anthropic_tools_to_catalog_entries(cTools, &out) != ok {
+	if C.chunk_your_tools_anthropic_tools_to_catalog_entries(cTools, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -134,7 +134,7 @@ func cgoBuildCatalogFromTools(toolsJSON string) (string, error) {
 	cTools := cString(toolsJSON)
 	defer freeCString(cTools)
 	var out *C.char
-	if C.cyt_build_catalog_from_tools(cTools, &out) != ok {
+	if C.chunk_your_tools_build_catalog_from_tools(cTools, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -150,7 +150,7 @@ func cgoPrepareToolEntry(serverName, name, description, inputSchemaJSON string) 
 	cSchema := cString(inputSchemaJSON)
 	defer freeCString(cSchema)
 	var out *C.char
-	if C.cyt_prepare_tool_entry(cServer, cName, cDesc, cSchema, &out) != ok {
+	if C.chunk_your_tools_prepare_tool_entry(cServer, cName, cDesc, cSchema, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -160,7 +160,7 @@ func cgoAnthropicToolToCatalogEntry(toolJSON string) (string, error) {
 	cTool := cString(toolJSON)
 	defer freeCString(cTool)
 	var out *C.char
-	if C.cyt_anthropic_tool_to_catalog_entry(cTool, &out) != ok {
+	if C.chunk_your_tools_anthropic_tool_to_catalog_entry(cTool, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -170,7 +170,7 @@ func cgoTruncateDescription(description string, maxTokens uint64) (string, error
 	cDesc := cString(description)
 	defer freeCString(cDesc)
 	var out *C.char
-	if C.cyt_truncate_description(cDesc, C.ulong(maxTokens), &out) != ok {
+	if C.chunk_your_tools_truncate_description(cDesc, C.ulong(maxTokens), &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -185,7 +185,7 @@ func cgoWriteCatalogIndex(indexJSON, outputDir string, prune bool) error {
 	if prune {
 		pruneFlag = 1
 	}
-	if C.cyt_write_catalog_index(cIndex, cDir, pruneFlag) != ok {
+	if C.chunk_your_tools_write_catalog_index(cIndex, cDir, pruneFlag) != ok {
 		return lastError()
 	}
 	return nil
@@ -197,7 +197,7 @@ func cgoCatalogIndexToCatalogDict(indexJSON, catalogPrefix string) (string, erro
 	cPrefix := cString(catalogPrefix)
 	defer freeCString(cPrefix)
 	var out *C.char
-	if C.cyt_catalog_index_to_catalog_dict(cIndex, cPrefix, &out) != ok {
+	if C.chunk_your_tools_catalog_index_to_catalog_dict(cIndex, cPrefix, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -207,7 +207,7 @@ func cgoCatalogIndexToolSchemaMetadata(indexJSON string) (string, error) {
 	cIndex := cString(indexJSON)
 	defer freeCString(cIndex)
 	var out *C.char
-	if C.cyt_catalog_index_tool_schema_metadata(cIndex, &out) != ok {
+	if C.chunk_your_tools_catalog_index_tool_schema_metadata(cIndex, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -220,8 +220,8 @@ func cgoCatalogBuilderNew(memoryOnly bool, outputDir string) (catalogBuilderHand
 	if memoryOnly {
 		mem = 1
 	}
-	var handle *C.CYT_CytCatalogBuilder
-	if C.cyt_catalog_builder_new(mem, cDir, &handle) != ok {
+	var handle *C.ChunkYourToolsCatalogBuilder
+	if C.chunk_your_tools_catalog_builder_new(mem, cDir, &handle) != ok {
 		return catalogBuilderHandle{}, lastError()
 	}
 	return catalogBuilderHandle{h: handle}, nil
@@ -229,14 +229,14 @@ func cgoCatalogBuilderNew(memoryOnly bool, outputDir string) (catalogBuilderHand
 
 func cgoCatalogBuilderFree(h catalogBuilderHandle) {
 	if h.h != nil {
-		C.cyt_catalog_builder_free(h.h)
+		C.chunk_your_tools_catalog_builder_free(h.h)
 	}
 }
 
 func cgoCatalogBuilderAddTool(h catalogBuilderHandle, entryJSON string) error {
 	cEntry := cString(entryJSON)
 	defer freeCString(cEntry)
-	if C.cyt_catalog_builder_add_tool(h.h, cEntry) != ok {
+	if C.chunk_your_tools_catalog_builder_add_tool(h.h, cEntry) != ok {
 		return lastError()
 	}
 	return nil
@@ -248,7 +248,7 @@ func cgoCatalogBuilderGetToolInfo(h catalogBuilderHandle, serverName, toolName s
 	cTool := cString(toolName)
 	defer freeCString(cTool)
 	var out *C.char
-	if C.cyt_catalog_builder_get_tool_info(h.h, cServer, cTool, &out) != ok {
+	if C.chunk_your_tools_catalog_builder_get_tool_info(h.h, cServer, cTool, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -256,7 +256,7 @@ func cgoCatalogBuilderGetToolInfo(h catalogBuilderHandle, serverName, toolName s
 
 func cgoCatalogBuilderBuildIndex(h catalogBuilderHandle) (string, error) {
 	var out *C.char
-	if C.cyt_catalog_builder_build_index(h.h, &out) != ok {
+	if C.chunk_your_tools_catalog_builder_build_index(h.h, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -264,7 +264,7 @@ func cgoCatalogBuilderBuildIndex(h catalogBuilderHandle) (string, error) {
 
 func cgoCatalogBuilderWriteCatalog(h catalogBuilderHandle) (string, error) {
 	var out *C.char
-	if C.cyt_catalog_builder_write_catalog(h.h, &out) != ok {
+	if C.chunk_your_tools_catalog_builder_write_catalog(h.h, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -274,15 +274,15 @@ func cgoCatalogBuilderToCatalogDict(h catalogBuilderHandle, catalogPrefix string
 	cPrefix := cString(catalogPrefix)
 	defer freeCString(cPrefix)
 	var out *C.char
-	if C.cyt_catalog_builder_to_catalog_dict(h.h, cPrefix, &out) != ok {
+	if C.chunk_your_tools_catalog_builder_to_catalog_dict(h.h, cPrefix, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
 }
 
 func cgoDecomposedCatalogNew() (decomposedCatalogHandle, error) {
-	var handle *C.CYT_CytDecomposedCatalog
-	if C.cyt_decomposed_catalog_new(&handle) != ok {
+	var handle *C.ChunkYourToolsDecomposedCatalog
+	if C.chunk_your_tools_decomposed_catalog_new(&handle) != ok {
 		return decomposedCatalogHandle{}, lastError()
 	}
 	return decomposedCatalogHandle{h: handle}, nil
@@ -291,8 +291,8 @@ func cgoDecomposedCatalogNew() (decomposedCatalogHandle, error) {
 func cgoDecomposedCatalogFromCatalogIndex(indexJSON string) (decomposedCatalogHandle, error) {
 	cIndex := cString(indexJSON)
 	defer freeCString(cIndex)
-	var handle *C.CYT_CytDecomposedCatalog
-	if C.cyt_decomposed_catalog_from_catalog_index(cIndex, &handle) != ok {
+	var handle *C.ChunkYourToolsDecomposedCatalog
+	if C.chunk_your_tools_decomposed_catalog_from_catalog_index(cIndex, &handle) != ok {
 		return decomposedCatalogHandle{}, lastError()
 	}
 	return decomposedCatalogHandle{h: handle}, nil
@@ -301,8 +301,8 @@ func cgoDecomposedCatalogFromCatalogIndex(indexJSON string) (decomposedCatalogHa
 func cgoDecomposedCatalogFromCatalogDict(dataJSON string) (decomposedCatalogHandle, error) {
 	cData := cString(dataJSON)
 	defer freeCString(cData)
-	var handle *C.CYT_CytDecomposedCatalog
-	if C.cyt_decomposed_catalog_from_catalog_dict(cData, &handle) != ok {
+	var handle *C.ChunkYourToolsDecomposedCatalog
+	if C.chunk_your_tools_decomposed_catalog_from_catalog_dict(cData, &handle) != ok {
 		return decomposedCatalogHandle{}, lastError()
 	}
 	return decomposedCatalogHandle{h: handle}, nil
@@ -310,21 +310,21 @@ func cgoDecomposedCatalogFromCatalogDict(dataJSON string) (decomposedCatalogHand
 
 func cgoDecomposedCatalogFree(h decomposedCatalogHandle) {
 	if h.h != nil {
-		C.cyt_decomposed_catalog_free(h.h)
+		C.chunk_your_tools_decomposed_catalog_free(h.h)
 	}
 }
 
 func cgoDecomposedCatalogHasJSON(h decomposedCatalogHandle, key string) (bool, error) {
 	cKey := cString(key)
 	defer freeCString(cKey)
-	return fmtBoolQuery("HasJSON", C.cyt_decomposed_catalog_has_json(h.h, cKey))
+	return fmtBoolQuery("HasJSON", C.chunk_your_tools_decomposed_catalog_has_json(h.h, cKey))
 }
 
 func cgoDecomposedCatalogGetJSON(h decomposedCatalogHandle, key string) (string, error) {
 	cKey := cString(key)
 	defer freeCString(cKey)
 	var out *C.char
-	if C.cyt_decomposed_catalog_get_json(h.h, cKey, &out) != ok {
+	if C.chunk_your_tools_decomposed_catalog_get_json(h.h, cKey, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -334,7 +334,7 @@ func cgoLoadCatalog(dirPath string) (string, error) {
 	cDir := cString(dirPath)
 	defer freeCString(cDir)
 	var out *C.char
-	if C.cyt_load_catalog(cDir, &out) != ok {
+	if C.chunk_your_tools_load_catalog(cDir, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -354,7 +354,7 @@ func cgoRetrieveTools(dataJSON string, catalog decomposedCatalogHandle, catalogI
 		filter = 1
 	}
 	var out *C.char
-	if C.cyt_retrieve_tools(cData, catalog.h, cIndex, filter, cPreserve, cCtx, &out) != ok {
+	if C.chunk_your_tools_retrieve_tools(cData, catalog.h, cIndex, filter, cPreserve, cCtx, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -374,7 +374,7 @@ func cgoRetrieveCore(dataJSON, storeJSON, survivorJSON string, applyDecomposedSc
 		filter = 1
 	}
 	var out *C.char
-	if C.cyt_retrieve_core(cData, cStore, cSurvivor, filter, cPolicy, &out) != ok {
+	if C.chunk_your_tools_retrieve_core(cData, cStore, cSurvivor, filter, cPolicy, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -386,7 +386,7 @@ func cgoChunkSurvivorKey(itemJSON, section string) (string, error) {
 	cSection := cString(section)
 	defer freeCString(cSection)
 	var out *C.char
-	if C.cyt_chunk_survivor_key(cItem, cSection, &out) != ok {
+	if C.chunk_your_tools_chunk_survivor_key(cItem, cSection, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -402,7 +402,7 @@ func cgoRemovedChunks(fullCatalogJSON, survivingJSON string, applyDecomposedScor
 		filter = 1
 	}
 	var out *C.char
-	if C.cyt_removed_chunks(cFull, cSurviving, filter, &out) != ok {
+	if C.chunk_your_tools_removed_chunks(cFull, cSurviving, filter, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -411,7 +411,7 @@ func cgoRemovedChunks(fullCatalogJSON, survivingJSON string, applyDecomposedScor
 func cgoRetrieveCatalogToolCount(dataJSON string) (int64, error) {
 	cData := cString(dataJSON)
 	defer freeCString(cData)
-	count := C.cyt_retrieve_catalog_tool_count(cData)
+	count := C.chunk_your_tools_retrieve_catalog_tool_count(cData)
 	if count < 0 {
 		return 0, lastError()
 	}
@@ -424,7 +424,7 @@ func cgoResolveBuildCatalog(catalogJSON, survivorJSON string) (string, error) {
 	cSurvivor := cString(survivorJSON)
 	defer freeCString(cSurvivor)
 	var out *C.char
-	if C.cyt_resolve_build_catalog(cCatalog, cSurvivor, &out) != ok {
+	if C.chunk_your_tools_resolve_build_catalog(cCatalog, cSurvivor, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -434,7 +434,7 @@ func cgoCollectEnums(schemaJSON string) (string, error) {
 	cSchema := cString(schemaJSON)
 	defer freeCString(cSchema)
 	var out *C.char
-	if C.cyt_collect_enums(cSchema, &out) != ok {
+	if C.chunk_your_tools_collect_enums(cSchema, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -444,7 +444,7 @@ func cgoToDecomposedKey(filePath string) (string, error) {
 	cPath := cString(filePath)
 	defer freeCString(cPath)
 	var out *C.char
-	if C.cyt_to_decomposed_key(cPath, &out) != ok {
+	if C.chunk_your_tools_to_decomposed_key(cPath, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -454,7 +454,7 @@ func cgoToolIDFromDecomposedRel(relPath string) (string, error) {
 	cPath := cString(relPath)
 	defer freeCString(cPath)
 	var out *C.char
-	if C.cyt_tool_id_from_decomposed_rel(cPath, &out) != ok {
+	if C.chunk_your_tools_tool_id_from_decomposed_rel(cPath, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -464,7 +464,7 @@ func cgoGetRootToolKey(filePath string) (string, error) {
 	cPath := cString(filePath)
 	defer freeCString(cPath)
 	var out *C.char
-	if C.cyt_get_root_tool_key(cPath, &out) != ok {
+	if C.chunk_your_tools_get_root_tool_key(cPath, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -475,7 +475,7 @@ func cgoConfigureRuntimeDefaults(decomposedScore, enumScore, rerankScore float64
 	defer freeCString(cSystem)
 	cMcp := cString(defaultMcpPolicy)
 	defer freeCString(cMcp)
-	if C.cyt_configure_runtime_defaults(
+	if C.chunk_your_tools_configure_runtime_defaults(
 		C.double(decomposedScore),
 		C.double(enumScore),
 		C.double(rerankScore),
@@ -489,24 +489,24 @@ func cgoConfigureRuntimeDefaults(decomposedScore, enumScore, rerankScore float64
 }
 
 func cgoRuntimeDecomposedScore() float64 {
-	return float64(C.cyt_runtime_decomposed_score())
+	return float64(C.chunk_your_tools_runtime_decomposed_score())
 }
 
 func cgoRuntimeEnumScore() float64 {
-	return float64(C.cyt_runtime_enum_score())
+	return float64(C.chunk_your_tools_runtime_enum_score())
 }
 
 func cgoRuntimeRerankScore() float64 {
-	return float64(C.cyt_runtime_rerank_score())
+	return float64(C.chunk_your_tools_runtime_rerank_score())
 }
 
 func cgoRuntimeEmptyOptionalFallbackK() uint64 {
-	return uint64(C.cyt_runtime_empty_optional_fallback_k())
+	return uint64(C.chunk_your_tools_runtime_empty_optional_fallback_k())
 }
 
 func cgoRuntimeDefaultSystemPolicy() (string, error) {
 	var out *C.char
-	if C.cyt_runtime_default_system_policy(&out) != ok {
+	if C.chunk_your_tools_runtime_default_system_policy(&out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -514,7 +514,7 @@ func cgoRuntimeDefaultSystemPolicy() (string, error) {
 
 func cgoRuntimeDefaultMcpPolicy() (string, error) {
 	var out *C.char
-	if C.cyt_runtime_default_mcp_policy(&out) != ok {
+	if C.chunk_your_tools_runtime_default_mcp_policy(&out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -522,7 +522,7 @@ func cgoRuntimeDefaultMcpPolicy() (string, error) {
 
 func cgoToolPolicies() (string, error) {
 	var out *C.char
-	if C.cyt_tool_policies(&out) != ok {
+	if C.chunk_your_tools_tool_policies(&out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -532,7 +532,7 @@ func cgoPolicyContextFromValues(configJSON string) (string, error) {
 	cCfg := cString(configJSON)
 	defer freeCString(cCfg)
 	var out *C.char
-	if C.cyt_policy_context_from_values(cCfg, &out) != ok {
+	if C.chunk_your_tools_policy_context_from_values(cCfg, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -544,7 +544,7 @@ func cgoEffectivePolicy(ctxJSON, toolID string) (string, error) {
 	cTool := cString(toolID)
 	defer freeCString(cTool)
 	var out *C.char
-	if C.cyt_effective_policy(cCtx, cTool, &out) != ok {
+	if C.chunk_your_tools_effective_policy(cCtx, cTool, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -556,7 +556,7 @@ func cgoBatchToolPassThrough(ctxJSON, toolIDsJSON string) (string, error) {
 	cIDs := cString(toolIDsJSON)
 	defer freeCString(cIDs)
 	var out *C.char
-	if C.cyt_batch_tool_pass_through(cCtx, cIDs, &out) != ok {
+	if C.chunk_your_tools_batch_tool_pass_through(cCtx, cIDs, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -568,7 +568,7 @@ func cgoPartitionCatalog(dataJSON, ctxJSON string) (string, error) {
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
 	var out *C.char
-	if C.cyt_partition_catalog(cData, cCtx, &out) != ok {
+	if C.chunk_your_tools_partition_catalog(cData, cCtx, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -580,7 +580,7 @@ func cgoMergeCatalog(processedJSON, pinnedJSON string) (string, error) {
 	cPinned := cString(pinnedJSON)
 	defer freeCString(cPinned)
 	var out *C.char
-	if C.cyt_merge_catalog(cProcessed, cPinned, &out) != ok {
+	if C.chunk_your_tools_merge_catalog(cProcessed, cPinned, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -591,7 +591,7 @@ func cgoCatalogNeedsPartition(dataJSON, ctxJSON string) (bool, error) {
 	defer freeCString(cData)
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
-	return fmtBoolQuery("CatalogNeedsPartition", C.cyt_catalog_needs_partition(cData, cCtx))
+	return fmtBoolQuery("CatalogNeedsPartition", C.chunk_your_tools_catalog_needs_partition(cData, cCtx))
 }
 
 func cgoCatalogNeedsPrunedRecompose(dataJSON, ctxJSON string) (bool, error) {
@@ -599,7 +599,7 @@ func cgoCatalogNeedsPrunedRecompose(dataJSON, ctxJSON string) (bool, error) {
 	defer freeCString(cData)
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
-	return fmtBoolQuery("CatalogNeedsPrunedRecompose", C.cyt_catalog_needs_pruned_recompose(cData, cCtx))
+	return fmtBoolQuery("CatalogNeedsPrunedRecompose", C.chunk_your_tools_catalog_needs_pruned_recompose(cData, cCtx))
 }
 
 func cgoRequestPassThrough(ctxJSON, toolsJSON string) (bool, error) {
@@ -607,7 +607,7 @@ func cgoRequestPassThrough(ctxJSON, toolsJSON string) (bool, error) {
 	defer freeCString(cCtx)
 	cTools := cString(toolsJSON)
 	defer freeCString(cTools)
-	return fmtBoolQuery("RequestPassThrough", C.cyt_request_pass_through(cCtx, cTools))
+	return fmtBoolQuery("RequestPassThrough", C.chunk_your_tools_request_pass_through(cCtx, cTools))
 }
 
 func cgoFilterRecomposeJSONEntries(jsonListJSON, ctxJSON string, rerankScore float64, useDefaultRerankScore bool, llmSelectedPathsJSON string) (string, error) {
@@ -622,7 +622,7 @@ func cgoFilterRecomposeJSONEntries(jsonListJSON, ctxJSON string, rerankScore flo
 		useDefault = 1
 	}
 	var out *C.char
-	if C.cyt_filter_recompose_json_entries(cList, cCtx, C.double(rerankScore), useDefault, cPaths, &out) != ok {
+	if C.chunk_your_tools_filter_recompose_json_entries(cList, cCtx, C.double(rerankScore), useDefault, cPaths, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -640,7 +640,7 @@ func cgoMitigateEmptyOptionalProperties(entriesJSON, catalogIndexJSON, ctxJSON, 
 	cPipeline := cString(pipelineJSON)
 	defer freeCString(cPipeline)
 	var out *C.char
-	if C.cyt_mitigate_empty_optional_properties(cEntries, cIndex, cCtx, cScored, cPipeline, &out) != ok {
+	if C.chunk_your_tools_mitigate_empty_optional_properties(cEntries, cIndex, cCtx, cScored, cPipeline, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -656,7 +656,7 @@ func cgoAppendDescriptionReinstateEntries(entriesJSON, buildCatalogJSON, catalog
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
 	var out *C.char
-	if C.cyt_append_description_reinstate_entries(cEntries, cBuild, cIndex, cCtx, &out) != ok {
+	if C.chunk_your_tools_append_description_reinstate_entries(cEntries, cBuild, cIndex, cCtx, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -665,14 +665,14 @@ func cgoAppendDescriptionReinstateEntries(entriesJSON, buildCatalogJSON, catalog
 func cgoIsDescriptionPolicy(policy string) (bool, error) {
 	cPolicy := cString(policy)
 	defer freeCString(cPolicy)
-	return fmtBoolQuery("IsDescriptionPolicy", C.cyt_is_description_policy(cPolicy))
+	return fmtBoolQuery("IsDescriptionPolicy", C.chunk_your_tools_is_description_policy(cPolicy))
 }
 
 func cgoScoringPolicy(policy string) (string, error) {
 	cPolicy := cString(policy)
 	defer freeCString(cPolicy)
 	var out *C.char
-	if C.cyt_scoring_policy(cPolicy, &out) != ok {
+	if C.chunk_your_tools_scoring_policy(cPolicy, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -686,7 +686,7 @@ func cgoDropRecomposedToolsWithEmptyProperties(toolsJSON, catalogIndexJSON, ctxJ
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
 	var out *C.char
-	if C.cyt_drop_recomposed_tools_with_empty_properties(cTools, cIndex, cCtx, &out) != ok {
+	if C.chunk_your_tools_drop_recomposed_tools_with_empty_properties(cTools, cIndex, cCtx, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -696,7 +696,7 @@ func cgoRootToolIDFromChunk(itemJSON string) (string, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
 	var out *C.char
-	if C.cyt_root_tool_id_from_chunk(cItem, &out) != ok {
+	if C.chunk_your_tools_root_tool_id_from_chunk(cItem, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -706,7 +706,7 @@ func cgoChunkToolID(itemJSON string) (string, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
 	var out *C.char
-	if C.cyt_chunk_tool_id(cItem, &out) != ok {
+	if C.chunk_your_tools_chunk_tool_id(cItem, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -715,13 +715,13 @@ func cgoChunkToolID(itemJSON string) (string, error) {
 func cgoIsNonSystemToolID(toolID string) (bool, error) {
 	cID := cString(toolID)
 	defer freeCString(cID)
-	return fmtBoolQuery("IsNonSystemToolID", C.cyt_is_non_system_tool_id(cID))
+	return fmtBoolQuery("IsNonSystemToolID", C.chunk_your_tools_is_non_system_tool_id(cID))
 }
 
 func cgoIsSystemToolID(toolID string) (bool, error) {
 	cID := cString(toolID)
 	defer freeCString(cID)
-	return fmtBoolQuery("IsSystemToolID", C.cyt_is_system_tool_id(cID))
+	return fmtBoolQuery("IsSystemToolID", C.chunk_your_tools_is_system_tool_id(cID))
 }
 
 func cgoMergeToolsPreservingOrder(originalJSON, prunedByNameJSON, stashedByNameJSON string) (string, error) {
@@ -732,7 +732,7 @@ func cgoMergeToolsPreservingOrder(originalJSON, prunedByNameJSON, stashedByNameJ
 	cStashed := cString(stashedByNameJSON)
 	defer freeCString(cStashed)
 	var out *C.char
-	if C.cyt_merge_tools_preserving_order(cOrig, cPruned, cStashed, &out) != ok {
+	if C.chunk_your_tools_merge_tools_preserving_order(cOrig, cPruned, cStashed, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -742,7 +742,7 @@ func cgoSplitAnthropicTools(toolsJSON string) (string, error) {
 	cTools := cString(toolsJSON)
 	defer freeCString(cTools)
 	var out *C.char
-	if C.cyt_split_anthropic_tools(cTools, &out) != ok {
+	if C.chunk_your_tools_split_anthropic_tools(cTools, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -754,7 +754,7 @@ func cgoEntriesForPolicy(ctxJSON, allEntriesJSON string) (string, error) {
 	cEntries := cString(allEntriesJSON)
 	defer freeCString(cEntries)
 	var out *C.char
-	if C.cyt_entries_for_policy(cCtx, cEntries, &out) != ok {
+	if C.chunk_your_tools_entries_for_policy(cCtx, cEntries, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -766,7 +766,7 @@ func cgoToolsForCatalog(ctxJSON, toolsJSON string) (string, error) {
 	cTools := cString(toolsJSON)
 	defer freeCString(cTools)
 	var out *C.char
-	if C.cyt_tools_for_catalog(cCtx, cTools, &out) != ok {
+	if C.chunk_your_tools_tools_for_catalog(cCtx, cTools, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -776,7 +776,7 @@ func cgoSystemRequiredEnumValues(dataJSON string) (string, error) {
 	cData := cString(dataJSON)
 	defer freeCString(cData)
 	var out *C.char
-	if C.cyt_system_required_enum_values(cData, &out) != ok {
+	if C.chunk_your_tools_system_required_enum_values(cData, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -786,7 +786,7 @@ func cgoMcpRequiredEnumValues(dataJSON string) (string, error) {
 	cData := cString(dataJSON)
 	defer freeCString(cData)
 	var out *C.char
-	if C.cyt_mcp_required_enum_values(cData, &out) != ok {
+	if C.chunk_your_tools_mcp_required_enum_values(cData, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -796,7 +796,7 @@ func cgoRequiredEnumValuesByTool(dataJSON string) (string, error) {
 	cData := cString(dataJSON)
 	defer freeCString(cData)
 	var out *C.char
-	if C.cyt_required_enum_values_by_tool(cData, &out) != ok {
+	if C.chunk_your_tools_required_enum_values_by_tool(cData, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -814,20 +814,20 @@ func cgoOptionalLeafSurvivedRerank(itemJSON, ctxJSON string, rerankScore float64
 		useDefault = 1
 	}
 	return cgoBoolFromOutInt("", func(out *C.int) C.int {
-		return C.cyt_optional_leaf_survived_rerank(cItem, cCtx, C.double(rerankScore), useDefault, cPaths, out)
+		return C.chunk_your_tools_optional_leaf_survived_rerank(cItem, cCtx, C.double(rerankScore), useDefault, cPaths, out)
 	})
 }
 
 func cgoAnthropicToolIsSystem(toolJSON string) (bool, error) {
 	cTool := cString(toolJSON)
 	defer freeCString(cTool)
-	return fmtBoolQuery("AnthropicToolIsSystem", C.cyt_anthropic_tool_is_system(cTool))
+	return fmtBoolQuery("AnthropicToolIsSystem", C.chunk_your_tools_anthropic_tool_is_system(cTool))
 }
 
 func cgoAnthropicToolIsMcp(toolJSON string) (bool, error) {
 	cTool := cString(toolJSON)
 	defer freeCString(cTool)
-	return fmtBoolQuery("AnthropicToolIsMcp", C.cyt_anthropic_tool_is_mcp(cTool))
+	return fmtBoolQuery("AnthropicToolIsMcp", C.chunk_your_tools_anthropic_tool_is_mcp(cTool))
 }
 
 func cgoDirectRootOptionalChunksForTool(itemsJSON, toolID string) (string, error) {
@@ -836,7 +836,7 @@ func cgoDirectRootOptionalChunksForTool(itemsJSON, toolID string) (string, error
 	cTool := cString(toolID)
 	defer freeCString(cTool)
 	var out *C.char
-	if C.cyt_direct_root_optional_chunks_for_tool(cItems, cTool, &out) != ok {
+	if C.chunk_your_tools_direct_root_optional_chunks_for_tool(cItems, cTool, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -848,7 +848,7 @@ func cgoToolIDHasEmptyDecomposedRoot(catalogIndexJSON, toolID string) (bool, err
 	cTool := cString(toolID)
 	defer freeCString(cTool)
 	return cgoBoolFromOutInt("", func(out *C.int) C.int {
-		return C.cyt_tool_id_has_empty_decomposed_root(cIndex, cTool, out)
+		return C.chunk_your_tools_tool_id_has_empty_decomposed_root(cIndex, cTool, out)
 	})
 }
 
@@ -858,7 +858,7 @@ func cgoToolIDHadEmptyOriginalRootProperties(catalogIndexJSON, toolID string) (b
 	cTool := cString(toolID)
 	defer freeCString(cTool)
 	return cgoBoolFromOutInt("", func(out *C.int) C.int {
-		return C.cyt_tool_id_had_empty_original_root_properties(cIndex, cTool, out)
+		return C.chunk_your_tools_tool_id_had_empty_original_root_properties(cIndex, cTool, out)
 	})
 }
 
@@ -866,7 +866,7 @@ func cgoClassifyOptionalChunksBatch(itemsJSON string) (string, error) {
 	cItems := cString(itemsJSON)
 	defer freeCString(cItems)
 	var out *C.char
-	if C.cyt_classify_optional_chunks_batch(cItems, &out) != ok {
+	if C.chunk_your_tools_classify_optional_chunks_batch(cItems, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -893,7 +893,7 @@ func cgoConfigurePathConstants(mdExt, jsonExt, decomposedPrefix, decomposedRoot,
 	if writeCatalogPrune {
 		writePrune = 1
 	}
-	if C.cyt_configure_path_constants(cMd, cJSON, cPrefix, cRoot, cCatalog, cDefault, memOnly, writePrune) != ok {
+	if C.chunk_your_tools_configure_path_constants(cMd, cJSON, cPrefix, cRoot, cCatalog, cDefault, memOnly, writePrune) != ok {
 		return lastError()
 	}
 	return nil
@@ -901,7 +901,7 @@ func cgoConfigurePathConstants(mdExt, jsonExt, decomposedPrefix, decomposedRoot,
 
 func cgoPathMdExt() (string, error) {
 	var out *C.char
-	if C.cyt_path_md_ext(&out) != ok {
+	if C.chunk_your_tools_path_md_ext(&out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -909,7 +909,7 @@ func cgoPathMdExt() (string, error) {
 
 func cgoPathJsonExt() (string, error) {
 	var out *C.char
-	if C.cyt_path_json_ext(&out) != ok {
+	if C.chunk_your_tools_path_json_ext(&out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -917,7 +917,7 @@ func cgoPathJsonExt() (string, error) {
 
 func cgoPathDecomposedPrefix() (string, error) {
 	var out *C.char
-	if C.cyt_path_decomposed_prefix(&out) != ok {
+	if C.chunk_your_tools_path_decomposed_prefix(&out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -925,7 +925,7 @@ func cgoPathDecomposedPrefix() (string, error) {
 
 func cgoPathDecomposedRoot() (string, error) {
 	var out *C.char
-	if C.cyt_path_decomposed_root(&out) != ok {
+	if C.chunk_your_tools_path_decomposed_root(&out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -933,7 +933,7 @@ func cgoPathDecomposedRoot() (string, error) {
 
 func cgoPathCatalogPrefix() (string, error) {
 	var out *C.char
-	if C.cyt_path_catalog_prefix(&out) != ok {
+	if C.chunk_your_tools_path_catalog_prefix(&out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -941,18 +941,18 @@ func cgoPathCatalogPrefix() (string, error) {
 
 func cgoPathDefaultCatalogDir() (string, error) {
 	var out *C.char
-	if C.cyt_path_default_catalog_dir(&out) != ok {
+	if C.chunk_your_tools_path_default_catalog_dir(&out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
 }
 
 func cgoPathBuilderMemoryOnly() (bool, error) {
-	return fmtBoolQuery("PathBuilderMemoryOnly", C.cyt_path_builder_memory_only())
+	return fmtBoolQuery("PathBuilderMemoryOnly", C.chunk_your_tools_path_builder_memory_only())
 }
 
 func cgoPathWriteCatalogPrune() (bool, error) {
-	return fmtBoolQuery("PathWriteCatalogPrune", C.cyt_path_write_catalog_prune())
+	return fmtBoolQuery("PathWriteCatalogPrune", C.chunk_your_tools_path_write_catalog_prune())
 }
 
 func cgoToolPassThrough(ctxJSON, toolID string) (bool, error) {
@@ -960,110 +960,110 @@ func cgoToolPassThrough(ctxJSON, toolID string) (bool, error) {
 	defer freeCString(cCtx)
 	cTool := cString(toolID)
 	defer freeCString(cTool)
-	return fmtBoolQuery("ToolPassThrough", C.cyt_tool_pass_through(cCtx, cTool))
+	return fmtBoolQuery("ToolPassThrough", C.chunk_your_tools_tool_pass_through(cCtx, cTool))
 }
 
 func cgoFullPassThrough(ctxJSON string) (bool, error) {
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
-	return fmtBoolQuery("FullPassThrough", C.cyt_full_pass_through(cCtx))
+	return fmtBoolQuery("FullPassThrough", C.chunk_your_tools_full_pass_through(cCtx))
 }
 
 func cgoNeedsPartition(ctxJSON string) (bool, error) {
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
-	return fmtBoolQuery("NeedsPartition", C.cyt_needs_partition(cCtx))
+	return fmtBoolQuery("NeedsPartition", C.chunk_your_tools_needs_partition(cCtx))
 }
 
 func cgoNeedsPrunedRecompose(ctxJSON string) (bool, error) {
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
-	return fmtBoolQuery("NeedsPrunedRecompose", C.cyt_needs_pruned_recompose(cCtx))
+	return fmtBoolQuery("NeedsPrunedRecompose", C.chunk_your_tools_needs_pruned_recompose(cCtx))
 }
 
 func cgoSystemToolsPassThrough(ctxJSON string) (bool, error) {
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
-	return fmtBoolQuery("SystemToolsPassThrough", C.cyt_system_tools_pass_through(cCtx))
+	return fmtBoolQuery("SystemToolsPassThrough", C.chunk_your_tools_system_tools_pass_through(cCtx))
 }
 
 func cgoMcpToolsPassThrough(ctxJSON string) (bool, error) {
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
-	return fmtBoolQuery("McpToolsPassThrough", C.cyt_mcp_tools_pass_through(cCtx))
+	return fmtBoolQuery("McpToolsPassThrough", C.chunk_your_tools_mcp_tools_pass_through(cCtx))
 }
 
 func cgoNeedsDescriptionReinstate(ctxJSON string) (bool, error) {
 	cCtx := cString(ctxJSON)
 	defer freeCString(cCtx)
-	return fmtBoolQuery("NeedsDescriptionReinstate", C.cyt_needs_description_reinstate(cCtx))
+	return fmtBoolQuery("NeedsDescriptionReinstate", C.chunk_your_tools_needs_description_reinstate(cCtx))
 }
 
 func cgoIsSystemChunk(itemJSON string) (bool, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
-	return fmtBoolQuery("IsSystemChunk", C.cyt_is_system_chunk(cItem))
+	return fmtBoolQuery("IsSystemChunk", C.chunk_your_tools_is_system_chunk(cItem))
 }
 
 func cgoIsNonSystemChunk(itemJSON string) (bool, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
-	return fmtBoolQuery("IsNonSystemChunk", C.cyt_is_non_system_chunk(cItem))
+	return fmtBoolQuery("IsNonSystemChunk", C.chunk_your_tools_is_non_system_chunk(cItem))
 }
 
 func cgoIsDecomposedToolRootChunk(itemJSON string) (bool, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
-	return fmtBoolQuery("IsDecomposedToolRootChunk", C.cyt_is_decomposed_tool_root_chunk(cItem))
+	return fmtBoolQuery("IsDecomposedToolRootChunk", C.chunk_your_tools_is_decomposed_tool_root_chunk(cItem))
 }
 
 func cgoIsDecomposedOptionalPropertyChunk(itemJSON string) (bool, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
-	return fmtBoolQuery("IsDecomposedOptionalPropertyChunk", C.cyt_is_decomposed_optional_property_chunk(cItem))
+	return fmtBoolQuery("IsDecomposedOptionalPropertyChunk", C.chunk_your_tools_is_decomposed_optional_property_chunk(cItem))
 }
 
 func cgoIsSystemRootChunk(itemJSON string) (bool, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
-	return fmtBoolQuery("IsSystemRootChunk", C.cyt_is_system_root_chunk(cItem))
+	return fmtBoolQuery("IsSystemRootChunk", C.chunk_your_tools_is_system_root_chunk(cItem))
 }
 
 func cgoIsMcpRootChunk(itemJSON string) (bool, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
-	return fmtBoolQuery("IsMcpRootChunk", C.cyt_is_mcp_root_chunk(cItem))
+	return fmtBoolQuery("IsMcpRootChunk", C.chunk_your_tools_is_mcp_root_chunk(cItem))
 }
 
 func cgoIsSystemOptionalChunk(itemJSON string) (bool, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
-	return fmtBoolQuery("IsSystemOptionalChunk", C.cyt_is_system_optional_chunk(cItem))
+	return fmtBoolQuery("IsSystemOptionalChunk", C.chunk_your_tools_is_system_optional_chunk(cItem))
 }
 
 func cgoIsMcpOptionalChunk(itemJSON string) (bool, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
-	return fmtBoolQuery("IsMcpOptionalChunk", C.cyt_is_mcp_optional_chunk(cItem))
+	return fmtBoolQuery("IsMcpOptionalChunk", C.chunk_your_tools_is_mcp_optional_chunk(cItem))
 }
 
 func cgoIsDirectRootOptionalPropertyChunk(itemJSON string) (bool, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
-	return fmtBoolQuery("IsDirectRootOptionalPropertyChunk", C.cyt_is_direct_root_optional_property_chunk(cItem))
+	return fmtBoolQuery("IsDirectRootOptionalPropertyChunk", C.chunk_your_tools_is_direct_root_optional_property_chunk(cItem))
 }
 
 func cgoRootChunkPropertiesEmpty(itemJSON string) (bool, error) {
 	cItem := cString(itemJSON)
 	defer freeCString(cItem)
-	return fmtBoolQuery("RootChunkPropertiesEmpty", C.cyt_root_chunk_properties_empty(cItem))
+	return fmtBoolQuery("RootChunkPropertiesEmpty", C.chunk_your_tools_root_chunk_properties_empty(cItem))
 }
 
 func cgoStashSystemTools(toolsJSON string) (string, error) {
 	cInput := cString(toolsJSON)
 	defer freeCString(cInput)
 	var out *C.char
-	if C.cyt_stash_system_tools(cInput, &out) != ok {
+	if C.chunk_your_tools_stash_system_tools(cInput, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -1073,7 +1073,7 @@ func cgoRestoreSystemTools(stashJSON string) (string, error) {
 	cInput := cString(stashJSON)
 	defer freeCString(cInput)
 	var out *C.char
-	if C.cyt_restore_system_tools(cInput, &out) != ok {
+	if C.chunk_your_tools_restore_system_tools(cInput, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -1083,7 +1083,7 @@ func cgoStashMcpTools(toolsJSON string) (string, error) {
 	cInput := cString(toolsJSON)
 	defer freeCString(cInput)
 	var out *C.char
-	if C.cyt_stash_mcp_tools(cInput, &out) != ok {
+	if C.chunk_your_tools_stash_mcp_tools(cInput, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)
@@ -1093,7 +1093,7 @@ func cgoRestoreMcpTools(stashJSON string) (string, error) {
 	cInput := cString(stashJSON)
 	defer freeCString(cInput)
 	var out *C.char
-	if C.cyt_restore_mcp_tools(cInput, &out) != ok {
+	if C.chunk_your_tools_restore_mcp_tools(cInput, &out) != ok {
 		return "", lastError()
 	}
 	return takeJSON(&out)

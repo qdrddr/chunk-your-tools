@@ -1,6 +1,8 @@
 //! Policy and chunk classification FFI exports (mirrors `policies_python.rs`).
 
-use crate::ffi::error::{CYT_ERR_INVALID_ARG, CYT_ERR_NULL_PTR, clear_error, set_error};
+use crate::ffi::error::{
+    CHUNK_YOUR_TOOLS_ERR_INVALID_ARG, CHUNK_YOUR_TOOLS_ERR_NULL_PTR, clear_error, set_error,
+};
 use crate::ffi::json_util::{
     c_str_to_str, catalog_index_from_json, ffi_guard, json_array_or_empty, json_object_or_empty,
     optional_string_set_from_json, parse_json_cstr, parse_policy_context, run_ffi, write_json_out,
@@ -99,7 +101,7 @@ macro_rules! json_array_fn {
             run_ffi(|| {
                 if out.is_null() {
                     set_error("null pointer: out");
-                    return Err(CYT_ERR_NULL_PTR);
+                    return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
                 }
                 let arr =
                     json_array_or_empty(&unsafe { parse_json_cstr(input_json, "input_json")? });
@@ -111,11 +113,11 @@ macro_rules! json_array_fn {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_tool_policies(out: *mut *mut c_char) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_tool_policies(out: *mut *mut c_char) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let list: Vec<Value> = policies::tool_policy_strings()
             .into_iter()
@@ -127,14 +129,14 @@ pub unsafe extern "C" fn cyt_tool_policies(out: *mut *mut c_char) -> c_int {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_policy_context_from_values(
+pub unsafe extern "C" fn chunk_your_tools_policy_context_from_values(
     config_json: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let val = unsafe { parse_json_cstr(config_json, "config_json")? };
         let ctx = policy_context_from_values(&val);
@@ -144,7 +146,7 @@ pub unsafe extern "C" fn cyt_policy_context_from_values(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_effective_policy(
+pub unsafe extern "C" fn chunk_your_tools_effective_policy(
     ctx_json: *const c_char,
     tool_id: *const c_char,
     out: *mut *mut c_char,
@@ -152,7 +154,7 @@ pub unsafe extern "C" fn cyt_effective_policy(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let ctx = parse_ctx_json(ctx_json)?;
         let tool = unsafe { c_str_to_str(tool_id, "tool_id")? };
@@ -163,10 +165,10 @@ pub unsafe extern "C" fn cyt_effective_policy(
     })
 }
 
-bool_ctx_tool_fn!(cyt_tool_pass_through, tool_pass_through);
+bool_ctx_tool_fn!(chunk_your_tools_tool_pass_through, tool_pass_through);
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_batch_tool_pass_through(
+pub unsafe extern "C" fn chunk_your_tools_batch_tool_pass_through(
     ctx_json: *const c_char,
     tool_ids_json: *const c_char,
     out: *mut *mut c_char,
@@ -174,7 +176,7 @@ pub unsafe extern "C" fn cyt_batch_tool_pass_through(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let ctx = parse_ctx_json(ctx_json)?;
         let arr = json_array_or_empty(&unsafe { parse_json_cstr(tool_ids_json, "tool_ids_json")? });
@@ -189,7 +191,7 @@ pub unsafe extern "C" fn cyt_batch_tool_pass_through(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_partition_catalog(
+pub unsafe extern "C" fn chunk_your_tools_partition_catalog(
     data_json: *const c_char,
     ctx_json: *const c_char,
     out: *mut *mut c_char,
@@ -197,7 +199,7 @@ pub unsafe extern "C" fn cyt_partition_catalog(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let data = unsafe { parse_json_cstr(data_json, "data_json")? };
         let ctx = parse_ctx_json(ctx_json)?;
@@ -210,7 +212,7 @@ pub unsafe extern "C" fn cyt_partition_catalog(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_merge_catalog(
+pub unsafe extern "C" fn chunk_your_tools_merge_catalog(
     processed_json: *const c_char,
     pinned_json: *const c_char,
     out: *mut *mut c_char,
@@ -218,7 +220,7 @@ pub unsafe extern "C" fn cyt_merge_catalog(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let processed = unsafe { parse_json_cstr(processed_json, "processed_json")? };
         let pinned = unsafe { parse_json_cstr(pinned_json, "pinned_json")? };
@@ -228,7 +230,7 @@ pub unsafe extern "C" fn cyt_merge_catalog(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_catalog_needs_partition(
+pub unsafe extern "C" fn chunk_your_tools_catalog_needs_partition(
     data_json: *const c_char,
     ctx_json: *const c_char,
 ) -> c_int {
@@ -242,7 +244,7 @@ pub unsafe extern "C" fn cyt_catalog_needs_partition(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_catalog_needs_pruned_recompose(
+pub unsafe extern "C" fn chunk_your_tools_catalog_needs_pruned_recompose(
     data_json: *const c_char,
     ctx_json: *const c_char,
 ) -> c_int {
@@ -258,7 +260,7 @@ pub unsafe extern "C" fn cyt_catalog_needs_pruned_recompose(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_request_pass_through(
+pub unsafe extern "C" fn chunk_your_tools_request_pass_through(
     ctx_json: *const c_char,
     tools_json: *const c_char,
 ) -> c_int {
@@ -271,18 +273,18 @@ pub unsafe extern "C" fn cyt_request_pass_through(
     .unwrap_or_else(|code| code)
 }
 
-bool_ctx_fn!(cyt_full_pass_through, full_pass_through);
+bool_ctx_fn!(chunk_your_tools_full_pass_through, full_pass_through);
 bool_item_fn!(
-    cyt_is_decomposed_tool_root_chunk,
+    chunk_your_tools_is_decomposed_tool_root_chunk,
     policies::is_decomposed_tool_root_chunk
 );
 bool_item_fn!(
-    cyt_is_decomposed_optional_property_chunk,
+    chunk_your_tools_is_decomposed_optional_property_chunk,
     policies::is_decomposed_optional_property_chunk
 );
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_filter_recompose_json_entries(
+pub unsafe extern "C" fn chunk_your_tools_filter_recompose_json_entries(
     json_list_json: *const c_char,
     ctx_json: *const c_char,
     rerank_score: f64,
@@ -293,7 +295,7 @@ pub unsafe extern "C" fn cyt_filter_recompose_json_entries(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let ctx = parse_ctx_json(ctx_json)?;
         let arr =
@@ -317,7 +319,7 @@ pub unsafe extern "C" fn cyt_filter_recompose_json_entries(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_mitigate_empty_optional_properties(
+pub unsafe extern "C" fn chunk_your_tools_mitigate_empty_optional_properties(
     entries_json: *const c_char,
     catalog_index_json: *const c_char,
     ctx_json: *const c_char,
@@ -328,7 +330,7 @@ pub unsafe extern "C" fn cyt_mitigate_empty_optional_properties(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let ctx = parse_ctx_json(ctx_json)?;
         let entries =
@@ -359,7 +361,7 @@ pub unsafe extern "C" fn cyt_mitigate_empty_optional_properties(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_append_description_reinstate_entries(
+pub unsafe extern "C" fn chunk_your_tools_append_description_reinstate_entries(
     entries_json: *const c_char,
     build_catalog_json: *const c_char,
     catalog_index_json: *const c_char,
@@ -369,7 +371,7 @@ pub unsafe extern "C" fn cyt_append_description_reinstate_entries(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let ctx = parse_ctx_json(ctx_json)?;
         let entries =
@@ -384,10 +386,13 @@ pub unsafe extern "C" fn cyt_append_description_reinstate_entries(
     })
 }
 
-bool_ctx_fn!(cyt_needs_description_reinstate, needs_description_reinstate);
+bool_ctx_fn!(
+    chunk_your_tools_needs_description_reinstate,
+    needs_description_reinstate
+);
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_is_description_policy(policy: *const c_char) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_is_description_policy(policy: *const c_char) -> c_int {
     match unsafe { c_str_to_str(policy, "policy") } {
         Ok(s) => {
             let Some(p) = parse_tool_policy(s) else {
@@ -400,16 +405,19 @@ pub unsafe extern "C" fn cyt_is_description_policy(policy: *const c_char) -> c_i
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_scoring_policy(policy: *const c_char, out: *mut *mut c_char) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_scoring_policy(
+    policy: *const c_char,
+    out: *mut *mut c_char,
+) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let s = unsafe { c_str_to_str(policy, "policy")? };
         let p = parse_tool_policy(s).ok_or_else(|| {
             set_error(&format!("invalid policy: {s}"));
-            CYT_ERR_INVALID_ARG
+            CHUNK_YOUR_TOOLS_ERR_INVALID_ARG
         })?;
         unsafe {
             write_string_result(policies::scoring_policy(p).as_str(), out)?;
@@ -419,7 +427,7 @@ pub unsafe extern "C" fn cyt_scoring_policy(policy: *const c_char, out: *mut *mu
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_drop_recomposed_tools_with_empty_properties(
+pub unsafe extern "C" fn chunk_your_tools_drop_recomposed_tools_with_empty_properties(
     tools_json: *const c_char,
     catalog_index_json: *const c_char,
     ctx_json: *const c_char,
@@ -428,7 +436,7 @@ pub unsafe extern "C" fn cyt_drop_recomposed_tools_with_empty_properties(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let ctx = parse_ctx_json(ctx_json)?;
         let tools = json_array_or_empty(&unsafe { parse_json_cstr(tools_json, "tools_json")? });
@@ -442,14 +450,14 @@ pub unsafe extern "C" fn cyt_drop_recomposed_tools_with_empty_properties(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_root_tool_id_from_chunk(
+pub unsafe extern "C" fn chunk_your_tools_root_tool_id_from_chunk(
     item_json: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let item = unsafe { parse_json_cstr(item_json, "item_json")? };
         unsafe {
@@ -460,14 +468,14 @@ pub unsafe extern "C" fn cyt_root_tool_id_from_chunk(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_chunk_tool_id(
+pub unsafe extern "C" fn chunk_your_tools_chunk_tool_id(
     item_json: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let item = unsafe { parse_json_cstr(item_json, "item_json")? };
         unsafe {
@@ -478,7 +486,7 @@ pub unsafe extern "C" fn cyt_chunk_tool_id(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_is_non_system_tool_id(tool_id: *const c_char) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_is_non_system_tool_id(tool_id: *const c_char) -> c_int {
     match unsafe { c_str_to_str(tool_id, "tool_id") } {
         Ok(s) => {
             clear_error();
@@ -489,7 +497,7 @@ pub unsafe extern "C" fn cyt_is_non_system_tool_id(tool_id: *const c_char) -> c_
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_is_system_tool_id(tool_id: *const c_char) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_is_system_tool_id(tool_id: *const c_char) -> c_int {
     match unsafe { c_str_to_str(tool_id, "tool_id") } {
         Ok(s) => {
             clear_error();
@@ -499,31 +507,43 @@ pub unsafe extern "C" fn cyt_is_system_tool_id(tool_id: *const c_char) -> c_int 
     }
 }
 
-bool_item_fn!(cyt_is_system_chunk, policies::is_system_chunk);
-bool_item_fn!(cyt_is_non_system_chunk, policies::is_non_system_chunk);
-bool_item_fn!(cyt_is_system_root_chunk, policies::is_system_root_chunk);
-bool_item_fn!(cyt_is_mcp_root_chunk, policies::is_mcp_root_chunk);
+bool_item_fn!(chunk_your_tools_is_system_chunk, policies::is_system_chunk);
 bool_item_fn!(
-    cyt_is_system_optional_chunk,
+    chunk_your_tools_is_non_system_chunk,
+    policies::is_non_system_chunk
+);
+bool_item_fn!(
+    chunk_your_tools_is_system_root_chunk,
+    policies::is_system_root_chunk
+);
+bool_item_fn!(
+    chunk_your_tools_is_mcp_root_chunk,
+    policies::is_mcp_root_chunk
+);
+bool_item_fn!(
+    chunk_your_tools_is_system_optional_chunk,
     policies::is_system_optional_chunk
 );
-bool_item_fn!(cyt_is_mcp_optional_chunk, policies::is_mcp_optional_chunk);
 bool_item_fn!(
-    cyt_is_direct_root_optional_property_chunk,
+    chunk_your_tools_is_mcp_optional_chunk,
+    policies::is_mcp_optional_chunk
+);
+bool_item_fn!(
+    chunk_your_tools_is_direct_root_optional_property_chunk,
     policies::is_direct_root_optional_property_chunk
 );
 bool_item_fn!(
-    cyt_root_chunk_properties_empty,
+    chunk_your_tools_root_chunk_properties_empty,
     policies::root_chunk_properties_empty
 );
 
-json_array_fn!(cyt_stash_system_tools, stash_system_tools);
-json_array_fn!(cyt_restore_system_tools, restore_system_tools);
-json_array_fn!(cyt_stash_mcp_tools, stash_mcp_tools);
-json_array_fn!(cyt_restore_mcp_tools, restore_mcp_tools);
+json_array_fn!(chunk_your_tools_stash_system_tools, stash_system_tools);
+json_array_fn!(chunk_your_tools_restore_system_tools, restore_system_tools);
+json_array_fn!(chunk_your_tools_stash_mcp_tools, stash_mcp_tools);
+json_array_fn!(chunk_your_tools_restore_mcp_tools, restore_mcp_tools);
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_merge_tools_preserving_order(
+pub unsafe extern "C" fn chunk_your_tools_merge_tools_preserving_order(
     original_json: *const c_char,
     pruned_by_name_json: *const c_char,
     stashed_by_name_json: *const c_char,
@@ -532,7 +552,7 @@ pub unsafe extern "C" fn cyt_merge_tools_preserving_order(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let original =
             json_array_or_empty(&unsafe { parse_json_cstr(original_json, "original_json")? });
@@ -553,14 +573,14 @@ pub unsafe extern "C" fn cyt_merge_tools_preserving_order(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_split_anthropic_tools(
+pub unsafe extern "C" fn chunk_your_tools_split_anthropic_tools(
     tools_json: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let arr = json_array_or_empty(&unsafe { parse_json_cstr(tools_json, "tools_json")? });
         let (non_system, system) = policies::split_anthropic_tools(&arr);
@@ -572,7 +592,7 @@ pub unsafe extern "C" fn cyt_split_anthropic_tools(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_entries_for_policy(
+pub unsafe extern "C" fn chunk_your_tools_entries_for_policy(
     ctx_json: *const c_char,
     all_entries_json: *const c_char,
     out: *mut *mut c_char,
@@ -580,7 +600,7 @@ pub unsafe extern "C" fn cyt_entries_for_policy(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let ctx = parse_ctx_json(ctx_json)?;
         let arr =
@@ -593,7 +613,7 @@ pub unsafe extern "C" fn cyt_entries_for_policy(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_tools_for_catalog(
+pub unsafe extern "C" fn chunk_your_tools_tools_for_catalog(
     ctx_json: *const c_char,
     tools_json: *const c_char,
     out: *mut *mut c_char,
@@ -601,7 +621,7 @@ pub unsafe extern "C" fn cyt_tools_for_catalog(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let ctx = parse_ctx_json(ctx_json)?;
         let arr = json_array_or_empty(&unsafe { parse_json_cstr(tools_json, "tools_json")? });
@@ -613,14 +633,14 @@ pub unsafe extern "C" fn cyt_tools_for_catalog(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_system_required_enum_values(
+pub unsafe extern "C" fn chunk_your_tools_system_required_enum_values(
     data_json: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let data = unsafe { parse_json_cstr(data_json, "data_json")? };
         unsafe {
@@ -634,14 +654,14 @@ pub unsafe extern "C" fn cyt_system_required_enum_values(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_mcp_required_enum_values(
+pub unsafe extern "C" fn chunk_your_tools_mcp_required_enum_values(
     data_json: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let data = unsafe { parse_json_cstr(data_json, "data_json")? };
         unsafe {
@@ -655,14 +675,14 @@ pub unsafe extern "C" fn cyt_mcp_required_enum_values(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_required_enum_values_by_tool(
+pub unsafe extern "C" fn chunk_your_tools_required_enum_values_by_tool(
     data_json: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let data = unsafe { parse_json_cstr(data_json, "data_json")? };
         let map = policies::required_enum_values_by_tool(&data);
@@ -676,7 +696,7 @@ pub unsafe extern "C" fn cyt_required_enum_values_by_tool(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_optional_leaf_survived_rerank(
+pub unsafe extern "C" fn chunk_your_tools_optional_leaf_survived_rerank(
     item_json: *const c_char,
     ctx_json: *const c_char,
     rerank_score: f64,
@@ -687,7 +707,7 @@ pub unsafe extern "C" fn cyt_optional_leaf_survived_rerank(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let ctx = parse_ctx_json(ctx_json)?;
         let item = unsafe { parse_json_cstr(item_json, "item_json")? };
@@ -716,13 +736,24 @@ pub unsafe extern "C" fn cyt_optional_leaf_survived_rerank(
     })
 }
 
-bool_ctx_fn!(cyt_needs_partition, needs_partition);
-bool_ctx_fn!(cyt_needs_pruned_recompose, needs_pruned_recompose);
-bool_ctx_fn!(cyt_system_tools_pass_through, system_tools_pass_through);
-bool_ctx_fn!(cyt_mcp_tools_pass_through, mcp_tools_pass_through);
+bool_ctx_fn!(chunk_your_tools_needs_partition, needs_partition);
+bool_ctx_fn!(
+    chunk_your_tools_needs_pruned_recompose,
+    needs_pruned_recompose
+);
+bool_ctx_fn!(
+    chunk_your_tools_system_tools_pass_through,
+    system_tools_pass_through
+);
+bool_ctx_fn!(
+    chunk_your_tools_mcp_tools_pass_through,
+    mcp_tools_pass_through
+);
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_anthropic_tool_is_system(tool_json: *const c_char) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_anthropic_tool_is_system(
+    tool_json: *const c_char,
+) -> c_int {
     ffi_guard(|| {
         let tool = unsafe { parse_json_cstr(tool_json, "tool_json")? };
         clear_error();
@@ -732,7 +763,7 @@ pub unsafe extern "C" fn cyt_anthropic_tool_is_system(tool_json: *const c_char) 
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_anthropic_tool_is_mcp(tool_json: *const c_char) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_anthropic_tool_is_mcp(tool_json: *const c_char) -> c_int {
     ffi_guard(|| {
         let tool = unsafe { parse_json_cstr(tool_json, "tool_json")? };
         clear_error();
@@ -742,7 +773,7 @@ pub unsafe extern "C" fn cyt_anthropic_tool_is_mcp(tool_json: *const c_char) -> 
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_direct_root_optional_chunks_for_tool(
+pub unsafe extern "C" fn chunk_your_tools_direct_root_optional_chunks_for_tool(
     items_json: *const c_char,
     tool_id: *const c_char,
     out: *mut *mut c_char,
@@ -750,7 +781,7 @@ pub unsafe extern "C" fn cyt_direct_root_optional_chunks_for_tool(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let arr = json_array_or_empty(&unsafe { parse_json_cstr(items_json, "items_json")? });
         let tool = unsafe { c_str_to_str(tool_id, "tool_id")? };
@@ -761,7 +792,7 @@ pub unsafe extern "C" fn cyt_direct_root_optional_chunks_for_tool(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_tool_id_has_empty_decomposed_root(
+pub unsafe extern "C" fn chunk_your_tools_tool_id_has_empty_decomposed_root(
     catalog_index_json: *const c_char,
     tool_id: *const c_char,
     out: *mut c_int,
@@ -769,7 +800,7 @@ pub unsafe extern "C" fn cyt_tool_id_has_empty_decomposed_root(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let index = catalog_index_from_json(&unsafe {
             parse_json_cstr(catalog_index_json, "catalog_index_json")?
@@ -784,7 +815,7 @@ pub unsafe extern "C" fn cyt_tool_id_has_empty_decomposed_root(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_tool_id_had_empty_original_root_properties(
+pub unsafe extern "C" fn chunk_your_tools_tool_id_had_empty_original_root_properties(
     catalog_index_json: *const c_char,
     tool_id: *const c_char,
     out: *mut c_int,
@@ -792,7 +823,7 @@ pub unsafe extern "C" fn cyt_tool_id_had_empty_original_root_properties(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let index = catalog_index_from_json(&unsafe {
             parse_json_cstr(catalog_index_json, "catalog_index_json")?
@@ -816,14 +847,14 @@ pub unsafe extern "C" fn cyt_tool_id_had_empty_original_root_properties(
 ///
 /// `items_json` must be a JSON array; `out` must be non-null.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_classify_optional_chunks_batch(
+pub unsafe extern "C" fn chunk_your_tools_classify_optional_chunks_batch(
     items_json: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let val = unsafe { parse_json_cstr(items_json, "items_json")? };
         let arr = json_array_or_empty(&val);

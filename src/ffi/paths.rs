@@ -1,6 +1,6 @@
 //! Path configuration FFI exports.
 
-use crate::ffi::error::{CYT_ERR_NULL_PTR, set_error};
+use crate::ffi::error::{CHUNK_YOUR_TOOLS_ERR_NULL_PTR, set_error};
 use crate::ffi::json_util::{
     c_str_to_str, parse_json_cstr, run_ffi, write_json_out, write_optional_string_out,
     write_string_result,
@@ -10,7 +10,7 @@ use std::os::raw::{c_char, c_int};
 use std::path::PathBuf;
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_configure_path_constants(
+pub unsafe extern "C" fn chunk_your_tools_configure_path_constants(
     md_ext: *const c_char,
     json_ext: *const c_char,
     decomposed_prefix: *const c_char,
@@ -44,14 +44,14 @@ pub unsafe extern "C" fn cyt_configure_path_constants(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_collect_enums(
+pub unsafe extern "C" fn chunk_your_tools_collect_enums(
     schema_json: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let val = unsafe { parse_json_cstr(schema_json, "schema_json")? };
         let found = paths::collect_enums(&val);
@@ -61,14 +61,14 @@ pub unsafe extern "C" fn cyt_collect_enums(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_to_decomposed_key(
+pub unsafe extern "C" fn chunk_your_tools_to_decomposed_key(
     file_path: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let path = unsafe { c_str_to_str(file_path, "file_path")? };
         unsafe { write_optional_string_out(paths::to_decomposed_key(path), out)? };
@@ -77,14 +77,14 @@ pub unsafe extern "C" fn cyt_to_decomposed_key(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_tool_id_from_decomposed_rel(
+pub unsafe extern "C" fn chunk_your_tools_tool_id_from_decomposed_rel(
     rel_path: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let rel = unsafe { c_str_to_str(rel_path, "rel_path")? };
         unsafe {
@@ -95,14 +95,14 @@ pub unsafe extern "C" fn cyt_tool_id_from_decomposed_rel(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_get_root_tool_key(
+pub unsafe extern "C" fn chunk_your_tools_get_root_tool_key(
     file_path: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let path = unsafe { c_str_to_str(file_path, "file_path")? };
         unsafe { write_optional_string_out(paths::get_root_tool_key(path), out)? };
@@ -117,7 +117,7 @@ macro_rules! path_getter {
             crate::ffi::json_util::run_ffi(|| {
                 if out.is_null() {
                     crate::ffi::error::set_error("null pointer: out");
-                    return Err(crate::ffi::error::CYT_ERR_NULL_PTR);
+                    return Err(crate::ffi::error::CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
                 }
                 unsafe {
                     crate::ffi::json_util::write_string_result(&$body, out)?;
@@ -128,25 +128,31 @@ macro_rules! path_getter {
     };
 }
 
-path_getter!(cyt_path_md_ext, paths::md_ext());
-path_getter!(cyt_path_json_ext, paths::json_ext());
-path_getter!(cyt_path_decomposed_prefix, paths::decomposed_prefix());
+path_getter!(chunk_your_tools_path_md_ext, paths::md_ext());
+path_getter!(chunk_your_tools_path_json_ext, paths::json_ext());
 path_getter!(
-    cyt_path_decomposed_root,
+    chunk_your_tools_path_decomposed_prefix,
+    paths::decomposed_prefix()
+);
+path_getter!(
+    chunk_your_tools_path_decomposed_root,
     paths::decomposed_root().to_string_lossy()
 );
-path_getter!(cyt_path_catalog_prefix, paths::catalog_prefix());
 path_getter!(
-    cyt_path_default_catalog_dir,
+    chunk_your_tools_path_catalog_prefix,
+    paths::catalog_prefix()
+);
+path_getter!(
+    chunk_your_tools_path_default_catalog_dir,
     paths::default_catalog_dir().to_string_lossy()
 );
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_path_builder_memory_only() -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_path_builder_memory_only() -> c_int {
     i32::from(paths::builder_memory_only())
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_path_write_catalog_prune() -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_path_write_catalog_prune() -> c_int {
     i32::from(paths::write_catalog_prune())
 }

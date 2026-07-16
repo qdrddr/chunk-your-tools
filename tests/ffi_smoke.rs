@@ -1,7 +1,8 @@
 #![cfg(feature = "ffi")]
 
 use chunk_your_tools::ffi::{
-    CYT_OK, cyt_build_catalog_index, cyt_catalog_tool_count, cyt_free_string,
+    CHUNK_YOUR_TOOLS_OK, chunk_your_tools_build_catalog_index, chunk_your_tools_catalog_tool_count,
+    chunk_your_tools_free_string,
 };
 use std::ffi::CStr;
 use std::os::raw::c_char;
@@ -14,14 +15,14 @@ const fn cstr(bytes: &'static [u8]) -> &'static CStr {
 
 unsafe fn read_out(out: *mut c_char) -> String {
     let s = unsafe { CStr::from_ptr(out).to_string_lossy().into_owned() };
-    unsafe { cyt_free_string(out) };
+    unsafe { chunk_your_tools_free_string(out) };
     s
 }
 
 #[test]
 fn catalog_tool_count_smoke() {
     let data = cstr(b"{\"json\":[],\"md\":[]}\0");
-    let count = unsafe { cyt_catalog_tool_count(data.as_ptr()) };
+    let count = unsafe { chunk_your_tools_catalog_tool_count(data.as_ptr()) };
     assert_eq!(count, 0);
 }
 
@@ -30,9 +31,10 @@ fn build_catalog_index_smoke() {
     let tools = cstr(b"[]\0");
     let enums = cstr(b"[]\0");
     let mut out: *mut c_char = ptr::null_mut();
-    let code =
-        unsafe { cyt_build_catalog_index(tools.as_ptr(), enums.as_ptr(), ptr::addr_of_mut!(out)) };
-    assert_eq!(code, CYT_OK);
+    let code = unsafe {
+        chunk_your_tools_build_catalog_index(tools.as_ptr(), enums.as_ptr(), ptr::addr_of_mut!(out))
+    };
+    assert_eq!(code, CHUNK_YOUR_TOOLS_OK);
     assert!(!out.is_null());
     let json = unsafe { read_out(out) };
     assert!(json.contains("\"tools\""));
@@ -46,9 +48,10 @@ fn build_catalog_index_with_tool_smoke() {
     );
     let enums = cstr(b"[]\0");
     let mut out: *mut c_char = ptr::null_mut();
-    let code =
-        unsafe { cyt_build_catalog_index(tools.as_ptr(), enums.as_ptr(), ptr::addr_of_mut!(out)) };
-    assert_eq!(code, CYT_OK);
+    let code = unsafe {
+        chunk_your_tools_build_catalog_index(tools.as_ptr(), enums.as_ptr(), ptr::addr_of_mut!(out))
+    };
+    assert_eq!(code, CHUNK_YOUR_TOOLS_OK);
     let json = unsafe { read_out(out) };
     assert!(json.contains("\"tools\""));
     assert!(!json.contains("\"tools\":[]"));

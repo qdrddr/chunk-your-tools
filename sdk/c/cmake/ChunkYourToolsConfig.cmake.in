@@ -1,0 +1,32 @@
+@PACKAGE_INIT@
+
+set(CHUNK_YOUR_TOOLS_RUST_TARGET "@CHUNK_YOUR_TOOLS_RUST_TARGET@")
+set(CHUNK_YOUR_TOOLS_LIB_PROFILE "@CHUNK_YOUR_TOOLS_LIB_PROFILE@")
+set(CHUNK_YOUR_TOOLS_TARGET_DIR "@CHUNK_YOUR_TOOLS_TARGET_DIR@")
+set(CHUNK_YOUR_TOOLS_INCLUDE_DIR "@CHUNK_YOUR_TOOLS_INCLUDE_DIR@")
+
+if(WIN32)
+    set(CHUNK_YOUR_TOOLS_SHARED_LIB "${CHUNK_YOUR_TOOLS_TARGET_DIR}/${CHUNK_YOUR_TOOLS_RUST_TARGET}/${CHUNK_YOUR_TOOLS_LIB_PROFILE}/chunk_your_tools.dll")
+    set(CHUNK_YOUR_TOOLS_IMPORT_LIB "${CHUNK_YOUR_TOOLS_TARGET_DIR}/${CHUNK_YOUR_TOOLS_RUST_TARGET}/${CHUNK_YOUR_TOOLS_LIB_PROFILE}/chunk_your_tools.dll.lib")
+else()
+    if(APPLE)
+        set(CHUNK_YOUR_TOOLS_SHARED_LIB "${CHUNK_YOUR_TOOLS_TARGET_DIR}/${CHUNK_YOUR_TOOLS_RUST_TARGET}/${CHUNK_YOUR_TOOLS_LIB_PROFILE}/libchunk_your_tools.dylib")
+    else()
+        set(CHUNK_YOUR_TOOLS_SHARED_LIB "${CHUNK_YOUR_TOOLS_TARGET_DIR}/${CHUNK_YOUR_TOOLS_RUST_TARGET}/${CHUNK_YOUR_TOOLS_LIB_PROFILE}/libchunk_your_tools.so")
+    endif()
+endif()
+
+if(NOT TARGET ChunkYourTools::chunk_your_tools)
+    add_library(ChunkYourTools::chunk_your_tools SHARED IMPORTED)
+    set_target_properties(ChunkYourTools::chunk_your_tools PROPERTIES
+        IMPORTED_LOCATION "${CHUNK_YOUR_TOOLS_SHARED_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${CHUNK_YOUR_TOOLS_INCLUDE_DIR}"
+    )
+    if(WIN32)
+        set_target_properties(ChunkYourTools::chunk_your_tools PROPERTIES
+            IMPORTED_IMPLIB "${CHUNK_YOUR_TOOLS_IMPORT_LIB}"
+        )
+    endif()
+endif()
+
+check_required_components(ChunkYourTools)

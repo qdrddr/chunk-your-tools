@@ -6,6 +6,6 @@
     "test": "node test/run.mjs"
   },
   "devDependencies": {
-    "chunk-your-tools": "@CYT_RELEASE_VERSION@"
+    "chunk-your-tools": "@CHUNK_YOUR_TOOLS_RELEASE_VERSION@"
   }
 }

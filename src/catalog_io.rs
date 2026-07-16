@@ -199,7 +199,7 @@ mod tests {
         let nanos = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map_or(0, |duration| duration.as_nanos());
-        std::env::temp_dir().join(format!("cyt-catalog-{nanos}"))
+        std::env::temp_dir().join(format!("chunk-your-tools-catalog-{nanos}"))
     }
 
     #[test]

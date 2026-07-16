@@ -37,14 +37,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/local-dev-lib.sh"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/shorten-paths.sh"
-export SHORTEN_ROOT="${CYT_REPO_ROOT}"
+export SHORTEN_ROOT="${CHUNK_YOUR_TOOLS_REPO_ROOT}"
 
-CYT_LOCAL_DEV_SHORT="${CYT_LOCAL_DEV_SHORT:-}"
+CHUNK_YOUR_TOOLS_LOCAL_DEV_SHORT="${CHUNK_YOUR_TOOLS_LOCAL_DEV_SHORT:-}"
 LOCAL_DEV_ARGS=()
 while (($#)); do
 	case "$1" in
 	--short | --silent)
-		CYT_LOCAL_DEV_SHORT=1
+		CHUNK_YOUR_TOOLS_LOCAL_DEV_SHORT=1
 		shift
 		;;
 	*)
@@ -53,20 +53,20 @@ while (($#)); do
 		;;
 	esac
 done
-export CYT_LOCAL_DEV_SHORT
+export CHUNK_YOUR_TOOLS_LOCAL_DEV_SHORT
 
 usage() {
 	sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
 }
 
-_cyt_local_dev_main() {
+_chunk_your_tools_local_dev_main() {
 	local cmd="${1:-}"
 	shift || true
 
 	case "${cmd}" in
 	core-rust | rust)
 		require_repo_root
-		cyt_build_rust
+		chunk_your_tools_build_rust
 		;;
 	indexer)
 		require_repo_root
@@ -75,16 +75,16 @@ _cyt_local_dev_main() {
 		shift || true
 		case "${sub}" in
 		decompose | build)
-			cyt_indexer_build_catalog
+			chunk_your_tools_indexer_build_catalog
 			;;
 		survivors)
-			cyt_indexer_extract_survivors
+			chunk_your_tools_indexer_extract_survivors
 			;;
 		recompose | retrieve)
-			cyt_indexer_retrieve "$@"
+			chunk_your_tools_indexer_retrieve "$@"
 			;;
 		all)
-			cyt_indexer_all "$@"
+			chunk_your_tools_indexer_all "$@"
 			;;
 		-h | --help | help)
 			cat <<EOF
@@ -103,50 +103,50 @@ EOF
 		;;
 	sdk-python)
 		require_repo_root
-		cyt_build_sdk_python
-		cyt_verify_sdk_python
+		chunk_your_tools_build_sdk_python
+		chunk_your_tools_verify_sdk_python
 		;;
 	sdk-verify)
 		require_repo_root
-		cyt_verify_sdk_python
+		chunk_your_tools_verify_sdk_python
 		;;
 	sdk-typescript)
 		require_repo_root
-		cyt_build_sdk_typescript
+		chunk_your_tools_build_sdk_typescript
 		;;
 	sdk-c)
 		require_repo_root
-		cyt_build_sdk_c
+		chunk_your_tools_build_sdk_c
 		;;
 	sdk-go)
 		require_repo_root
-		cyt_build_sdk_go
+		chunk_your_tools_build_sdk_go
 		;;
 	sdk-all)
 		require_repo_root
-		cyt_section "SDK: Python"
-		cyt_build_sdk_python
-		cyt_verify_sdk_python
-		cyt_section "SDK: C"
-		cyt_build_sdk_c
-		cyt_section "SDK: Go"
-		cyt_build_sdk_go
-		cyt_section "SDK: TypeScript"
-		cyt_build_sdk_typescript
+		chunk_your_tools_section "SDK: Python"
+		chunk_your_tools_build_sdk_python
+		chunk_your_tools_verify_sdk_python
+		chunk_your_tools_section "SDK: C"
+		chunk_your_tools_build_sdk_c
+		chunk_your_tools_section "SDK: Go"
+		chunk_your_tools_build_sdk_go
+		chunk_your_tools_section "SDK: TypeScript"
+		chunk_your_tools_build_sdk_typescript
 		;;
 	verify)
 		require_repo_root
-		cyt_verify_sdk_python
+		chunk_your_tools_verify_sdk_python
 		;;
 	simulate-registry)
 		require_repo_root
 		require_cmd uv
 		require_cmd cargo
 		require_cmd npm
-		cyt_build_sdk_python
-		cyt_build_rust
+		chunk_your_tools_build_sdk_python
+		chunk_your_tools_build_rust
 
-		SIM_DIR="${CYT_SIM_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/cyt-local-dev.XXXXXX")}"
+		SIM_DIR="${CHUNK_YOUR_TOOLS_SIM_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/chunk-your-tools-local-dev.XXXXXX")}"
 		KEEP_SIM_DIR="${KEEP_SIM_DIR:-}"
 		trap '[[ -n "${KEEP_SIM_DIR}" ]] || rm -rf "${SIM_DIR}"' EXIT
 
@@ -154,25 +154,25 @@ EOF
 		mkdir -p "${SIM_DIR}/dist-sdk" "${SIM_DIR}/npm-pack"
 
 		info "build chunk-your-tools wheel"
-		cyt_run bash -c "cd \"${CYT_REPO_ROOT}/sdk/python\" && uv build -o \"${SIM_DIR}/dist-sdk\""
+		chunk_your_tools_run bash -c "cd \"${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/python\" && uv build -o \"${SIM_DIR}/dist-sdk\""
 
 		info "cargo publish --dry-run"
-		cyt_run bash -c "cd \"${CYT_REPO_ROOT}\" && cargo publish -p chunk-your-tools --dry-run"
+		chunk_your_tools_run bash -c "cd \"${CHUNK_YOUR_TOOLS_REPO_ROOT}\" && cargo publish -p chunk-your-tools --dry-run"
 
 		info "npm pack"
-		cyt_run bash -c "cd \"${CYT_REPO_ROOT}/sdk/typescript\" && npm ci && npm run build && npm pack --pack-destination \"${SIM_DIR}/npm-pack\""
+		chunk_your_tools_run bash -c "cd \"${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/typescript\" && npm ci && npm run build && npm pack --pack-destination \"${SIM_DIR}/npm-pack\""
 
 		SIM_VENV="${SIM_DIR}/venv"
-		cyt_run uv venv "${SIM_VENV}"
+		chunk_your_tools_run uv venv "${SIM_VENV}"
 		# shellcheck disable=SC1091
 		source "${SIM_VENV}/bin/activate"
 		info "install wheels in isolated venv"
 		SDK_WHL=("${SIM_DIR}"/dist-sdk/chunk_your_tools-*.whl)
 		[[ -f "${SDK_WHL[0]}" ]] || die "SDK wheel not found under ${SIM_DIR}/dist-sdk"
-		cyt_run uv pip install "${SDK_WHL[0]}"
+		chunk_your_tools_run uv pip install "${SDK_WHL[0]}"
 
 		info "smoke imports"
-		cyt_run python - <<'PY'
+		chunk_your_tools_run python - <<'PY'
 from importlib import metadata
 
 from chunk_your_tools._native import build_catalog_index as native_build
@@ -194,27 +194,27 @@ PY
 		;;
 	all)
 		require_repo_root
-		cyt_run_all
+		chunk_your_tools_run_all
 		info "all done"
 		;;
 	ci)
 		require_repo_root
-		cyt_section "CI"
-		cyt_verify_sdk_python
-		cyt_verify_sdk_import
+		chunk_your_tools_section "CI"
+		chunk_your_tools_verify_sdk_python
+		chunk_your_tools_verify_sdk_import
 		if command -v ast-grep >/dev/null 2>&1; then
 			info "ast-grep scan"
-			cyt_run ast-grep scan sdk/
+			chunk_your_tools_run ast-grep scan sdk/
 		else
 			info "skip ast-grep (not on PATH)"
 		fi
-		cyt_test_sdk_python
+		chunk_your_tools_test_sdk_python
 		;;
 	"" | -h | --help | help)
 		usage
 		;;
 	*)
-		if [[ -n "${CYT_LOCAL_DEV_SHORT:-}" ]]; then
+		if [[ -n "${CHUNK_YOUR_TOOLS_LOCAL_DEV_SHORT:-}" ]]; then
 			die "unknown command: ${cmd}"
 		fi
 		echo "unknown command: ${cmd}" >&2
@@ -225,9 +225,9 @@ PY
 	esac
 }
 
-if [[ -n "${CYT_LOCAL_DEV_SHORT}" ]]; then
-	_cyt_local_dev_main "${LOCAL_DEV_ARGS[@]}" 2>&1 | shorten_paths | cyt_filter_short_logs
+if [[ -n "${CHUNK_YOUR_TOOLS_LOCAL_DEV_SHORT}" ]]; then
+	_chunk_your_tools_local_dev_main "${LOCAL_DEV_ARGS[@]}" 2>&1 | shorten_paths | chunk_your_tools_filter_short_logs
 else
-	_cyt_local_dev_main "${LOCAL_DEV_ARGS[@]}" 2>&1 | shorten_paths
+	_chunk_your_tools_local_dev_main "${LOCAL_DEV_ARGS[@]}" 2>&1 | shorten_paths
 fi
 exit "${PIPESTATUS[0]}"

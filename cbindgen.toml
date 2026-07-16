@@ -12,22 +12,22 @@ header = """
  *
  * # Memory Management
  *
- * - Strings returned via `char**` out parameters MUST be freed with `cyt_free_string()`.
- * - Opaque handles (`CytCatalogBuilder`, `CytDecomposedCatalog`)
- *   MUST be freed with their matching `cyt_*_free()` function.
+ * - Strings returned via `char**` out parameters MUST be freed with `chunk_your_tools_free_string()`.
+ * - Opaque handles (`ChunkYourToolsCatalogBuilder`, `ChunkYourToolsDecomposedCatalog`)
+ *   MUST be freed with their matching `chunk_your_tools_*_free()` function.
  * - Input C strings remain owned by the caller.
  *
  * # Thread Safety
  *
- * Error messages are stored in thread-local storage. Call `cyt_get_last_error()`
+ * Error messages are stored in thread-local storage. Call `chunk_your_tools_get_last_error()`
  * from the same thread that received a non-zero error code.
  *
  * # Return Conventions
  *
- * - `CYT_OK` (0) on success for status functions.
- * - Negative error codes on failure; see `cyt_get_last_error()`.
+ * - `CHUNK_YOUR_TOOLS_OK` (0) on success for status functions.
+ * - Negative error codes on failure; see `chunk_your_tools_get_last_error()`.
  * - JSON outputs: int return code + `char**` out param.
- * - Boolean queries: 1 true, 0 false, negative on error (or `int*` out with `CYT_OK`).
+ * - Boolean queries: 1 true, 0 false, negative on error (or `int*` out with `CHUNK_YOUR_TOOLS_OK`).
  */
 """
 
@@ -40,11 +40,6 @@ tab_width = 4
 line_length = 100
 documentation_style = "c"
 documentation_length = "full"
-
-namespace = "cyt"
-
-[export]
-prefix = "CYT_"
 
 [parse]
 parse_deps = false
@@ -59,5 +54,5 @@ derive_eq = false
 derive_neq = false
 
 [export.rename]
-"CytCatalogBuilder" = "CytCatalogBuilder"
-"CytDecomposedCatalog" = "CytDecomposedCatalog"
+"ChunkYourToolsCatalogBuilder" = "ChunkYourToolsCatalogBuilder"
+"ChunkYourToolsDecomposedCatalog" = "ChunkYourToolsDecomposedCatalog"

@@ -10,7 +10,7 @@ const (
 	ToolKindMcp    ToolKind = "mcp"
 )
 
-// PolicyContext is the JSON shape accepted by cyt_* functions that take ctx_json.
+// PolicyContext is the JSON shape accepted by chunk_your_tools_* functions that take ctx_json.
 //
 // Fields mirror the Python/TypeScript PolicyContext bindings. tool_kind is a runtime-only
 // batch override (not read from YAML config); when set to ToolKindMcp, bare executor-style
@@ -22,7 +22,7 @@ type PolicyContext struct {
 	ToolKind     *ToolKind         `json:"tool_kind,omitempty"`
 }
 
-// MarshalJSONString serializes ctx for cyt_* ctx_json parameters.
+// MarshalJSONString serializes ctx for chunk_your_tools_* ctx_json parameters.
 func (ctx PolicyContext) MarshalJSONString() (string, error) {
 	b, err := json.Marshal(ctx)
 	if err != nil {

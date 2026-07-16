@@ -11,7 +11,7 @@ import (
 )
 
 func TestResolveVersionUsesModuleVersion(t *testing.T) {
-	t.Setenv("CYT_RELEASE_VERSION", "")
+	t.Setenv("CHUNK_YOUR_TOOLS_RELEASE_VERSION", "")
 	if got := resolveVersion(""); got != moduleversion.Version {
 		t.Fatalf("resolveVersion() = %q, want %q", got, moduleversion.Version)
 	}
@@ -84,8 +84,8 @@ func TestCopyArtifactsIncludesSharedByDefault(t *testing.T) {
 }
 
 func TestEnsureNativeDownloadsWhenCacheEmpty(t *testing.T) {
-	if os.Getenv("CYT_NATIVE_ENSURE_INTEGRATION") != "1" {
-		t.Skip("set CYT_NATIVE_ENSURE_INTEGRATION=1 to run release download test")
+	if os.Getenv("CHUNK_YOUR_TOOLS_NATIVE_ENSURE_INTEGRATION") != "1" {
+		t.Skip("set CHUNK_YOUR_TOOLS_NATIVE_ENSURE_INTEGRATION=1 to run release download test")
 	}
 	cacheRoot := t.TempDir()
 	triplet, err := hostTriplet()
@@ -119,7 +119,7 @@ func TestHasNativeLibsWindowsImportLib(t *testing.T) {
 }
 
 func TestResolveTripletUsesEnv(t *testing.T) {
-	t.Setenv("CYT_RUST_TARGET", "aarch64-unknown-linux-gnu")
+	t.Setenv("CHUNK_YOUR_TOOLS_RUST_TARGET", "aarch64-unknown-linux-gnu")
 	got, err := resolveTriplet()
 	if err != nil {
 		t.Fatal(err)

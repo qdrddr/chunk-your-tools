@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Resolve CYT_RELEASE_VERSION for workflow_run chains or workflow_dispatch input.
+# Resolve CHUNK_YOUR_TOOLS_RELEASE_VERSION for workflow_run chains or workflow_dispatch input.
 # Writes github output "version" (may be empty for manual dispatch without input).
 set -euo pipefail
 
@@ -19,11 +19,11 @@ elif [[ "$EVENT_NAME" == "workflow_run" ]]; then
 	fi
 	gh run download "${PARENT_RUN_ID}" \
 		--repo "${GITHUB_REPOSITORY}" \
-		--name cyt-release-version \
-		--dir /tmp/cyt-release-version
-	VERSION="$(tr -d '\n' </tmp/cyt-release-version/cyt-release-version.txt)"
+		--name chunk-your-tools-release-version \
+		--dir /tmp/chunk-your-tools-release-version
+	VERSION="$(tr -d '\n' </tmp/chunk-your-tools-release-version/chunk-your-tools-release-version.txt)"
 	if [[ -z "$VERSION" ]]; then
-		echo "::error::cyt-release-version artifact was empty" >&2
+		echo "::error::chunk-your-tools-release-version artifact was empty" >&2
 		exit 1
 	fi
 fi
@@ -33,5 +33,5 @@ fi
 } >>"${GITHUB_OUTPUT:?}"
 
 if [[ -n "$VERSION" ]]; then
-	echo "CYT_RELEASE_VERSION=${VERSION}"
+	echo "CHUNK_YOUR_TOOLS_RELEASE_VERSION=${VERSION}"
 fi

@@ -1,5 +1,5 @@
 //! System vs MCP tool policies for catalog pruning (rerank / llm).
-//! Port of `src/cyt/pruners/policies.py`.
+//! Port of `src/clear-your-tools/pruners/policies.py`.
 
 use crate::build::CatalogIndex;
 use crate::json_util::value_to_string;

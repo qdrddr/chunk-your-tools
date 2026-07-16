@@ -83,7 +83,7 @@ export interface RetrieveCoreOptions {
   policyOptions?: PolicyOptions | null;
 }
 
-/** Low-level retrieve over survivor json files (same core as Go/C ``cyt_retrieve_core``). */
+/** Low-level retrieve over survivor json files (same core as Go/C ``chunk_your_tools_retrieve_core``). */
 export function retrieveCore(
   data: JsonRecord,
   storeJsonFiles: Record<string, unknown>,

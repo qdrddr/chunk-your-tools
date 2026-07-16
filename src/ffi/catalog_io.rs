@@ -3,7 +3,8 @@
 use crate::catalog_builder::CatalogBuilder;
 use crate::catalog_io::write_catalog_index_resolved;
 use crate::ffi::error::{
-    CYT_ERR_INVALID_HANDLE, CYT_ERR_IO, CYT_ERR_NULL_PTR, clear_error, set_error,
+    CHUNK_YOUR_TOOLS_ERR_INVALID_HANDLE, CHUNK_YOUR_TOOLS_ERR_IO, CHUNK_YOUR_TOOLS_ERR_NULL_PTR,
+    clear_error, set_error,
 };
 use crate::ffi::json_util::{
     c_str_to_str, catalog_index_from_json, parse_json_cstr, run_ffi, write_json_out,
@@ -13,20 +14,20 @@ use std::os::raw::{c_char, c_int};
 use std::path::PathBuf;
 
 /// Opaque catalog builder handle.
-pub struct CytCatalogBuilder {
+pub struct ChunkYourToolsCatalogBuilder {
     pub(crate) inner: CatalogBuilder,
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_catalog_builder_new(
+pub unsafe extern "C" fn chunk_your_tools_catalog_builder_new(
     memory_only: c_int,
     output_dir: *const c_char,
-    out: *mut *mut CytCatalogBuilder,
+    out: *mut *mut ChunkYourToolsCatalogBuilder,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let dir = if output_dir.is_null() {
             None
@@ -41,7 +42,7 @@ pub unsafe extern "C" fn cyt_catalog_builder_new(
             Some(memory_only != 0)
         };
         unsafe {
-            *out = Box::into_raw(Box::new(CytCatalogBuilder {
+            *out = Box::into_raw(Box::new(ChunkYourToolsCatalogBuilder {
                 inner: CatalogBuilder::new_with_options(memory, dir),
             }));
         }
@@ -51,21 +52,23 @@ pub unsafe extern "C" fn cyt_catalog_builder_new(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_catalog_builder_free(builder: *mut CytCatalogBuilder) {
+pub unsafe extern "C" fn chunk_your_tools_catalog_builder_free(
+    builder: *mut ChunkYourToolsCatalogBuilder,
+) {
     if !builder.is_null() {
         let _ = Box::from_raw(builder);
     }
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_catalog_builder_add_tool(
-    builder: *mut CytCatalogBuilder,
+pub unsafe extern "C" fn chunk_your_tools_catalog_builder_add_tool(
+    builder: *mut ChunkYourToolsCatalogBuilder,
     entry_json: *const c_char,
 ) -> c_int {
     run_ffi(|| {
         if builder.is_null() {
             set_error("null pointer: builder");
-            return Err(CYT_ERR_INVALID_HANDLE);
+            return Err(CHUNK_YOUR_TOOLS_ERR_INVALID_HANDLE);
         }
         let entry = unsafe { parse_json_cstr(entry_json, "entry_json")? };
         unsafe { (*builder).inner.add_tool(entry) };
@@ -75,8 +78,8 @@ pub unsafe extern "C" fn cyt_catalog_builder_add_tool(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_catalog_builder_get_tool_info(
-    builder: *const CytCatalogBuilder,
+pub unsafe extern "C" fn chunk_your_tools_catalog_builder_get_tool_info(
+    builder: *const ChunkYourToolsCatalogBuilder,
     server_name: *const c_char,
     tool_name: *const c_char,
     out: *mut *mut c_char,
@@ -84,11 +87,11 @@ pub unsafe extern "C" fn cyt_catalog_builder_get_tool_info(
     run_ffi(|| {
         if builder.is_null() {
             set_error("null pointer: builder");
-            return Err(CYT_ERR_INVALID_HANDLE);
+            return Err(CHUNK_YOUR_TOOLS_ERR_INVALID_HANDLE);
         }
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let server = unsafe { c_str_to_str(server_name, "server_name")? };
         let tool = unsafe { c_str_to_str(tool_name, "tool_name")? };
@@ -103,18 +106,18 @@ pub unsafe extern "C" fn cyt_catalog_builder_get_tool_info(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_catalog_builder_build_index(
-    builder: *mut CytCatalogBuilder,
+pub unsafe extern "C" fn chunk_your_tools_catalog_builder_build_index(
+    builder: *mut ChunkYourToolsCatalogBuilder,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if builder.is_null() {
             set_error("null pointer: builder");
-            return Err(CYT_ERR_INVALID_HANDLE);
+            return Err(CHUNK_YOUR_TOOLS_ERR_INVALID_HANDLE);
         }
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let index = unsafe { (*builder).inner.build_index() };
         unsafe {
@@ -125,22 +128,22 @@ pub unsafe extern "C" fn cyt_catalog_builder_build_index(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_catalog_builder_write_catalog(
-    builder: *mut CytCatalogBuilder,
+pub unsafe extern "C" fn chunk_your_tools_catalog_builder_write_catalog(
+    builder: *mut ChunkYourToolsCatalogBuilder,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if builder.is_null() {
             set_error("null pointer: builder");
-            return Err(CYT_ERR_INVALID_HANDLE);
+            return Err(CHUNK_YOUR_TOOLS_ERR_INVALID_HANDLE);
         }
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let index = unsafe { (*builder).inner.write_catalog() }.map_err(|e| {
             set_error(&e);
-            CYT_ERR_IO
+            CHUNK_YOUR_TOOLS_ERR_IO
         })?;
         unsafe {
             write_json_out(&json!({ "tools": index.tools, "files": index.files }), out)?;
@@ -150,19 +153,19 @@ pub unsafe extern "C" fn cyt_catalog_builder_write_catalog(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_catalog_builder_to_catalog_dict(
-    builder: *mut CytCatalogBuilder,
+pub unsafe extern "C" fn chunk_your_tools_catalog_builder_to_catalog_dict(
+    builder: *mut ChunkYourToolsCatalogBuilder,
     catalog_prefix: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if builder.is_null() {
             set_error("null pointer: builder");
-            return Err(CYT_ERR_INVALID_HANDLE);
+            return Err(CHUNK_YOUR_TOOLS_ERR_INVALID_HANDLE);
         }
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let val = if catalog_prefix.is_null() {
             unsafe { (*builder).inner.to_catalog_dict() }
@@ -176,7 +179,7 @@ pub unsafe extern "C" fn cyt_catalog_builder_to_catalog_dict(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_write_catalog_index(
+pub unsafe extern "C" fn chunk_your_tools_write_catalog_index(
     index_json: *const c_char,
     output_dir: *const c_char,
     prune: c_int,
@@ -194,7 +197,7 @@ pub unsafe extern "C" fn cyt_write_catalog_index(
         let prune_opt = if prune < 0 { None } else { Some(prune != 0) };
         write_catalog_index_resolved(&catalog, dir, prune_opt).map_err(|e| {
             set_error(&e);
-            CYT_ERR_IO
+            CHUNK_YOUR_TOOLS_ERR_IO
         })?;
         clear_error();
         Ok(())

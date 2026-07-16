@@ -25,10 +25,10 @@ OPTIONS:
   --help, -h        Show this help
 
 Environment:
-  CYT_RELEASE_VERSION   Same as VERSION
+  CHUNK_YOUR_TOOLS_RELEASE_VERSION   Same as VERSION
   TAG                   Release tag to parse (e.g. v0.1.10)
   SKIP_REGISTRY_WAIT=1  Same as --skip-wait
-  CYT_E2E_USE_WORKSPACE=1  Same as --workspace
+  CHUNK_YOUR_TOOLS_E2E_USE_WORKSPACE=1  Same as --workspace
 
 Examples:
   ${SCRIPT_NAME}
@@ -48,7 +48,7 @@ workspace_version() {
 }
 
 resolve_version() {
-	if [[ -n "${CYT_RELEASE_VERSION:-}" ]]; then
+	if [[ -n "${CHUNK_YOUR_TOOLS_RELEASE_VERSION:-}" ]]; then
 		return 0
 	fi
 	if [[ -n "${TAG:-}" ]]; then
@@ -64,12 +64,12 @@ resolve_version() {
 	fi
 	local ws_version
 	ws_version="$(workspace_version)"
-	export CYT_RELEASE_VERSION="$ws_version"
-	echo "Using workspace version CYT_RELEASE_VERSION=${CYT_RELEASE_VERSION}"
+	export CHUNK_YOUR_TOOLS_RELEASE_VERSION="$ws_version"
+	echo "Using workspace version CHUNK_YOUR_TOOLS_RELEASE_VERSION=${CHUNK_YOUR_TOOLS_RELEASE_VERSION}"
 }
 
 SKIP_WAIT="${SKIP_REGISTRY_WAIT:-0}"
-USE_WORKSPACE="${CYT_E2E_USE_WORKSPACE:-0}"
+USE_WORKSPACE="${CHUNK_YOUR_TOOLS_E2E_USE_WORKSPACE:-0}"
 TARGETS=()
 
 while [[ $# -gt 0 ]]; do
@@ -113,7 +113,7 @@ fi
 
 resolve_version
 export SKIP_REGISTRY_WAIT="$SKIP_WAIT"
-export CYT_E2E_USE_WORKSPACE="$USE_WORKSPACE"
+export CHUNK_YOUR_TOOLS_E2E_USE_WORKSPACE="$USE_WORKSPACE"
 
 needs_go_c=0
 for target in "${TARGETS[@]}"; do
@@ -123,12 +123,12 @@ for target in "${TARGETS[@]}"; do
 	fi
 done
 if [[ "$needs_go_c" -eq 1 ]]; then
-	_cyt_e2e_staging="$("${ROOT}/scripts/prepare-release-checkout.sh")"
-	export CYT_E2E_STAGING="$_cyt_e2e_staging"
-	unset _cyt_e2e_staging
+	_chunk_your_tools_e2e_staging="$("${ROOT}/scripts/prepare-release-checkout.sh")"
+	export CHUNK_YOUR_TOOLS_E2E_STAGING="$_chunk_your_tools_e2e_staging"
+	unset _chunk_your_tools_e2e_staging
 fi
 
-echo "Registry E2E: CYT_RELEASE_VERSION=${CYT_RELEASE_VERSION}"
+echo "Registry E2E: CHUNK_YOUR_TOOLS_RELEASE_VERSION=${CHUNK_YOUR_TOOLS_RELEASE_VERSION}"
 "${ROOT}/scripts/render-manifests.sh"
 
 run_all=0

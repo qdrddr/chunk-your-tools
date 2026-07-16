@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Run one registry E2E harness (render manifests first via run-all.sh or run-local.sh).
-# Usage: CYT_RELEASE_VERSION=x.y.z ./run-target.sh <rust|python|typescript|go|c>
+# Usage: CHUNK_YOUR_TOOLS_RELEASE_VERSION=x.y.z ./run-target.sh <rust|python|typescript|go|c>
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGET="${1:-}"
 
 if [[ -z "$TARGET" ]]; then
-	echo "usage: CYT_RELEASE_VERSION=x.y.z $0 <rust|python|typescript|go|c>" >&2
+	echo "usage: CHUNK_YOUR_TOOLS_RELEASE_VERSION=x.y.z $0 <rust|python|typescript|go|c>" >&2
 	exit 1
 fi
 
@@ -20,8 +20,8 @@ maybe_wait() {
 }
 
 export_native_lib_path() {
-	local staging="${CYT_E2E_STAGING:?run prepare-release-checkout.sh first}"
-	local triplet="${CYT_RUST_TARGET:-$("${ROOT}/scripts/host-rust-target.sh")}"
+	local staging="${CHUNK_YOUR_TOOLS_E2E_STAGING:?run prepare-release-checkout.sh first}"
+	local triplet="${CHUNK_YOUR_TOOLS_RUST_TARGET:-$("${ROOT}/scripts/host-rust-target.sh")}"
 	local lib_dir="${staging}/target/${triplet}/release"
 	local native_dir="${staging}/sdk/go/native/${triplet}"
 	case "$triplet" in
@@ -38,9 +38,9 @@ export_native_lib_path() {
 }
 
 prepare_go_c() {
-	_cyt_e2e_staging="$("${ROOT}/scripts/prepare-release-checkout.sh")"
-	export CYT_E2E_STAGING="$_cyt_e2e_staging"
-	unset _cyt_e2e_staging
+	_chunk_your_tools_e2e_staging="$("${ROOT}/scripts/prepare-release-checkout.sh")"
+	export CHUNK_YOUR_TOOLS_E2E_STAGING="$_chunk_your_tools_e2e_staging"
+	unset _chunk_your_tools_e2e_staging
 	"${ROOT}/scripts/render-manifests.sh"
 	"${ROOT}/scripts/ensure-release-native.sh"
 }
@@ -63,21 +63,21 @@ typescript)
 	;;
 go)
 	echo "=== Go SDK (GitHub tag + release C FFI) ==="
-	maybe_wait "GitHub tag v${CYT_RELEASE_VERSION}" tag
-	maybe_wait "GitHub Release C FFI v${CYT_RELEASE_VERSION}" release-assets
+	maybe_wait "GitHub tag v${CHUNK_YOUR_TOOLS_RELEASE_VERSION}" tag
+	maybe_wait "GitHub Release C FFI v${CHUNK_YOUR_TOOLS_RELEASE_VERSION}" release-assets
 	prepare_go_c
 	export_native_lib_path
 	(cd "${ROOT}/go" && CGO_ENABLED=1 go mod tidy && CGO_ENABLED=1 go test ./...)
 	;;
 c)
 	echo "=== C SDK (GitHub tag + release C FFI) ==="
-	maybe_wait "GitHub tag v${CYT_RELEASE_VERSION}" tag
-	maybe_wait "GitHub Release C FFI v${CYT_RELEASE_VERSION}" release-assets
+	maybe_wait "GitHub tag v${CHUNK_YOUR_TOOLS_RELEASE_VERSION}" tag
+	maybe_wait "GitHub Release C FFI v${CHUNK_YOUR_TOOLS_RELEASE_VERSION}" release-assets
 	prepare_go_c
-	C_SDK="${CYT_E2E_STAGING}/sdk/c"
-	export CARGO_TARGET_DIR="${CYT_E2E_STAGING}/target"
+	C_SDK="${CHUNK_YOUR_TOOLS_E2E_STAGING}/sdk/c"
+	export CARGO_TARGET_DIR="${CHUNK_YOUR_TOOLS_E2E_STAGING}/target"
 	cmake -S "${C_SDK}" -B "${C_SDK}/build" -DCMAKE_BUILD_TYPE=Release \
-		-DCYT_RUST_TARGET="${CYT_RUST_TARGET:-$("${ROOT}/scripts/host-rust-target.sh")}"
+		-DCHUNK_YOUR_TOOLS_RUST_TARGET="${CHUNK_YOUR_TOOLS_RUST_TARGET:-$("${ROOT}/scripts/host-rust-target.sh")}"
 	cmake --build "${C_SDK}/build"
 	export_native_lib_path
 	ctest --test-dir "${C_SDK}/build" --output-on-failure

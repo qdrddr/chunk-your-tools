@@ -38,7 +38,7 @@ var (
 
 func main() {
 	var (
-		version    = flag.String("version", "", "Release semver (default: CYT_RELEASE_VERSION, then module version)")
+		version    = flag.String("version", "", "Release semver (default: CHUNK_YOUR_TOOLS_RELEASE_VERSION, then module version)")
 		repo       = flag.String("repo", defaultRepo, "GitHub owner/repo for release downloads")
 		printEnv   = flag.Bool("print-env", false, "Print shell exports for CGO_LDFLAGS/CGO_CFLAGS")
 		cacheDir   = flag.String("cache-dir", "", "Override cache root (default: XDG_CACHE_HOME/chunk-your-tools)")
@@ -97,7 +97,7 @@ func resolveVersion(flagVersion string) string {
 	if flagVersion != "" {
 		return strings.TrimPrefix(flagVersion, "v")
 	}
-	if env := os.Getenv("CYT_RELEASE_VERSION"); env != "" {
+	if env := os.Getenv("CHUNK_YOUR_TOOLS_RELEASE_VERSION"); env != "" {
 		return strings.TrimPrefix(env, "v")
 	}
 	return moduleversion.Version
@@ -159,7 +159,7 @@ func cacheDestDir(cacheRoot, version, triplet string) (string, error) {
 	if cacheRoot != "" {
 		return filepath.Join(cacheRoot, version, triplet), nil
 	}
-	if env := os.Getenv("CYT_NATIVE_DIR"); env != "" {
+	if env := os.Getenv("CHUNK_YOUR_TOOLS_NATIVE_DIR"); env != "" {
 		return filepath.Join(env, version, triplet), nil
 	}
 	base, err := os.UserCacheDir()
@@ -183,7 +183,7 @@ func monorepoArtifactDir(triplet string) string {
 
 func repoRootFromCwd() string {
 	for _, root := range []string{
-		os.Getenv("CYT_REPO_ROOT"),
+		os.Getenv("CHUNK_YOUR_TOOLS_REPO_ROOT"),
 		os.Getenv("GITHUB_WORKSPACE"),
 	} {
 		if isRepoRoot(root) {

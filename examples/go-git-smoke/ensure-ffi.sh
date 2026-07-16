@@ -29,7 +29,7 @@ ensure_ffi() {
 	echo "Running sdk/go chunk-native-ensure..." >&2
 	(
 		cd "${staging}/sdk/go"
-		CYT_RELEASE_VERSION="${version}" go run ./cmd/chunk-native-ensure \
+		CHUNK_YOUR_TOOLS_RELEASE_VERSION="${version}" go run ./cmd/chunk-native-ensure \
 			-version "${version}" \
 			-native-dir "${native_dir}" \
 			-static-only \

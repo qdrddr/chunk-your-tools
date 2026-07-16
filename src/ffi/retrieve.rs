@@ -1,6 +1,8 @@
 //! Catalog retrieval and decomposed catalog FFI exports.
 
-use crate::ffi::error::{CYT_ERR_IO, CYT_ERR_NULL_PTR, clear_error, set_error};
+use crate::ffi::error::{
+    CHUNK_YOUR_TOOLS_ERR_IO, CHUNK_YOUR_TOOLS_ERR_NULL_PTR, clear_error, set_error,
+};
 use crate::ffi::json_util::{
     c_str_to_str, catalog_index_from_json, parse_json_cstr, parse_policy_context, run_ffi,
     write_json_out, write_optional_string_out,
@@ -17,19 +19,21 @@ use std::collections::HashMap;
 use std::os::raw::{c_char, c_int, c_long};
 
 /// Opaque in-memory decomposed catalog handle.
-pub struct CytDecomposedCatalog {
+pub struct ChunkYourToolsDecomposedCatalog {
     pub(crate) inner: DecomposedCatalog,
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_decomposed_catalog_new(out: *mut *mut CytDecomposedCatalog) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_decomposed_catalog_new(
+    out: *mut *mut ChunkYourToolsDecomposedCatalog,
+) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         unsafe {
-            *out = Box::into_raw(Box::new(CytDecomposedCatalog {
+            *out = Box::into_raw(Box::new(ChunkYourToolsDecomposedCatalog {
                 inner: DecomposedCatalog::default(),
             }));
         }
@@ -39,26 +43,28 @@ pub unsafe extern "C" fn cyt_decomposed_catalog_new(out: *mut *mut CytDecomposed
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_decomposed_catalog_free(catalog: *mut CytDecomposedCatalog) {
+pub unsafe extern "C" fn chunk_your_tools_decomposed_catalog_free(
+    catalog: *mut ChunkYourToolsDecomposedCatalog,
+) {
     if !catalog.is_null() {
         let _ = Box::from_raw(catalog);
     }
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_decomposed_catalog_from_catalog_index(
+pub unsafe extern "C" fn chunk_your_tools_decomposed_catalog_from_catalog_index(
     index_json: *const c_char,
-    out: *mut *mut CytDecomposedCatalog,
+    out: *mut *mut ChunkYourToolsDecomposedCatalog,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let val = unsafe { parse_json_cstr(index_json, "index_json")? };
         let idx = catalog_index_from_json(&val);
         unsafe {
-            *out = Box::into_raw(Box::new(CytDecomposedCatalog {
+            *out = Box::into_raw(Box::new(ChunkYourToolsDecomposedCatalog {
                 inner: DecomposedCatalog::from_catalog_index(&idx),
             }));
         }
@@ -68,18 +74,18 @@ pub unsafe extern "C" fn cyt_decomposed_catalog_from_catalog_index(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_decomposed_catalog_from_catalog_dict(
+pub unsafe extern "C" fn chunk_your_tools_decomposed_catalog_from_catalog_dict(
     data_json: *const c_char,
-    out: *mut *mut CytDecomposedCatalog,
+    out: *mut *mut ChunkYourToolsDecomposedCatalog,
 ) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let val = unsafe { parse_json_cstr(data_json, "data_json")? };
         unsafe {
-            *out = Box::into_raw(Box::new(CytDecomposedCatalog {
+            *out = Box::into_raw(Box::new(ChunkYourToolsDecomposedCatalog {
                 inner: DecomposedCatalog::from_catalog_dict(&val),
             }));
         }
@@ -89,13 +95,13 @@ pub unsafe extern "C" fn cyt_decomposed_catalog_from_catalog_dict(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_decomposed_catalog_has_json(
-    catalog: *const CytDecomposedCatalog,
+pub unsafe extern "C" fn chunk_your_tools_decomposed_catalog_has_json(
+    catalog: *const ChunkYourToolsDecomposedCatalog,
     key: *const c_char,
 ) -> c_int {
     if catalog.is_null() {
         set_error("null pointer: catalog");
-        return CYT_ERR_NULL_PTR;
+        return CHUNK_YOUR_TOOLS_ERR_NULL_PTR;
     }
     let key_str = match unsafe { c_str_to_str(key, "key") } {
         Ok(s) => s,
@@ -105,19 +111,19 @@ pub unsafe extern "C" fn cyt_decomposed_catalog_has_json(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_decomposed_catalog_get_json(
-    catalog: *const CytDecomposedCatalog,
+pub unsafe extern "C" fn chunk_your_tools_decomposed_catalog_get_json(
+    catalog: *const ChunkYourToolsDecomposedCatalog,
     key: *const c_char,
     out: *mut *mut c_char,
 ) -> c_int {
     run_ffi(|| {
         if catalog.is_null() {
             set_error("null pointer: catalog");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let key_str = unsafe { c_str_to_str(key, "key")? };
         if let Some(v) = unsafe { (*catalog).inner.get_json(key_str) } {
@@ -227,7 +233,7 @@ fn decomposed_from_json_files(val: &Value) -> DecomposedCatalog {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_retrieve_core(
+pub unsafe extern "C" fn chunk_your_tools_retrieve_core(
     data_json: *const c_char,
     store_json: *const c_char,
     survivor_json: *const c_char,
@@ -238,7 +244,7 @@ pub unsafe extern "C" fn cyt_retrieve_core(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let data_val = unsafe { parse_json_cstr(data_json, "data_json")? };
         let store_val = if store_json.is_null() {
@@ -270,16 +276,19 @@ pub unsafe extern "C" fn cyt_retrieve_core(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_load_catalog(dir_path: *const c_char, out: *mut *mut c_char) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_load_catalog(
+    dir_path: *const c_char,
+    out: *mut *mut c_char,
+) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let dir = unsafe { c_str_to_str(dir_path, "dir_path")? };
         let catalog = load_catalog_from_dir(dir).map_err(|e| {
             set_error(&e);
-            CYT_ERR_IO
+            CHUNK_YOUR_TOOLS_ERR_IO
         })?;
         unsafe { write_json_out(&catalog, out)? };
         Ok(())
@@ -287,7 +296,7 @@ pub unsafe extern "C" fn cyt_load_catalog(dir_path: *const c_char, out: *mut *mu
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_chunk_survivor_key(
+pub unsafe extern "C" fn chunk_your_tools_chunk_survivor_key(
     item_json: *const c_char,
     section: *const c_char,
     out: *mut *mut c_char,
@@ -295,7 +304,7 @@ pub unsafe extern "C" fn cyt_chunk_survivor_key(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let item = unsafe { parse_json_cstr(item_json, "item_json")? };
         let section_str = unsafe { c_str_to_str(section, "section")? };
@@ -305,7 +314,7 @@ pub unsafe extern "C" fn cyt_chunk_survivor_key(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_removed_chunks(
+pub unsafe extern "C" fn chunk_your_tools_removed_chunks(
     full_catalog_json: *const c_char,
     surviving_json: *const c_char,
     apply_decomposed_score_filter: c_int,
@@ -314,7 +323,7 @@ pub unsafe extern "C" fn cyt_removed_chunks(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let full = unsafe { parse_json_cstr(full_catalog_json, "full_catalog_json")? };
         let surviving = unsafe { parse_json_cstr(surviving_json, "surviving_json")? };
@@ -331,9 +340,9 @@ pub unsafe extern "C" fn cyt_removed_chunks(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_retrieve_tools(
+pub unsafe extern "C" fn chunk_your_tools_retrieve_tools(
     data_json: *const c_char,
-    catalog: *mut CytDecomposedCatalog,
+    catalog: *mut ChunkYourToolsDecomposedCatalog,
     catalog_index_json: *const c_char,
     apply_decomposed_score_filter: c_int,
     preserve_values_json: *const c_char,
@@ -343,11 +352,11 @@ pub unsafe extern "C" fn cyt_retrieve_tools(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         if catalog.is_null() {
             set_error("null pointer: catalog");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let data_val = unsafe { parse_json_cstr(data_json, "data_json")? };
         let policy_ctx = if ctx_json.is_null() {
@@ -401,12 +410,14 @@ pub unsafe extern "C" fn cyt_retrieve_tools(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_retrieve_catalog_tool_count(data_json: *const c_char) -> c_long {
-    unsafe { crate::ffi::catalog::cyt_catalog_tool_count(data_json) }
+pub unsafe extern "C" fn chunk_your_tools_retrieve_catalog_tool_count(
+    data_json: *const c_char,
+) -> c_long {
+    unsafe { crate::ffi::catalog::chunk_your_tools_catalog_tool_count(data_json) }
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_resolve_build_catalog(
+pub unsafe extern "C" fn chunk_your_tools_resolve_build_catalog(
     catalog_json: *const c_char,
     survivor_json: *const c_char,
     out: *mut *mut c_char,
@@ -414,7 +425,7 @@ pub unsafe extern "C" fn cyt_resolve_build_catalog(
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         let catalog_val = unsafe { parse_json_cstr(catalog_json, "catalog_json")? };
         let survivor = unsafe { parse_json_cstr(survivor_json, "survivor_json")? };

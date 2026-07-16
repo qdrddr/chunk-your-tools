@@ -77,7 +77,7 @@ jobs:
       needs.resolve-version.outputs.version != ''
     runs-on: ubuntu-latest
     env:
-      CYT_RELEASE_VERSION: ${{ needs.resolve-version.outputs.version }}
+      CHUNK_YOUR_TOOLS_RELEASE_VERSION: ${{ needs.resolve-version.outputs.version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -315,12 +315,12 @@ jobs:
 
       - name: Upload release version for downstream workflows
         if: needs.resolve-version.outputs.version != ''
-        run: printf '%s' "${{ needs.resolve-version.outputs.version }}" > cyt-release-version.txt
+        run: printf '%s' "${{ needs.resolve-version.outputs.version }}" > chunk-your-tools-release-version.txt
 
       - name: Store release version artifact
         if: needs.resolve-version.outputs.version != ''
         uses: actions/upload-artifact@v7
         with:
-          name: cyt-release-version
-          path: cyt-release-version.txt
+          name: chunk-your-tools-release-version
+          path: chunk-your-tools-release-version.txt
           if-no-files-found: error

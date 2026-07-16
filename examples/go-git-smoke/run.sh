@@ -6,12 +6,12 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
 
 export CGO_ENABLED=1
-export CYT_RELEASE_VERSION="${CYT_RELEASE_VERSION:-0.6.4}"
+export CHUNK_YOUR_TOOLS_RELEASE_VERSION="${CHUNK_YOUR_TOOLS_RELEASE_VERSION:-0.6.4}"
 
 STAGING="$("${ROOT}/prepare.sh")"
-"${ROOT}/ensure-ffi.sh" "$STAGING" "$CYT_RELEASE_VERSION"
+"${ROOT}/ensure-ffi.sh" "$STAGING" "$CHUNK_YOUR_TOOLS_RELEASE_VERSION"
 eval "$("${ROOT}/ensure-ffi.sh" --print-cgo "$STAGING")"
 
 go mod tidy
-go build -o ./cyt-go-git-smoke .
-./cyt-go-git-smoke
+go build -o ./chunk-your-tools-go-git-smoke .
+./chunk-your-tools-go-git-smoke

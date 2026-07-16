@@ -8,7 +8,7 @@ ignores:
   - "**/test_*.py"
   - "**/cli.py"
   - "**/setup.py"
-  - "src/cyt/pruners/**"
+
   - "sdk/**"
 rule:
   all:

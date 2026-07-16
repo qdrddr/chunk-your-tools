@@ -92,12 +92,12 @@ jobs:
         run: |
           TAG="${{ github.ref_name }}"
           VERSION="${TAG#v}"
-          printf '%s' "${VERSION}" > cyt-release-version.txt
+          printf '%s' "${VERSION}" > chunk-your-tools-release-version.txt
 
       - name: Store release version artifact
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v7
         with:
-          name: cyt-release-version
-          path: cyt-release-version.txt
+          name: chunk-your-tools-release-version
+          path: chunk-your-tools-release-version.txt
           if-no-files-found: error

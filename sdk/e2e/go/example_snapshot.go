@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	cytindexer "github.com/qdrddr/chunk-your-tools/sdk/go"
+	chunkindexer "github.com/qdrddr/chunk-your-tools/sdk/go"
 )
 
 func repoRoot() string {
@@ -18,12 +18,12 @@ func repoRoot() string {
 }
 
 func ParseTestArgs() (file *string, output *string) {
-	if v := strings.TrimSpace(os.Getenv("CYT_E2E_FILE")); v != "" {
+	if v := strings.TrimSpace(os.Getenv("CHUNK_YOUR_TOOLS_E2E_FILE")); v != "" {
 		file = &v
 	} else if v := strings.TrimSpace(os.Getenv("FILE")); v != "" {
 		file = &v
 	}
-	if v := strings.TrimSpace(os.Getenv("CYT_E2E_OUTPUT")); v != "" {
+	if v := strings.TrimSpace(os.Getenv("CHUNK_YOUR_TOOLS_E2E_OUTPUT")); v != "" {
 		output = &v
 	} else if v := strings.TrimSpace(os.Getenv("OUTPUT")); v != "" {
 		output = &v
@@ -173,11 +173,11 @@ func CatalogDictFromSnapshot(data map[string]any) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	indexJSON, err := cytindexer.BuildCatalogIndex(string(toolsJSON), string(enumsJSON))
+	indexJSON, err := chunkindexer.BuildCatalogIndex(string(toolsJSON), string(enumsJSON))
 	if err != nil {
 		return nil, err
 	}
-	dictJSON, err := cytindexer.CatalogIndexToCatalogDict(indexJSON, "")
+	dictJSON, err := chunkindexer.CatalogIndexToCatalogDict(indexJSON, "")
 	if err != nil {
 		return nil, err
 	}

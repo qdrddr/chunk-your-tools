@@ -3,9 +3,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-STAGING="${CYT_E2E_STAGING:?run prepare-release-checkout.sh first}"
-VERSION="${CYT_RELEASE_VERSION:?set CYT_RELEASE_VERSION}"
-TRIPLET="${CYT_RUST_TARGET:-$("${ROOT}/scripts/host-rust-target.sh")}"
+STAGING="${CHUNK_YOUR_TOOLS_E2E_STAGING:?run prepare-release-checkout.sh first}"
+VERSION="${CHUNK_YOUR_TOOLS_RELEASE_VERSION:?set CHUNK_YOUR_TOOLS_RELEASE_VERSION}"
+TRIPLET="${CHUNK_YOUR_TOOLS_RUST_TARGET:-$("${ROOT}/scripts/host-rust-target.sh")}"
 
 GO_SDK="${STAGING}/sdk/go"
 if [[ ! -f "${GO_SDK}/go.mod" ]]; then
@@ -16,7 +16,7 @@ fi
 echo "Ensuring release native artifacts for ${VERSION} (${TRIPLET})" >&2
 (
 	cd "${GO_SDK}"
-	CYT_RELEASE_VERSION="${VERSION}" go run ./cmd/chunk-native-ensure -version "${VERSION}"
+	CHUNK_YOUR_TOOLS_RELEASE_VERSION="${VERSION}" go run ./cmd/chunk-native-ensure -version "${VERSION}"
 )
 
 native_dir="${GO_SDK}/native/${TRIPLET}"

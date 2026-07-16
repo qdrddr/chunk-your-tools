@@ -38,7 +38,7 @@ if [[ -z "$EXAMPLES_DIR" ]]; then
 fi
 # shellcheck disable=SC1091
 source "${EXAMPLES_DIR}/_repo_root.sh"
-ROOT="$(cyt_repo_root_from "$SCRIPT")"
+ROOT="$(chunk_your_tools_repo_root_from "$SCRIPT")"
 cd "$ROOT"
 
 CATALOG="${ROOT}/examples/catalog"

@@ -22,8 +22,9 @@ Registry E2E workflows (each runs after its publish workflow succeeds via `workf
 | `4. E2E published (npm)` | `3. Publish chunk-your-tools to npm` | `typescript/` |
 | `2. E2E published packages` | `1. Publish chunk-your-tools to crates.io` | `go/`, `c/` |
 
-Each workflow reads semver from the parent publish artifact (`cyt-release-version`), polls the relevant registry or
-GitHub tag until that version is available, then runs the harness tests.
+Each workflow reads semver from the parent publish artifact
+(`chunk-your-tools-release-version`), polls the relevant registry or GitHub tag until that version is
+available, then runs the harness tests.
 
 Complements:
 
@@ -63,7 +64,7 @@ For parity with the GitHub workflow (e.g. in automation), set the version explic
 [`scripts/run-all.sh`](scripts/run-all.sh):
 
 ```bash
-export CYT_RELEASE_VERSION=0.1.10   # or TAG=v0.1.10
+export CHUNK_YOUR_TOOLS_RELEASE_VERSION=0.1.10   # or TAG=v0.1.10
 ./sdk/e2e/scripts/run-all.sh
 ```
 
@@ -72,8 +73,8 @@ Low-level registry polling: [`scripts/wait-registry.sh`](scripts/wait-registry.s
 
 ## Go/C staging
 
-Go and C harnesses clone tag `vX.Y.Z` into a temp directory (`CYT_E2E_STAGING`), build `libchunk_your_tools` from the tagged
-Rust crate at the repo root, then run isolated tests:
+Go and C harnesses clone tag `vX.Y.Z` into a temp directory (`CHUNK_YOUR_TOOLS_E2E_STAGING`), build
+`libchunk_your_tools` from the tagged Rust crate at the repo root, then run isolated tests:
 
 - Go: rendered `go.mod` uses a `replace` directive to the staging `sdk/go` tree (cgo links `../../target/...` from there).
 - C: CMake links the staging shared library and header under `sdk/c/include/`.
@@ -82,7 +83,7 @@ Scripts: [`prepare-release-checkout.sh`](scripts/prepare-release-checkout.sh), [
 
 ## Manifest templates
 
-Version pins live in `*.in` templates (`@CYT_RELEASE_VERSION@` placeholder; Go also uses `@CYT_E2E_STAGING@`).
+Version pins live in `*.in` templates (`@CHUNK_YOUR_TOOLS_RELEASE_VERSION@` placeholder; Go also uses `@CHUNK_YOUR_TOOLS_E2E_STAGING@`).
 `render-manifests.sh` writes gitignored `Cargo.toml`, `pyproject.toml`, `package.json`, and `go.mod` files so PRs do
 not churn lockfiles when only the release version changes.
 

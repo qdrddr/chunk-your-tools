@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Shared repo-root resolution for examples/*.sh
 
-cyt_examples_dir_for_script() {
+chunk_your_tools_examples_dir_for_script() {
 	local script="$1"
 	local script_name
 	script_name="$(basename "$script")"
@@ -35,9 +35,9 @@ cyt_examples_dir_for_script() {
 	echo "$script_dir"
 }
 
-cyt_repo_root_from() {
+chunk_your_tools_repo_root_from() {
 	local examples_dir
-	examples_dir="$(cyt_examples_dir_for_script "$1")"
+	examples_dir="$(chunk_your_tools_examples_dir_for_script "$1")"
 
 	if [[ "$(basename "$examples_dir")" == "examples" ]]; then
 		(cd "${examples_dir}/.." && pwd)

@@ -12,11 +12,11 @@ fn repo_root() -> PathBuf {
 }
 
 pub fn parse_test_args() -> (Option<String>, Option<String>) {
-    let file = std::env::var("CYT_E2E_FILE")
+    let file = std::env::var("CHUNK_YOUR_TOOLS_E2E_FILE")
         .ok()
         .filter(|s| !s.is_empty())
         .or_else(|| std::env::var("FILE").ok().filter(|s| !s.is_empty()));
-    let output = std::env::var("CYT_E2E_OUTPUT")
+    let output = std::env::var("CHUNK_YOUR_TOOLS_E2E_OUTPUT")
         .ok()
         .filter(|s| !s.is_empty())
         .or_else(|| std::env::var("OUTPUT").ok().filter(|s| !s.is_empty()));

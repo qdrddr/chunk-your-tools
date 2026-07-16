@@ -5,12 +5,12 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-if [[ -z "${CYT_RELEASE_VERSION:-}" && -n "${TAG:-}" ]]; then
+if [[ -z "${CHUNK_YOUR_TOOLS_RELEASE_VERSION:-}" && -n "${TAG:-}" ]]; then
 	# shellcheck source=parse-version.sh
 	eval "$("${ROOT}/scripts/parse-version.sh")"
 fi
 
-export CYT_RELEASE_VERSION="${CYT_RELEASE_VERSION:?set CYT_RELEASE_VERSION or TAG}"
+export CHUNK_YOUR_TOOLS_RELEASE_VERSION="${CHUNK_YOUR_TOOLS_RELEASE_VERSION:?set CHUNK_YOUR_TOOLS_RELEASE_VERSION or TAG}"
 
 "${ROOT}/scripts/render-manifests.sh"
 

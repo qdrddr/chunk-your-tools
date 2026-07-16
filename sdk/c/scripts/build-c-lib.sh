@@ -21,7 +21,7 @@ SUPPORTED_TARGETS=(
 	aarch64-pc-windows-msvc
 )
 
-PROFILE="${CYT_C_LIB_PROFILE:-release}"
+PROFILE="${CHUNK_YOUR_TOOLS_C_LIB_PROFILE:-release}"
 SYNC_HEADER=1
 PRINT_ONLY=0
 BUILD_ALL=0
@@ -47,7 +47,7 @@ Options:
 
 Environment:
   CARGO_TARGET_DIR     Override Cargo output directory
-  CYT_C_LIB_PROFILE    release or debug (alternative to flags)
+  CHUNK_YOUR_TOOLS_C_LIB_PROFILE    release or debug (alternative to flags)
 EOF
 }
 
@@ -192,7 +192,7 @@ build_one() {
 	fi
 }
 
-_cyt_build_c_lib_main() {
+_chunk_your_tools_build_c_lib_main() {
 	while [[ $# -gt 0 ]]; do
 		case "$1" in
 		--target)
@@ -267,5 +267,5 @@ _cyt_build_c_lib_main() {
 	fi
 }
 
-_cyt_build_c_lib_main "$@" 2>&1 | shorten_paths
+_chunk_your_tools_build_c_lib_main "$@" 2>&1 | shorten_paths
 exit "${PIPESTATUS[0]}"

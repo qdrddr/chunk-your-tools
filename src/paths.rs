@@ -288,11 +288,11 @@ mod tests {
     fn shorten_home_path_normalizes_separators() -> Result<(), String> {
         let home = home_dir()?;
         let home_norm = normalize_path_separators(&home.to_string_lossy());
-        let nested = format!("{home_norm}/.cyt-test/example.md");
+        let nested = format!("{home_norm}/.chunk-your-tools-test/example.md");
         let with_backslashes = nested.replace('/', "\\");
         assert_eq!(
             shorten_home_path(&with_backslashes)?,
-            "~/.cyt-test/example.md"
+            "~/.chunk-your-tools-test/example.md"
         );
         Ok(())
     }

@@ -1,12 +1,12 @@
 //! Runtime configuration FFI exports.
 
-use crate::ffi::error::{CYT_ERR_NULL_PTR, clear_error, set_error};
+use crate::ffi::error::{CHUNK_YOUR_TOOLS_ERR_NULL_PTR, clear_error, set_error};
 use crate::ffi::json_util::{c_str_to_str, run_ffi, write_string_result};
 use crate::runtime_config::{self, RuntimeConfig};
 use std::os::raw::{c_char, c_int};
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_configure_runtime_defaults(
+pub unsafe extern "C" fn chunk_your_tools_configure_runtime_defaults(
     decomposed_score: f64,
     enum_score: f64,
     rerank_score: f64,
@@ -33,31 +33,33 @@ pub unsafe extern "C" fn cyt_configure_runtime_defaults(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_runtime_decomposed_score() -> f64 {
+pub unsafe extern "C" fn chunk_your_tools_runtime_decomposed_score() -> f64 {
     runtime_config::decomposed_score()
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_runtime_enum_score() -> f64 {
+pub unsafe extern "C" fn chunk_your_tools_runtime_enum_score() -> f64 {
     runtime_config::enum_score()
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_runtime_rerank_score() -> f64 {
+pub unsafe extern "C" fn chunk_your_tools_runtime_rerank_score() -> f64 {
     runtime_config::rerank_score()
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_runtime_empty_optional_fallback_k() -> usize {
+pub unsafe extern "C" fn chunk_your_tools_runtime_empty_optional_fallback_k() -> usize {
     runtime_config::empty_optional_fallback_k()
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_runtime_default_system_policy(out: *mut *mut c_char) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_runtime_default_system_policy(
+    out: *mut *mut c_char,
+) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         unsafe {
             write_string_result(&runtime_config::default_system_policy(), out)?;
@@ -67,11 +69,13 @@ pub unsafe extern "C" fn cyt_runtime_default_system_policy(out: *mut *mut c_char
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cyt_runtime_default_mcp_policy(out: *mut *mut c_char) -> c_int {
+pub unsafe extern "C" fn chunk_your_tools_runtime_default_mcp_policy(
+    out: *mut *mut c_char,
+) -> c_int {
     run_ffi(|| {
         if out.is_null() {
             set_error("null pointer: out");
-            return Err(CYT_ERR_NULL_PTR);
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
         }
         unsafe {
             write_string_result(&runtime_config::default_mcp_policy(), out)?;

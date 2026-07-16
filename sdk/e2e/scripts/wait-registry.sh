@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Wait until a published package version is available on a registry.
-# Usage: CYT_RELEASE_VERSION=0.1.10 ./wait-registry.sh <crate|pypi-sdk|npm|tag|release-assets>
+# Usage: CHUNK_YOUR_TOOLS_RELEASE_VERSION=0.1.10 ./wait-registry.sh <crate|pypi-sdk|npm|tag|release-assets>
 set -euo pipefail
 
 TARGET="${1:-}"
-VERSION="${CYT_RELEASE_VERSION:-}"
+VERSION="${CHUNK_YOUR_TOOLS_RELEASE_VERSION:-}"
 if [[ -z "$TARGET" || -z "$VERSION" ]]; then
-	echo "usage: CYT_RELEASE_VERSION=x.y.z $0 <crate|pypi-sdk|npm|tag|release-assets>" >&2
+	echo "usage: CHUNK_YOUR_TOOLS_RELEASE_VERSION=x.y.z $0 <crate|pypi-sdk|npm|tag|release-assets>" >&2
 	exit 1
 fi
 
@@ -55,14 +55,14 @@ npm_has_version() {
 tag_has_version() {
 	local ver="$1"
 	local tag="v${ver}"
-	local repo="${CYT_E2E_GIT_REPO:-https://github.com/qdrddr/chunk-your-tools.git}"
+	local repo="${CHUNK_YOUR_TOOLS_E2E_GIT_REPO:-https://github.com/qdrddr/chunk-your-tools.git}"
 	git ls-remote --tags "$repo" "refs/tags/${tag}" | grep -q .
 }
 
 release_has_ffi_assets() {
 	local ver="$1"
 	local tag="v${ver}"
-	local slug="${CYT_E2E_GITHUB_REPO:-qdrddr/chunk-your-tools}"
+	local slug="${CHUNK_YOUR_TOOLS_E2E_GITHUB_REPO:-qdrddr/chunk-your-tools}"
 	local url="https://api.github.com/repos/${slug}/releases/tags/${tag}"
 	local json
 	json="$(curl -fsSL "$url")"

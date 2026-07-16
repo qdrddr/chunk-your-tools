@@ -48,11 +48,11 @@ only `libchunk_your_tools.a` (or `.lib` on Windows) to avoid runtime load failur
 
 ```bash
 export CGO_ENABLED=1
-export CYT_RELEASE_VERSION=1.0.0
+export CHUNK_YOUR_TOOLS_RELEASE_VERSION=1.0.0
 
 ./prepare.sh
 STAGING="$(./prepare.sh)"
-./ensure-ffi.sh "$STAGING" "$CYT_RELEASE_VERSION"
+./ensure-ffi.sh "$STAGING" "$CHUNK_YOUR_TOOLS_RELEASE_VERSION"
 eval "$(./ensure-ffi.sh --print-cgo "$STAGING")"
 
 go mod tidy

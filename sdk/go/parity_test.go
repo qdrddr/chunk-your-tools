@@ -59,8 +59,8 @@ func assertJSONEqual(t *testing.T, got, want string) {
 }
 
 func TestParityBuildCatalogIndex(t *testing.T) {
-	if os.Getenv("CYT_SKIP_PARITY") == "1" {
-		t.Skip("CYT_SKIP_PARITY=1")
+	if os.Getenv("CHUNK_YOUR_TOOLS_SKIP_PARITY") == "1" {
+		t.Skip("CHUNK_YOUR_TOOLS_SKIP_PARITY=1")
 	}
 	if !pythonAvailable(t) {
 		t.Skip("python chunk_your_tools not available (run uv sync in sdk/python)")
@@ -80,8 +80,8 @@ print(json.dumps(build_catalog_index([], [])))
 }
 
 func TestParityToolPolicies(t *testing.T) {
-	if os.Getenv("CYT_SKIP_PARITY") == "1" {
-		t.Skip("CYT_SKIP_PARITY=1")
+	if os.Getenv("CHUNK_YOUR_TOOLS_SKIP_PARITY") == "1" {
+		t.Skip("CHUNK_YOUR_TOOLS_SKIP_PARITY=1")
 	}
 	if !pythonAvailable(t) {
 		t.Skip("python chunk_your_tools not available")
@@ -101,8 +101,8 @@ print(json.dumps(tool_policies()))
 }
 
 func TestParityBatchToolPassThrough(t *testing.T) {
-	if os.Getenv("CYT_SKIP_PARITY") == "1" {
-		t.Skip("CYT_SKIP_PARITY=1")
+	if os.Getenv("CHUNK_YOUR_TOOLS_SKIP_PARITY") == "1" {
+		t.Skip("CHUNK_YOUR_TOOLS_SKIP_PARITY=1")
 	}
 	if !pythonAvailable(t) {
 		t.Skip("python chunk_your_tools not available")
@@ -125,8 +125,8 @@ print(json.dumps(batch_tool_pass_through(ctx, ["Agent", "grep"])))
 }
 
 func TestParityToolPassThrough(t *testing.T) {
-	if os.Getenv("CYT_SKIP_PARITY") == "1" {
-		t.Skip("CYT_SKIP_PARITY=1")
+	if os.Getenv("CHUNK_YOUR_TOOLS_SKIP_PARITY") == "1" {
+		t.Skip("CHUNK_YOUR_TOOLS_SKIP_PARITY=1")
 	}
 	if !pythonAvailable(t) {
 		t.Skip("python chunk_your_tools not available")
@@ -150,8 +150,8 @@ print(json.dumps(tool_pass_through(ctx, "Agent")))
 }
 
 func TestParityClassifyOptionalChunksBatch(t *testing.T) {
-	if os.Getenv("CYT_SKIP_PARITY") == "1" {
-		t.Skip("CYT_SKIP_PARITY=1")
+	if os.Getenv("CHUNK_YOUR_TOOLS_SKIP_PARITY") == "1" {
+		t.Skip("CHUNK_YOUR_TOOLS_SKIP_PARITY=1")
 	}
 	if !pythonAvailable(t) {
 		t.Skip("python chunk_your_tools not available")
@@ -172,9 +172,9 @@ print(json.dumps(classify_optional_chunks_batch(items)))
 	assertJSONEqual(t, got, want)
 }
 
-func TestParityEffectivePolicyToolKind(t *testing.T) {
-	if os.Getenv("CYT_SKIP_PARITY") == "1" {
-		t.Skip("CYT_SKIP_PARITY=1")
+func TestParityEffectivePolicyByToolKind(t *testing.T) {
+	if os.Getenv("CHUNK_YOUR_TOOLS_SKIP_PARITY") == "1" {
+		t.Skip("CHUNK_YOUR_TOOLS_SKIP_PARITY=1")
 	}
 	if !pythonAvailable(t) {
 		t.Skip("python chunk_your_tools not available")
@@ -231,8 +231,8 @@ func TestScoringPolicyContextCopiesToolKind(t *testing.T) {
 }
 
 func TestParityCatalogIndexToolSchemaMetadata(t *testing.T) {
-	if os.Getenv("CYT_SKIP_PARITY") == "1" {
-		t.Skip("CYT_SKIP_PARITY=1")
+	if os.Getenv("CHUNK_YOUR_TOOLS_SKIP_PARITY") == "1" {
+		t.Skip("CHUNK_YOUR_TOOLS_SKIP_PARITY=1")
 	}
 	if !pythonAvailable(t) {
 		t.Skip("python chunk_your_tools not available")
@@ -252,8 +252,8 @@ print(json.dumps(catalog_index_tool_schema_metadata({"tools": [], "files": {}}))
 }
 
 func TestParityDecomposedMetadataEntryTypes(t *testing.T) {
-	if os.Getenv("CYT_SKIP_PARITY") == "1" {
-		t.Skip("CYT_SKIP_PARITY=1")
+	if os.Getenv("CHUNK_YOUR_TOOLS_SKIP_PARITY") == "1" {
+		t.Skip("CHUNK_YOUR_TOOLS_SKIP_PARITY=1")
 	}
 	if !pythonAvailable(t) {
 		t.Skip("python chunk_your_tools not available")
@@ -332,8 +332,8 @@ print(json.dumps(types))
 }
 
 func TestParityGetVersion(t *testing.T) {
-	if os.Getenv("CYT_SKIP_PARITY") == "1" {
-		t.Skip("CYT_SKIP_PARITY=1")
+	if os.Getenv("CHUNK_YOUR_TOOLS_SKIP_PARITY") == "1" {
+		t.Skip("CHUNK_YOUR_TOOLS_SKIP_PARITY=1")
 	}
 	if !pythonAvailable(t) {
 		t.Skip("python chunk_your_tools not available")

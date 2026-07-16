@@ -63,7 +63,7 @@ fn decompose_from_example_file() {
     let (example_file, output_file) = parse_test_args();
     let Some(example_file) = example_file else {
         eprintln!(
-            "skipping decompose_from_example_file: set CYT_E2E_FILE or pass --file after cargo test --"
+            "skipping decompose_from_example_file: set CHUNK_YOUR_TOOLS_E2E_FILE or pass --file after cargo test --"
         );
         return;
     };

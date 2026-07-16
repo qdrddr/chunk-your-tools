@@ -23,8 +23,8 @@ are attached to each
 VERSION=v1.0.0
 TRIPLET=aarch64-apple-darwin
 curl -LO "https://github.com/qdrddr/chunk-your-tools/releases/download/${VERSION}/chunk-your-tools-ffi-${TRIPLET}.tar.gz"
-mkdir -p cyt-ffi && tar -xzf "chunk-your-tools-ffi-${TRIPLET}.tar.gz" -C cyt-ffi
-gcc -std=c11 -o myapp main.c -I cyt-ffi -L cyt-ffi -lchunk_your_tools
+mkdir -p chunk-your-tools-ffi && tar -xzf "chunk-your-tools-ffi-${TRIPLET}.tar.gz" -C chunk-your-tools-ffi
+gcc -std=c11 -o myapp main.c -I chunk-your-tools-ffi -L chunk-your-tools-ffi -lchunk_your_tools
 ```
 
 | Rust triplet | Archive |
@@ -55,7 +55,7 @@ The script copies the generated header to `sdk/c/include/chunk_your_tools.h`.
 
 ```bash
 cmake -S sdk/c -B sdk/c/build -DCMAKE_BUILD_TYPE=Release \
-  -DCYT_RUST_TARGET=$(rustc -vV | sed -n 's/^host: //p')
+  -DCHUNK_YOUR_TOOLS_RUST_TARGET=$(rustc -vV | sed -n 's/^host: //p')
 cmake --build sdk/c/build
 ctest --test-dir sdk/c/build --output-on-failure
 ```
@@ -63,16 +63,16 @@ ctest --test-dir sdk/c/build --output-on-failure
 Consumer projects:
 
 ```cmake
-find_package(CYT REQUIRED)
+find_package(ChunkYourTools REQUIRED)
 add_executable(myapp main.c)
-target_link_libraries(myapp PRIVATE CYT::chunk_your_tools)
+target_link_libraries(myapp PRIVATE ChunkYourTools::chunk_your_tools)
 ```
 
 Or vendored:
 
 ```cmake
 add_subdirectory(external/chunk-your-tools/sdk/c)
-target_link_libraries(myapp PRIVATE CYT::chunk_your_tools)
+target_link_libraries(myapp PRIVATE ChunkYourTools::chunk_your_tools)
 ```
 
 ## Manual link
@@ -90,10 +90,10 @@ gcc -std=c11 -o myapp main.c \
 
 Include `chunk_your_tools.h`:
 
-- Strings returned via `char**` out parameters **must** be freed with `cyt_free_string()`.
-- Opaque handles (`CytCatalogBuilder`, `CytDecomposedCatalog`) **must** be freed with their
-  matching `cyt_*_free()` function.
-- Error messages are thread-local — call `cyt_get_last_error()` on the same thread that
+- Strings returned via `char**` out parameters **must** be freed with `chunk_your_tools_free_string()`.
+- Opaque handles (`ChunkYourToolsCatalogBuilder`, `ChunkYourToolsDecomposedCatalog`) **must** be freed with their
+  matching `chunk_your_tools_*_free()` function.
+- Error messages are thread-local — call `chunk_your_tools_get_last_error()` on the same thread that
   received a non-zero error code.
 
 ## Examples
@@ -101,8 +101,8 @@ Include `chunk_your_tools.h`:
 | Example | Demonstrates |
 | --- | --- |
 | `examples/basic.c` | Catalog build |
-| `examples/error_handling.c` | Failure paths, `cyt_get_last_error` |
-| `examples/retrieve.c` | Decomposed catalog + `cyt_retrieve_tools` |
+| `examples/error_handling.c` | Failure paths, `chunk_your_tools_get_last_error` |
+| `examples/retrieve.c` | Decomposed catalog + `chunk_your_tools_retrieve_tools` |
 | `examples/policies.c` | Partition, merge, policy helpers |
 
 ## Related SDKs

@@ -16,10 +16,10 @@ const { values, positionals } = parseArgs({
 });
 
 if (values.file) {
-  process.env.CYT_E2E_FILE = values.file;
+  process.env.CHUNK_YOUR_TOOLS_E2E_FILE = values.file;
 }
 if (values.output) {
-  process.env.CYT_E2E_OUTPUT = values.output;
+  process.env.CHUNK_YOUR_TOOLS_E2E_OUTPUT = values.output;
 }
 
 const testFiles = readdirSync(here)

@@ -22,7 +22,7 @@ git push origin "sdk/go/v${version}"
 
 cargo test -p chunk-your-tools
 cargo publish --dry-run
-CARGO_REGISTRY_TOKEN="$(security find-generic-password -s "cyt" -a "CARGO_REGISTRY_TOKEN" -w)"
+CARGO_REGISTRY_TOKEN="$(security find-generic-password -s "chunk-your-tools" -a "CARGO_REGISTRY_TOKEN" -w)"
 export CARGO_REGISTRY_TOKEN
 # cargo login
 
@@ -34,7 +34,7 @@ cargo package                      # check compressed size
 cargo publish --allow-dirty
 
 # bash scripts/sync-version.sh
-# export CARGO_REGISTRY_TOKEN="$(security find-generic-password -s "cyt" -a "CARGO_REGISTRY_TOKEN" -w)"
+# export CARGO_REGISTRY_TOKEN="$(security find-generic-password -s "chunk-your-tools" -a "CARGO_REGISTRY_TOKEN" -w)"
 # cargo build -p chunk-your-tools
 # cargo test -p chunk-your-tools
 # cargo publish -p chunk-your-tools --dry-run

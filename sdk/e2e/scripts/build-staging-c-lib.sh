@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Build libchunk_your_tools in CYT_E2E_STAGING for Go/C E2E harnesses.
+# Build libchunk_your_tools in CHUNK_YOUR_TOOLS_E2E_STAGING for Go/C E2E harnesses.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-STAGING="${CYT_E2E_STAGING:?run prepare-release-checkout.sh first}"
-TRIPLET="${CYT_RUST_TARGET:-$("${ROOT}/scripts/host-rust-target.sh")}"
-PROFILE="${CYT_C_LIB_PROFILE:-release}"
+STAGING="${CHUNK_YOUR_TOOLS_E2E_STAGING:?run prepare-release-checkout.sh first}"
+TRIPLET="${CHUNK_YOUR_TOOLS_RUST_TARGET:-$("${ROOT}/scripts/host-rust-target.sh")}"
+PROFILE="${CHUNK_YOUR_TOOLS_C_LIB_PROFILE:-release}"
 
 release_flag=(--release)
 if [[ "$PROFILE" == "debug" ]]; then
@@ -13,7 +13,7 @@ if [[ "$PROFILE" == "debug" ]]; then
 fi
 
 if [[ ! -f "${STAGING}/Cargo.toml" ]]; then
-	echo "::error::missing Cargo.toml in CYT_E2E_STAGING=${STAGING}" >&2
+	echo "::error::missing Cargo.toml in CHUNK_YOUR_TOOLS_E2E_STAGING=${STAGING}" >&2
 	exit 1
 fi
 

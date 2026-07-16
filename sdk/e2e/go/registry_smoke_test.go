@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	cytindexer "github.com/qdrddr/chunk-your-tools/sdk/go"
+	chunkindexer "github.com/qdrddr/chunk-your-tools/sdk/go"
 
 	e2esupport "chunk-your-tools-go-registry-e2e"
 )
@@ -38,7 +38,7 @@ func TestBuildCatalogIndexFromReleaseModule(t *testing.T) {
 		t.Fatalf("marshal tool: %v", err)
 	}
 
-	indexJSON, err := cytindexer.BuildCatalogIndex(string(toolsJSON), "[]")
+	indexJSON, err := chunkindexer.BuildCatalogIndex(string(toolsJSON), "[]")
 	if err != nil {
 		t.Fatalf("BuildCatalogIndex: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestBuildCatalogIndexFromReleaseModule(t *testing.T) {
 		t.Fatalf("expected decomposed path in index JSON: %s", indexJSON)
 	}
 
-	metaJSON, err := cytindexer.CatalogIndexToolSchemaMetadata(indexJSON)
+	metaJSON, err := chunkindexer.CatalogIndexToolSchemaMetadata(indexJSON)
 	if err != nil {
 		t.Fatalf("CatalogIndexToolSchemaMetadata: %v", err)
 	}
@@ -74,7 +74,7 @@ func TestBuildCatalogIndexFromReleaseModule(t *testing.T) {
 func TestDecomposeFromExampleFile(t *testing.T) {
 	exampleFile, outputFile := e2esupport.ParseTestArgs()
 	if exampleFile == nil {
-		t.Skip("set CYT_E2E_FILE or pass --file after go test --")
+		t.Skip("set CHUNK_YOUR_TOOLS_E2E_FILE or pass --file after go test --")
 	}
 
 	snapshotPath := e2esupport.ResolveSnapshotPath(*exampleFile)

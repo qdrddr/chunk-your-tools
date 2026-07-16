@@ -22,7 +22,7 @@ import { getVersion } from "../core.js";
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "../../../..");
 
 function skipParity(): boolean {
-  return process.env.CYT_SKIP_PARITY === "1";
+  return process.env.CHUNK_YOUR_TOOLS_SKIP_PARITY === "1";
 }
 
 function uvAvailable(): boolean {

@@ -3,14 +3,14 @@
 # Shared helpers for local monorepo development (source scripts/local-dev-lib.sh).
 # Not meant to be executed directly.
 
-if [[ -z "${CYT_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
-	CYT_LOCAL_DEV_LIB_SOURCED=1
+if [[ -z "${CHUNK_YOUR_TOOLS_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
+	CHUNK_YOUR_TOOLS_LOCAL_DEV_LIB_SOURCED=1
 
-	CYT_REPO_ROOT="${CYT_REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-	export CYT_REPO_ROOT
+	CHUNK_YOUR_TOOLS_REPO_ROOT="${CHUNK_YOUR_TOOLS_REPO_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+	export CHUNK_YOUR_TOOLS_REPO_ROOT
 
-	CYT_VENV_BIN="${CYT_REPO_ROOT}/.venv/bin"
-	export PATH="${CYT_VENV_BIN}:${PATH}"
+	CHUNK_YOUR_TOOLS_VENV_BIN="${CHUNK_YOUR_TOOLS_REPO_ROOT}/.venv/bin"
+	export PATH="${CHUNK_YOUR_TOOLS_VENV_BIN}:${PATH}"
 
 	die() {
 		echo "error: $*" >&2
@@ -18,27 +18,27 @@ if [[ -z "${CYT_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 	}
 
 	info() {
-		[[ -n "${CYT_LOCAL_DEV_SHORT:-}" ]] && return 0
+		[[ -n "${CHUNK_YOUR_TOOLS_LOCAL_DEV_SHORT:-}" ]] && return 0
 		echo "==> $*"
 	}
 
-	cyt_section() {
-		[[ -n "${CYT_LOCAL_DEV_SHORT:-}" ]] && return 0
+	chunk_your_tools_section() {
+		[[ -n "${CHUNK_YOUR_TOOLS_LOCAL_DEV_SHORT:-}" ]] && return 0
 		echo ""
 		echo "$*"
 	}
 
 	# Run a command; suppress stdout in short/silent mode (stderr still visible).
-	cyt_run() {
-		if [[ -n "${CYT_LOCAL_DEV_SHORT:-}" ]]; then
+	chunk_your_tools_run() {
+		if [[ -n "${CHUNK_YOUR_TOOLS_LOCAL_DEV_SHORT:-}" ]]; then
 			"$@" >/dev/null
 		else
 			"$@"
 		fi
 	}
 
-	# Keep only error/warning lines when CYT_LOCAL_DEV_SHORT is set (pipe after shorten_paths).
-	cyt_filter_short_logs() {
+	# Keep only error/warning lines when CHUNK_YOUR_TOOLS_LOCAL_DEV_SHORT is set (pipe after shorten_paths).
+	chunk_your_tools_filter_short_logs() {
 		awk '
 			BEGIN {
 				IGNORECASE = 1
@@ -163,7 +163,7 @@ if [[ -z "${CYT_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 		command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
 	}
 
-	cyt_cmake_make_program() {
+	chunk_your_tools_cmake_make_program() {
 		local candidate
 		for candidate in gmake make; do
 			if command -v "$candidate" >/dev/null 2>&1; then
@@ -174,105 +174,105 @@ if [[ -z "${CYT_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 		die "missing required command: make or gmake"
 	}
 
-	cyt_npm() {
+	chunk_your_tools_npm() {
 		env -u npm_config_devdir npm "$@"
 	}
 
 	require_repo_root() {
-		[[ -f "${CYT_REPO_ROOT}/Cargo.toml" ]] || die "not a repo root: ${CYT_REPO_ROOT}"
-		[[ -f "${CYT_REPO_ROOT}/sdk/python/pyproject.toml" ]] || die "missing sdk/python"
-		[[ -f "${CYT_REPO_ROOT}/src/lib.rs" ]] || die "missing src/lib.rs"
+		[[ -f "${CHUNK_YOUR_TOOLS_REPO_ROOT}/Cargo.toml" ]] || die "not a repo root: ${CHUNK_YOUR_TOOLS_REPO_ROOT}"
+		[[ -f "${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/python/pyproject.toml" ]] || die "missing sdk/python"
+		[[ -f "${CHUNK_YOUR_TOOLS_REPO_ROOT}/src/lib.rs" ]] || die "missing src/lib.rs"
 	}
 
-	cyt_sync_sdk_python() {
+	chunk_your_tools_sync_sdk_python() {
 		require_cmd uv
-		cd "${CYT_REPO_ROOT}/sdk/python" || die "cd failed"
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/python" || die "cd failed"
 		info "uv sync sdk/python"
-		cyt_run uv sync
+		chunk_your_tools_run uv sync
 	}
 
-	cyt_indexer_release() {
+	chunk_your_tools_indexer_release() {
 		require_cmd cargo
-		cd "${CYT_REPO_ROOT}" || die "cd failed"
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}" || die "cd failed"
 		info "cargo build -p chunk-your-tools --release"
-		cyt_run env -u CARGO_TARGET_DIR cargo build -p chunk-your-tools --release
+		chunk_your_tools_run env -u CARGO_TARGET_DIR cargo build -p chunk-your-tools --release
 	}
 
-	cyt_indexer_paths() {
-		CYT_INDEXER_BIN="${CYT_REPO_ROOT}/target/release/chunk-your-tools"
-		CYT_CATALOG_DIR="${CYT_CATALOG_DIR:-${CYT_REPO_ROOT}/.catalog}"
-		CYT_EXAMPLE_JSON="${CYT_EXAMPLE_JSON:-${CYT_REPO_ROOT}/debug/full_example.json}"
-		CYT_SURVIVORS_JSON="${CYT_SURVIVORS_JSON:-${CYT_CATALOG_DIR}/survivors.json}"
-		CYT_RETRIEVE_OUT="${CYT_RETRIEVE_OUT:-${CYT_CATALOG_DIR}/out.json}"
+	chunk_your_tools_indexer_paths() {
+		CHUNK_YOUR_TOOLS_INDEXER_BIN="${CHUNK_YOUR_TOOLS_REPO_ROOT}/target/release/chunk-your-tools"
+		CHUNK_YOUR_TOOLS_CATALOG_DIR="${CHUNK_YOUR_TOOLS_CATALOG_DIR:-${CHUNK_YOUR_TOOLS_REPO_ROOT}/.catalog}"
+		CHUNK_YOUR_TOOLS_EXAMPLE_JSON="${CHUNK_YOUR_TOOLS_EXAMPLE_JSON:-${CHUNK_YOUR_TOOLS_REPO_ROOT}/debug/full_example.json}"
+		CHUNK_YOUR_TOOLS_SURVIVORS_JSON="${CHUNK_YOUR_TOOLS_SURVIVORS_JSON:-${CHUNK_YOUR_TOOLS_CATALOG_DIR}/survivors.json}"
+		CHUNK_YOUR_TOOLS_RETRIEVE_OUT="${CHUNK_YOUR_TOOLS_RETRIEVE_OUT:-${CHUNK_YOUR_TOOLS_CATALOG_DIR}/out.json}"
 	}
 
-	cyt_indexer_build_catalog() {
+	chunk_your_tools_indexer_build_catalog() {
 		require_cmd jq
-		cyt_indexer_paths
+		chunk_your_tools_indexer_paths
 
-		local example="${CYT_EXAMPLE_JSON}"
+		local example="${CHUNK_YOUR_TOOLS_EXAMPLE_JSON}"
 		[[ -f "${example}" ]] || die "missing ${example}"
 
-		cyt_indexer_release
-		[[ -x "${CYT_INDEXER_BIN}" ]] || die "chunk-your-tools binary not found at ${CYT_INDEXER_BIN}"
+		chunk_your_tools_indexer_release
+		[[ -x "${CHUNK_YOUR_TOOLS_INDEXER_BIN}" ]] || die "chunk-your-tools binary not found at ${CHUNK_YOUR_TOOLS_INDEXER_BIN}"
 
 		local tools_json
-		tools_json="$(mktemp "${TMPDIR:-/tmp}/cyt-tools.XXXXXX")"
+		tools_json="$(mktemp "${TMPDIR:-/tmp}/chunk-your-tools-tools.XXXXXX")"
 
 		info "extract tools from example json"
-		cyt_run jq '.body.tools' "${example}" >"${tools_json}"
+		chunk_your_tools_run jq '.body.tools' "${example}" >"${tools_json}"
 
-		mkdir -p "${CYT_CATALOG_DIR}"
+		mkdir -p "${CHUNK_YOUR_TOOLS_CATALOG_DIR}"
 		info "chunk-your-tools decompose"
-		cyt_run "${CYT_INDEXER_BIN}" decompose --input "${tools_json}" --output "${CYT_CATALOG_DIR}"
+		chunk_your_tools_run "${CHUNK_YOUR_TOOLS_INDEXER_BIN}" decompose --input "${tools_json}" --output "${CHUNK_YOUR_TOOLS_CATALOG_DIR}"
 		rm -f "${tools_json}"
 
 		local decomposed_count
-		decomposed_count="$(find "${CYT_CATALOG_DIR}/schemas/decomposed" -name '*.json' 2>/dev/null | wc -l | tr -d ' ')"
+		decomposed_count="$(find "${CHUNK_YOUR_TOOLS_CATALOG_DIR}/schemas/decomposed" -name '*.json' 2>/dev/null | wc -l | tr -d ' ')"
 		[[ "${decomposed_count}" -gt 0 ]] || die "expected decomposed json files, got ${decomposed_count}"
 		info "decompose ok (${decomposed_count} files)"
 	}
 
-	cyt_indexer_extract_survivors() {
+	chunk_your_tools_indexer_extract_survivors() {
 		require_cmd jq
-		cyt_indexer_paths
+		chunk_your_tools_indexer_paths
 
-		local example="${CYT_EXAMPLE_JSON}"
+		local example="${CHUNK_YOUR_TOOLS_EXAMPLE_JSON}"
 		[[ -f "${example}" ]] || die "missing ${example}"
-		mkdir -p "${CYT_CATALOG_DIR}"
+		mkdir -p "${CHUNK_YOUR_TOOLS_CATALOG_DIR}"
 
 		info "extract rerank survivors"
-		cyt_run jq '{
+		chunk_your_tools_run jq '{
 		  json: [.pruning.decomposed_catalog.rerank.json[]? | .score |= (tonumber)],
 		  md:   [.pruning.decomposed_catalog.rerank.md[]?   | .score |= (tonumber)]
-		}' "${example}" >"${CYT_SURVIVORS_JSON}"
+		}' "${example}" >"${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}"
 
 		local json_count md_count
-		json_count="$(jq '.json | length' "${CYT_SURVIVORS_JSON}")"
-		md_count="$(jq '.md | length' "${CYT_SURVIVORS_JSON}")"
+		json_count="$(jq '.json | length' "${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}")"
+		md_count="$(jq '.md | length' "${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}")"
 		[[ "${json_count}" -gt 0 || "${md_count}" -gt 0 ]] ||
 			die "no rerank survivors in ${example} (.pruning.decomposed_catalog.rerank)"
 		info "survivors ok (json=${json_count}, md=${md_count})"
 	}
 
-	cyt_indexer_retrieve() {
-		cyt_indexer_paths
-		[[ -f "${CYT_SURVIVORS_JSON}" ]] || cyt_indexer_extract_survivors
-		[[ -x "${CYT_INDEXER_BIN}" ]] || cyt_indexer_release
-		[[ -x "${CYT_INDEXER_BIN}" ]] || die "chunk-your-tools binary not found at ${CYT_INDEXER_BIN}"
+	chunk_your_tools_indexer_retrieve() {
+		chunk_your_tools_indexer_paths
+		[[ -f "${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}" ]] || chunk_your_tools_indexer_extract_survivors
+		[[ -x "${CHUNK_YOUR_TOOLS_INDEXER_BIN}" ]] || chunk_your_tools_indexer_release
+		[[ -x "${CHUNK_YOUR_TOOLS_INDEXER_BIN}" ]] || die "chunk-your-tools binary not found at ${CHUNK_YOUR_TOOLS_INDEXER_BIN}"
 
-		local example="${CYT_EXAMPLE_JSON}"
+		local example="${CHUNK_YOUR_TOOLS_EXAMPLE_JSON}"
 		[[ -f "${example}" ]] || die "missing ${example}"
 
 		local tools_json
-		tools_json="$(mktemp "${TMPDIR:-/tmp}/cyt-tools.XXXXXX")"
-		cyt_run jq '.body.tools' "${example}" >"${tools_json}"
+		tools_json="$(mktemp "${TMPDIR:-/tmp}/chunk-your-tools-tools.XXXXXX")"
+		chunk_your_tools_run jq '.body.tools' "${example}" >"${tools_json}"
 
-		local system_policy="${CYT_INDEXER_SYSTEM_POLICY:-prune_optional}"
-		local mcp_policy="${CYT_INDEXER_MCP_POLICY:-prune_all}"
+		local system_policy="${CHUNK_YOUR_TOOLS_INDEXER_SYSTEM_POLICY:-prune_optional}"
+		local mcp_policy="${CHUNK_YOUR_TOOLS_INDEXER_MCP_POLICY:-prune_all}"
 		local tool_policies=()
 		local default_tool_policies="AskUserQuestion=always_include"
-		local policy_source="${CYT_INDEXER_TOOL_POLICIES-${default_tool_policies}}"
+		local policy_source="${CHUNK_YOUR_TOOLS_INDEXER_TOOL_POLICIES-${default_tool_policies}}"
 		if [[ -n "${policy_source}" ]]; then
 			local spec
 			for spec in ${policy_source}; do
@@ -311,11 +311,11 @@ if [[ -z "${CYT_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 				;;
 			--output)
 				[[ $# -ge 2 ]] || die "missing value for --output"
-				CYT_RETRIEVE_OUT="$2"
+				CHUNK_YOUR_TOOLS_RETRIEVE_OUT="$2"
 				shift 2
 				;;
 			--output=*)
-				CYT_RETRIEVE_OUT="${1#*=}"
+				CHUNK_YOUR_TOOLS_RETRIEVE_OUT="${1#*=}"
 				shift
 				;;
 			--per-tool | --per-tool=* | --config | --config=*)
@@ -334,125 +334,125 @@ if [[ -z "${CYT_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 		done
 
 		info "chunk-your-tools recompose"
-		cyt_run "${CYT_INDEXER_BIN}" recompose \
+		chunk_your_tools_run "${CHUNK_YOUR_TOOLS_INDEXER_BIN}" recompose \
 			--input "${tools_json}" \
-			--survivors "${CYT_SURVIVORS_JSON}" \
-			--output "${CYT_RETRIEVE_OUT}" \
+			--survivors "${CHUNK_YOUR_TOOLS_SURVIVORS_JSON}" \
+			--output "${CHUNK_YOUR_TOOLS_RETRIEVE_OUT}" \
 			--system-policy "${system_policy}" \
 			--mcp-policy "${mcp_policy}" \
 			"${tool_policies[@]}"
 		rm -f "${tools_json}"
 
-		[[ -s "${CYT_RETRIEVE_OUT}" ]] || die "recompose produced empty ${CYT_RETRIEVE_OUT}"
+		[[ -s "${CHUNK_YOUR_TOOLS_RETRIEVE_OUT}" ]] || die "recompose produced empty ${CHUNK_YOUR_TOOLS_RETRIEVE_OUT}"
 		require_cmd jq
 		local tool_count
-		tool_count="$(jq 'length' "${CYT_RETRIEVE_OUT}")"
-		[[ "${tool_count}" -gt 0 ]] || die "recompose produced no tools in ${CYT_RETRIEVE_OUT}"
+		tool_count="$(jq 'length' "${CHUNK_YOUR_TOOLS_RETRIEVE_OUT}")"
+		[[ "${tool_count}" -gt 0 ]] || die "recompose produced no tools in ${CHUNK_YOUR_TOOLS_RETRIEVE_OUT}"
 		info "recompose ok (${tool_count} tools)"
 	}
 
-	cyt_indexer_all() {
-		cyt_indexer_build_catalog
-		cyt_indexer_extract_survivors
-		cyt_indexer_retrieve "$@"
+	chunk_your_tools_indexer_all() {
+		chunk_your_tools_indexer_build_catalog
+		chunk_your_tools_indexer_extract_survivors
+		chunk_your_tools_indexer_retrieve "$@"
 	}
 
-	cyt_test_indexer_build() {
-		cyt_indexer_build_catalog
+	chunk_your_tools_test_indexer_build() {
+		chunk_your_tools_indexer_build_catalog
 	}
 
-	cyt_build_rust() {
+	chunk_your_tools_build_rust() {
 		require_cmd cargo
-		cd "${CYT_REPO_ROOT}" || die "cd failed"
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}" || die "cd failed"
 		info "cargo test -p chunk-your-tools"
-		cyt_run env -u CARGO_TARGET_DIR cargo test -p chunk-your-tools
-		cyt_test_indexer_build
+		chunk_your_tools_run env -u CARGO_TARGET_DIR cargo test -p chunk-your-tools
+		chunk_your_tools_test_indexer_build
 	}
 
-	cyt_build_sdk_python() {
+	chunk_your_tools_build_sdk_python() {
 		require_cmd uv
-		cyt_sync_sdk_python
-		cd "${CYT_REPO_ROOT}/sdk/python" || die "cd failed"
+		chunk_your_tools_sync_sdk_python
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/python" || die "cd failed"
 		info "maturin develop --release"
-		cyt_run uv run maturin develop --release
+		chunk_your_tools_run uv run maturin develop --release
 	}
 
-	cyt_build_sdk_typescript() {
+	chunk_your_tools_build_sdk_typescript() {
 		require_cmd npm
-		cd "${CYT_REPO_ROOT}/sdk/typescript" || die "cd failed"
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/typescript" || die "cd failed"
 		info "npm ci, build, test"
-		cyt_run env -u CARGO_TARGET_DIR -u npm_config_devdir npm ci
-		cyt_run env -u CARGO_TARGET_DIR -u npm_config_devdir npm run build
-		cyt_run env -u CARGO_TARGET_DIR -u npm_config_devdir npm test
+		chunk_your_tools_run env -u CARGO_TARGET_DIR -u npm_config_devdir npm ci
+		chunk_your_tools_run env -u CARGO_TARGET_DIR -u npm_config_devdir npm run build
+		chunk_your_tools_run env -u CARGO_TARGET_DIR -u npm_config_devdir npm test
 	}
 
-	cyt_build_sdk_c() {
+	chunk_your_tools_build_sdk_c() {
 		require_cmd cmake
 		require_cmd ctest
 		require_cmd rustc
-		cd "${CYT_REPO_ROOT}" || die "cd failed"
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}" || die "cd failed"
 		local triplet make_prog
 		triplet="$(rustc -vV | sed -n 's/^host: //p')"
-		make_prog="$(cyt_cmake_make_program)"
+		make_prog="$(chunk_your_tools_cmake_make_program)"
 		info "build C FFI (sdk/c, ${triplet})"
-		cyt_run env -u CARGO_TARGET_DIR bash sdk/c/scripts/build-c-lib.sh --target "${triplet}"
+		chunk_your_tools_run env -u CARGO_TARGET_DIR bash sdk/c/scripts/build-c-lib.sh --target "${triplet}"
 		info "cmake configure + build"
-		cyt_run env -u CARGO_TARGET_DIR cmake -S sdk/c -B sdk/c/build \
+		chunk_your_tools_run env -u CARGO_TARGET_DIR cmake -S sdk/c -B sdk/c/build \
 			-DCMAKE_BUILD_TYPE=Release \
-			-DCYT_RUST_TARGET="${triplet}" \
+			-DCHUNK_YOUR_TOOLS_RUST_TARGET="${triplet}" \
 			-DCMAKE_MAKE_PROGRAM="${make_prog}"
-		cyt_run env -u CARGO_TARGET_DIR cmake --build sdk/c/build
+		chunk_your_tools_run env -u CARGO_TARGET_DIR cmake --build sdk/c/build
 		info "ctest sdk/c"
-		local lib_dir="${CYT_REPO_ROOT}/target/${triplet}/release"
+		local lib_dir="${CHUNK_YOUR_TOOLS_REPO_ROOT}/target/${triplet}/release"
 		case "${triplet}" in
 		*-apple-darwin)
-			cyt_run env -u CARGO_TARGET_DIR \
+			chunk_your_tools_run env -u CARGO_TARGET_DIR \
 				DYLD_LIBRARY_PATH="${lib_dir}:${lib_dir}/deps:${DYLD_LIBRARY_PATH:-}" \
 				ctest --test-dir sdk/c/build --output-on-failure
 			;;
 		*-pc-windows-msvc)
-			cyt_run env -u CARGO_TARGET_DIR \
+			chunk_your_tools_run env -u CARGO_TARGET_DIR \
 				PATH="${lib_dir}:${PATH}" \
 				ctest --test-dir sdk/c/build --output-on-failure
 			;;
 		*)
-			cyt_run env -u CARGO_TARGET_DIR \
+			chunk_your_tools_run env -u CARGO_TARGET_DIR \
 				LD_LIBRARY_PATH="${lib_dir}:${lib_dir}/deps:${LD_LIBRARY_PATH:-}" \
 				ctest --test-dir sdk/c/build --output-on-failure
 			;;
 		esac
 	}
 
-	cyt_build_sdk_go() {
+	chunk_your_tools_build_sdk_go() {
 		require_cmd go
 		require_cmd rustc
-		cd "${CYT_REPO_ROOT}" || die "cd failed"
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}" || die "cd failed"
 		info "build C FFI (sdk/go)"
-		cyt_run env -u CARGO_TARGET_DIR bash sdk/c/scripts/build-c-lib.sh --no-sync-header
-		cd "${CYT_REPO_ROOT}/sdk/go" || die "cd failed"
+		chunk_your_tools_run env -u CARGO_TARGET_DIR bash sdk/c/scripts/build-c-lib.sh --no-sync-header
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/go" || die "cd failed"
 		export CGO_ENABLED=1
 		local host_triplet
 		host_triplet="$(rustc -vV | sed -n 's/^host: //p')"
-		export PATH="${CYT_REPO_ROOT}/target/${host_triplet}/release:${PATH}"
+		export PATH="${CHUNK_YOUR_TOOLS_REPO_ROOT}/target/${host_triplet}/release:${PATH}"
 		info "go native ensure"
-		cyt_run go run ./cmd/chunk-native-ensure -static-only
+		chunk_your_tools_run go run ./cmd/chunk-native-ensure -static-only
 		info "go test ./..."
-		cyt_run env -u CARGO_TARGET_DIR go test ./...
+		chunk_your_tools_run env -u CARGO_TARGET_DIR go test ./...
 	}
 
-	cyt_build_all_sdks() {
-		cyt_build_sdk_python
-		cyt_build_sdk_c
-		cyt_build_sdk_go
-		cyt_build_sdk_typescript
+	chunk_your_tools_build_all_sdks() {
+		chunk_your_tools_build_sdk_python
+		chunk_your_tools_build_sdk_c
+		chunk_your_tools_build_sdk_go
+		chunk_your_tools_build_sdk_typescript
 	}
 
 	# Fail if chunk-your-tools is not the checkout under sdk/python (e.g. PyPI-only install).
-	cyt_verify_sdk_python() {
+	chunk_your_tools_verify_sdk_python() {
 		require_cmd uv
-		cd "${CYT_REPO_ROOT}/sdk/python" || die "cd failed"
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/python" || die "cd failed"
 		info "verify sdk/python"
-		cyt_run uv run python - "${CYT_REPO_ROOT}" <<'PY'
+		chunk_your_tools_run uv run python - "${CHUNK_YOUR_TOOLS_REPO_ROOT}" <<'PY'
 import json
 import sys
 from importlib import metadata
@@ -498,37 +498,37 @@ print(f"  install: {install_kind}")
 PY
 	}
 
-	cyt_verify_sdk_import() {
+	chunk_your_tools_verify_sdk_import() {
 		require_cmd uv
-		cd "${CYT_REPO_ROOT}/sdk/python" || die "cd failed"
-		cyt_run uv run python -c "from chunk_your_tools._native import build_catalog_index; assert callable(build_catalog_index)"
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/python" || die "cd failed"
+		chunk_your_tools_run uv run python -c "from chunk_your_tools._native import build_catalog_index; assert callable(build_catalog_index)"
 	}
 
-	cyt_test_sdk_python() {
+	chunk_your_tools_test_sdk_python() {
 		require_cmd uv
-		cd "${CYT_REPO_ROOT}/sdk/python" || die "cd failed"
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/python" || die "cd failed"
 		info "pytest sdk/python"
-		cyt_run uv run pytest
+		chunk_your_tools_run uv run pytest
 	}
 
-	cyt_run_all() {
-		cyt_section "Core (Rust)"
-		cyt_build_rust
+	chunk_your_tools_run_all() {
+		chunk_your_tools_section "Core (Rust)"
+		chunk_your_tools_build_rust
 
-		cyt_section "SDK: Python"
-		cyt_build_sdk_python
-		cyt_verify_sdk_python
+		chunk_your_tools_section "SDK: Python"
+		chunk_your_tools_build_sdk_python
+		chunk_your_tools_verify_sdk_python
 
 		# C/Go before TypeScript: napi build uses the same dylib name and would
 		# overwrite the C FFI shared library if TypeScript ran first.
-		cyt_section "SDK: C"
-		cyt_build_sdk_c
+		chunk_your_tools_section "SDK: C"
+		chunk_your_tools_build_sdk_c
 
-		cyt_section "SDK: Go"
-		cyt_build_sdk_go
+		chunk_your_tools_section "SDK: Go"
+		chunk_your_tools_build_sdk_go
 
-		cyt_section "SDK: TypeScript"
-		cyt_build_sdk_typescript
+		chunk_your_tools_section "SDK: TypeScript"
+		chunk_your_tools_build_sdk_typescript
 	}
 
 fi
