@@ -9,11 +9,11 @@
 [![version][version-shield]][release-link]
 [![discord][discord-shield]][discord-link]
 
-![Rust][rust-tech-shield]
-![Python][python-tech-shield]
-![TypeScript][typescript-shield]
-![Go][go-tech-shield]
-![C][c-tech-shield]
+[![Rust][rust-tech-shield]][rust-link]
+[![Python][python-tech-shield]][pypi-link]
+[![TypeScript][typescript-shield]][npm-link]
+[![Go][go-tech-shield]][go-link]
+[![C][c-tech-shield]][c-link]
 ![Shell][shell-shield]
 
 </div>
