@@ -139,9 +139,6 @@ export PATH="$PWD/target/release:$PATH"
 ```
 
 See [examples/README.md](examples/README.md) for survivor formats, output paths, and CLI flags.
-Go SDK smoke test: [examples/go-git-smoke/README.md](examples/go-git-smoke/README.md).
-
-For SDK usage, see the language READMEs below. Python quick start: [sdk/python/README.md](sdk/python/README.md).
 
 ## CLI
 
@@ -156,7 +153,7 @@ chunk-your-tools recompose \
   --output recomposed-tools.json
 ```
 
-Survivor lists name tools, optional properties, and enum values to keep.
+Survivor lists tool names, optional properties, and enum values to keep.
 
 ## SDKs
 
@@ -166,6 +163,8 @@ Survivor lists name tools, optional properties, and enum values to keep.
 | TypeScript | `sdk/typescript` | [README](sdk/typescript/README.md) |
 | Go | `sdk/go` | [README](sdk/go/README.md) |
 | C | `sdk/c` | [README](sdk/c/README.md) |
+
+Go SDK smoke test: [examples/go-git-smoke/README.md](examples/go-git-smoke/README.md).
 
 ## Supported platforms
 
