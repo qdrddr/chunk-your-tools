@@ -1,6 +1,6 @@
 ---
 id: TASK-0001
-title: 'Investigate MCP SPEC changes since the previous revision, 2025-11-25.'
+title: Investigate MCP SPEC changes
 status: To Do
 assignee: []
 created_date: '2026-07-23 20:42'
@@ -16,5 +16,5 @@ ordinal: 1000
 ## Description
 
 <!-- SECTION:DESCRIPTION:BEGIN -->
-https://modelcontextprotocol.io/specification/draft/changelog#major-changes
+Since the previous revision, 2025-11-25.
 <!-- SECTION:DESCRIPTION:END -->
