@@ -972,18 +972,10 @@ pub fn optional_leaf_survived_rerank<S: std::hash::BuildHasher>(
     ctx: &PolicyContext,
     item: &Value,
     rerank_score: f64,
-    llm_selected_paths: Option<&HashSet<String, S>>,
+    _llm_selected_paths: Option<&HashSet<String, S>>,
 ) -> bool {
     if !is_decomposed_optional_property_chunk(item) {
         return false;
-    }
-    let file_path = item_object(item)
-        .map(|o| str_field(o, "file_path"))
-        .unwrap_or_default();
-    if let Some(paths) = llm_selected_paths
-        && paths.contains(&file_path)
-    {
-        return true;
     }
     let policy = scoring_policy(effective_policy(ctx, &root_tool_id_from_chunk(item)));
     match policy {
@@ -1213,17 +1205,6 @@ fn tool_roots_from_entries(entries: &[Value]) -> HashMap<String, Value> {
     roots_by_tool
 }
 
-fn drop_tools_from_entries(entries: &[Value], tools_to_drop: &HashSet<String>) -> Vec<Value> {
-    if tools_to_drop.is_empty() {
-        return entries.to_vec();
-    }
-    entries
-        .iter()
-        .filter(|item| item.is_object() && !tools_to_drop.contains(&root_tool_id_from_chunk(item)))
-        .cloned()
-        .collect()
-}
-
 pub fn mitigate_empty_optional_properties(
     ctx: &PolicyContext,
     entries: &[Value],
@@ -1245,6 +1226,10 @@ pub fn mitigate_empty_optional_properties(
     }
 
     let scored_json = scored_json_entries(post_rerank_scored);
+    if scored_json.is_empty() {
+        return entries.to_vec();
+    }
+
     let mut result: Vec<Value> = entries.to_vec();
     let mut seen_paths: HashSet<String> = result
         .iter()
@@ -1254,25 +1239,15 @@ pub fn mitigate_empty_optional_properties(
                 .map(value_to_string)
         })
         .collect();
-    let mut tools_to_drop = HashSet::new();
 
     for (tool_id, root_item) in &roots_by_tool {
         if !should_mitigate_empty_root(ctx, tool_id, root_item, &result, catalog_index) {
             continue;
         }
-        if last_stage == "llm" {
-            if is_description_policy(effective_policy(ctx, tool_id)) {
-                continue;
-            }
-            tools_to_drop.insert(tool_id.clone());
-            continue;
-        }
-        if matches!(last_stage, "rerank" | "bm25") && !scored_json.is_empty() {
-            append_rerank_fallback_chunks(tool_id, &mut result, &mut seen_paths, &scored_json);
-        }
+        append_rerank_fallback_chunks(tool_id, &mut result, &mut seen_paths, &scored_json);
     }
 
-    drop_tools_from_entries(&result, &tools_to_drop)
+    result
 }
 
 pub fn drop_recomposed_tools_with_empty_properties(
@@ -1368,6 +1343,113 @@ fn build_synthetic_required_root_chunk(build_catalog: &Value, tool_id: &str) -> 
     let mut synthetic = build_root_chunk_from_catalog(build_catalog, tool_id)?;
     strip_descriptions_in_chunk_content(&mut synthetic);
     Some(synthetic)
+}
+
+fn append_unique_json_entries(
+    entries: &mut Vec<Value>,
+    seen: &mut HashSet<String>,
+    items: Option<&[Value]>,
+) {
+    let Some(items) = items else {
+        return;
+    };
+    for item in items {
+        let Some(obj) = item.as_object() else {
+            continue;
+        };
+        let file_path = obj
+            .get("file_path")
+            .map(|v| v.as_str().map_or_else(|| v.to_string(), str::to_string))
+            .unwrap_or_default();
+        if file_path.is_empty() || !seen.insert(file_path) {
+            continue;
+        }
+        entries.push(item.clone());
+    }
+}
+
+/// Ensure each tool with surviving json chunks has a root chunk injected from the build catalog.
+#[must_use]
+pub fn ensure_root_json_for_surviving_tools(
+    entries: &[Value],
+    build_catalog: &Value,
+) -> Vec<Value> {
+    let mut result = entries.to_vec();
+    let mut seen_paths: HashSet<String> = result
+        .iter()
+        .filter_map(|item| {
+            item_object(item)
+                .and_then(|o| o.get("file_path"))
+                .map(value_to_string)
+        })
+        .collect();
+
+    let mut tool_ids = HashSet::new();
+    for item in &result {
+        if !item.is_object() {
+            continue;
+        }
+        if is_decomposed_tool_root_chunk(item) || is_decomposed_optional_property_chunk(item) {
+            tool_ids.insert(root_tool_id_from_chunk(item));
+        }
+    }
+
+    for tool_id in tool_ids {
+        if root_chunk_survived_for_tool(&result, &tool_id) {
+            continue;
+        }
+        let Some(root) = build_root_chunk_from_catalog(build_catalog, &tool_id) else {
+            continue;
+        };
+        let file_path = item_object(&root)
+            .map(|o| str_field(o, "file_path"))
+            .unwrap_or_default();
+        if !file_path.is_empty() && seen_paths.insert(file_path) {
+            result.push(root);
+        }
+    }
+
+    result
+}
+
+/// Build json catalog entries for recompose: pinned + terminal survivors, roots, filter, mitigate.
+#[must_use]
+pub fn json_entries_for_recompose(
+    data: &Value,
+    pinned: Option<&Value>,
+    build_catalog: &Value,
+    post_rerank_scored: Option<&Value>,
+    ctx: &PolicyContext,
+    catalog_index: &CatalogIndex,
+    pipeline: &[String],
+) -> Vec<Value> {
+    let mut entries = Vec::new();
+    let mut seen_paths = HashSet::new();
+
+    if let Some(pinned_val) = pinned {
+        append_unique_json_entries(
+            &mut entries,
+            &mut seen_paths,
+            pinned_val
+                .get("json")
+                .and_then(Value::as_array)
+                .map(Vec::as_slice),
+        );
+    }
+
+    append_unique_json_entries(
+        &mut entries,
+        &mut seen_paths,
+        data.get("json")
+            .and_then(Value::as_array)
+            .map(Vec::as_slice),
+    );
+
+    let entries = ensure_root_json_for_surviving_tools(&entries, build_catalog);
+    let rerank_score = runtime_config::rerank_score();
+    let filtered =
+        filter_recompose_json_entries(ctx, &entries, rerank_score, None::<&HashSet<String>>);
+    mitigate_empty_optional_properties(ctx, &filtered, catalog_index, post_rerank_scored, pipeline)
 }
 
 fn removed_optional_chunks_for_tool(
