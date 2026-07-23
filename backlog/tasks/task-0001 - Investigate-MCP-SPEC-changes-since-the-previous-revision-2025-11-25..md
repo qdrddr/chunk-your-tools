@@ -4,8 +4,11 @@ title: 'Investigate MCP SPEC changes since the previous revision, 2025-11-25.'
 status: To Do
 assignee: []
 created_date: '2026-07-23 20:42'
+updated_date: '2026-07-23 20:42'
 labels: []
 dependencies: []
+references:
+  - 'https://modelcontextprotocol.io/specification/draft/changelog#major-changes'
 type: task
 ordinal: 1000
 ---
