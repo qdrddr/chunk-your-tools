@@ -191,6 +191,16 @@ func cgoWriteCatalogIndex(indexJSON, outputDir string, prune bool) error {
 	return nil
 }
 
+func cgoLoadCatalogIndexFromDir(dirPath string) (string, error) {
+	cDir := cString(dirPath)
+	defer freeCString(cDir)
+	var out *C.char
+	if C.chunk_your_tools_load_catalog_index_from_dir(cDir, &out) != ok {
+		return "", lastError()
+	}
+	return takeJSON(&out)
+}
+
 func cgoCatalogIndexToCatalogDict(indexJSON, catalogPrefix string) (string, error) {
 	cIndex := cString(indexJSON)
 	defer freeCString(cIndex)
