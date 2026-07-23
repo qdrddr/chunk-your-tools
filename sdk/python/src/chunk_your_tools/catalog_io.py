@@ -6,7 +6,11 @@ from pathlib import Path
 from typing import Any
 
 from chunk_your_tools._native import CatalogBuilder as _NativeCatalogBuilder
+from chunk_your_tools._native import (
+    load_catalog_index_from_dir as _load_catalog_index_from_dir,
+)
 from chunk_your_tools._native import write_catalog_index as _write_catalog_index
+from chunk_your_tools.build import CatalogIndex
 
 
 def write_catalog_index(
@@ -21,6 +25,12 @@ def write_catalog_index(
         str(output_dir) if output_dir is not None else None,
         prune,
     )
+
+
+def load_catalog_index_from_dir(dir_path: str | Path) -> CatalogIndex:
+    """Load a catalog index from a directory written by ``write_catalog_index``."""
+    result = _load_catalog_index_from_dir(str(dir_path))
+    return CatalogIndex(tools=result["tools"], files=result["files"])
 
 
 class CatalogBuilder:

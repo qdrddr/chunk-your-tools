@@ -13,7 +13,11 @@ from chunk_your_tools.build import (
     prepare_tool_entry,
     truncate_description,
 )
-from chunk_your_tools.catalog_io import CatalogBuilder, write_catalog_index
+from chunk_your_tools.catalog_io import (
+    CatalogBuilder,
+    load_catalog_index_from_dir,
+    write_catalog_index,
+)
 from chunk_your_tools.paths import (
     builder_memory_only,
     catalog_prefix,
@@ -86,6 +90,7 @@ __all__ = [
     "get_version",
     "json_ext",
     "load_catalog",
+    "load_catalog_index_from_dir",
     "md_ext",
     "policies",
     "prepare_tool_entry",
