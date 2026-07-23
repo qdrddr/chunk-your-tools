@@ -1,6 +1,11 @@
 /** Catalog disk I/O and builder (Rust-backed). */
 
-import { CatalogBuilderNative, writeCatalogIndexNative } from "./native.js";
+import { CatalogIndex } from "./build.js";
+import {
+  CatalogBuilderNative,
+  loadCatalogIndexFromDirNative,
+  writeCatalogIndexNative,
+} from "./native.js";
 import type { JsonRecord } from "./types.js";
 
 export function writeCatalogIndex(
@@ -9,6 +14,14 @@ export function writeCatalogIndex(
   prune?: boolean | null,
 ): void {
   writeCatalogIndexNative(index, outputDir ?? undefined, prune ?? undefined);
+}
+
+export function loadCatalogIndexFromDir(dirPath: string): CatalogIndex {
+  const result = loadCatalogIndexFromDirNative(dirPath) as {
+    tools: JsonRecord[];
+    files: Record<string, string>;
+  };
+  return new CatalogIndex(result.tools, result.files);
 }
 
 export type CatalogBuilder = InstanceType<typeof CatalogBuilderNative>;

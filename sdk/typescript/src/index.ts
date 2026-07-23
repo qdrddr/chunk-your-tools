@@ -54,7 +54,11 @@ export {
   toolIdFromDecomposedRel,
   writeCatalogPrune,
 } from "./paths.js";
-export { CatalogBuilder, writeCatalogIndex } from "./catalog-io.js";
+export {
+  CatalogBuilder,
+  loadCatalogIndexFromDir,
+  writeCatalogIndex,
+} from "./catalog-io.js";
 export {
   recomposeToolsFromNames,
   resolveSurvivorsFromNames,

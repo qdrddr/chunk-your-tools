@@ -127,6 +127,7 @@ export const classifyOptionalChunksBatchNative =
 
 // Catalog I/O
 export const writeCatalogIndexNative = native.writeCatalogIndex;
+export const loadCatalogIndexFromDirNative = native.loadCatalogIndexFromDir;
 export const CatalogBuilderNative = native.CatalogBuilder;
 
 export type { PolicyOptions, PolicyContextJs } from "../native.d.ts";
