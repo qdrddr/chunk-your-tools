@@ -1,6 +1,6 @@
 [package]
 name = "chunk-your-tools"
-version = "2.0.3"
+version = "2.1.0"
 edition = "2024"
 authors = ["Damien Berezenko"]
 description = "MCP tool schema decomposition and recomposition"
