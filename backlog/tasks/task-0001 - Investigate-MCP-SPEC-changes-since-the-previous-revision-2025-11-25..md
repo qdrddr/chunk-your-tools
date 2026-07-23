@@ -4,9 +4,9 @@ title: Investigate MCP SPEC changes
 status: To Do
 assignee: []
 created_date: '2026-07-23 20:42'
-updated_date: '2026-07-23 20:43'
+updated_date: '2026-07-23 20:46'
 labels:
-  - MCP SPC
+  - MCP SPEC
 dependencies: []
 references:
   - 'https://modelcontextprotocol.io/specification/draft/changelog#major-changes'
