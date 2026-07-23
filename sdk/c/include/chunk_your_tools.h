@@ -238,6 +238,8 @@ int chunk_your_tools_catalog_builder_to_catalog_dict(struct ChunkYourToolsCatalo
                                                      const char *catalog_prefix,
                                                      char **out);
 
+int chunk_your_tools_load_catalog_index_from_dir(const char *dir_path, char **out);
+
 int chunk_your_tools_write_catalog_index(const char *index_json, const char *output_dir, int prune);
 
 /*
