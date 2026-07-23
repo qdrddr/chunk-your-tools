@@ -330,6 +330,21 @@ pub fn drop_recomposed_tools_with_empty_properties(
 }
 
 /// # Errors
+/// Returns an error when the catalog directory cannot be read or parsed.
+#[napi(js_name = "loadCatalogIndexFromDir")]
+pub fn load_catalog_index_from_dir(dir_path: String) -> Result<CatalogIndexResult> {
+    let dir_path = dir_path.into_boxed_str();
+    let index = crate::catalog_io::load_catalog_index_from_dir(std::path::Path::new(
+        dir_path.as_ref(),
+    ))
+    .map_err(Error::from_reason)?;
+    Ok(CatalogIndexResult {
+        tools: index.tools,
+        files: index.files,
+    })
+}
+
+/// # Errors
 /// Returns an error when the output directory cannot be created or catalog files cannot be written.
 #[napi]
 pub fn write_catalog_index(

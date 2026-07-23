@@ -1,7 +1,7 @@
 //! Catalog I/O and `CatalogBuilder` opaque handle FFI exports.
 
 use crate::catalog_builder::CatalogBuilder;
-use crate::catalog_io::write_catalog_index_resolved;
+use crate::catalog_io::{load_catalog_index_from_dir, write_catalog_index_resolved};
 use crate::ffi::error::{
     CHUNK_YOUR_TOOLS_ERR_INVALID_HANDLE, CHUNK_YOUR_TOOLS_ERR_IO, CHUNK_YOUR_TOOLS_ERR_NULL_PTR,
     clear_error, set_error,
@@ -174,6 +174,28 @@ pub unsafe extern "C" fn chunk_your_tools_catalog_builder_to_catalog_dict(
             unsafe { (*builder).inner.to_catalog_dict_with_prefix(prefix) }
         };
         unsafe { write_json_out(&val, out)? };
+        Ok(())
+    })
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn chunk_your_tools_load_catalog_index_from_dir(
+    dir_path: *const c_char,
+    out: *mut *mut c_char,
+) -> c_int {
+    run_ffi(|| {
+        if out.is_null() {
+            set_error("null pointer: out");
+            return Err(CHUNK_YOUR_TOOLS_ERR_NULL_PTR);
+        }
+        let dir = unsafe { c_str_to_str(dir_path, "dir_path")? };
+        let index = load_catalog_index_from_dir(std::path::Path::new(dir)).map_err(|e| {
+            set_error(&e);
+            CHUNK_YOUR_TOOLS_ERR_IO
+        })?;
+        unsafe {
+            write_json_out(&json!({ "tools": index.tools, "files": index.files }), out)?;
+        }
         Ok(())
     })
 }

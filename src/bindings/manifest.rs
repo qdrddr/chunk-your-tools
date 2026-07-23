@@ -36,6 +36,7 @@ pub const EXPORTS: &[FfiExport] = &[
     export("chunk_your_tools_catalog_builder_write_catalog", "build"),
     export("chunk_your_tools_catalog_builder_to_catalog_dict", "build"),
     export("chunk_your_tools_write_catalog_index", "build"),
+    export("chunk_your_tools_load_catalog_index_from_dir", "build"),
     export("chunk_your_tools_configure_runtime_defaults", "runtime"),
     export("chunk_your_tools_runtime_decomposed_score", "runtime"),
     export("chunk_your_tools_runtime_enum_score", "runtime"),

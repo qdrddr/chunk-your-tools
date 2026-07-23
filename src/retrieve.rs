@@ -1,6 +1,7 @@
 //! Decomposed catalog retrieval: merge tool schemas, score filtering, and enum pruning.
 
 use crate::build::{CatalogIndex, catalog_index_from_value};
+use crate::json_util::value_to_string;
 use crate::paths::{
     self, decomposed_prefix, get_root_tool_key, json_ext, md_ext, tool_id_from_decomposed_rel,
 };
@@ -301,24 +302,20 @@ pub fn parse_json_input(
 }
 
 fn filter_items(items_with_scores: &[(Value, f64)]) -> Vec<Value> {
-    let first_3_above = items_with_scores
-        .iter()
-        .take(3)
-        .all(|(_, score)| *score >= runtime_config::enum_score());
-
-    if first_3_above {
-        items_with_scores
-            .iter()
-            .filter(|(_, score)| *score >= runtime_config::enum_score())
-            .map(|(item, _)| item.clone())
-            .collect()
-    } else {
-        items_with_scores
-            .iter()
-            .take(3)
-            .map(|(item, _)| item.clone())
-            .collect()
+    let threshold = runtime_config::enum_score();
+    let mut seen = HashSet::new();
+    let mut out = Vec::new();
+    for (item, _) in items_with_scores.iter().take(3) {
+        if seen.insert(value_to_string(item)) {
+            out.push(item.clone());
+        }
     }
+    for (item, score) in items_with_scores.iter().skip(3) {
+        if *score >= threshold && seen.insert(value_to_string(item)) {
+            out.push(item.clone());
+        }
+    }
+    out
 }
 
 /// Prune and sort JSON-schema `enum` arrays using rerank scores and preserve sets.
@@ -336,7 +333,9 @@ pub fn filter_and_sort_enums<S: std::hash::BuildHasher, P: std::hash::BuildHashe
                         let mut preserved = Vec::new();
                         let mut prunable = Vec::new();
                         for item in items {
-                            if preserve_values.is_some_and(|pv| pv.contains(&item.to_string())) {
+                            if preserve_values
+                                .is_some_and(|pv| pv.contains(&value_to_string(&item)))
+                            {
                                 preserved.push(item);
                             } else {
                                 prunable.push(item);
@@ -345,7 +344,8 @@ pub fn filter_and_sort_enums<S: std::hash::BuildHasher, P: std::hash::BuildHashe
                         let mut items_with_scores: Vec<(Value, f64)> = prunable
                             .into_iter()
                             .map(|item| {
-                                let score = scores.get(&item.to_string()).copied().unwrap_or(0.0);
+                                let score =
+                                    scores.get(&value_to_string(&item)).copied().unwrap_or(0.0);
                                 (item, score)
                             })
                             .collect();
@@ -912,6 +912,81 @@ mod tests {
                 .and_then(Value::as_str),
             Some("schemas/decomposed/sonnet.md")
         );
+    }
+
+    fn scored_enum_items(values: &[(&str, f64)]) -> Vec<(Value, f64)> {
+        values
+            .iter()
+            .map(|(value, score)| (Value::String(value.to_string()), *score))
+            .collect()
+    }
+
+    fn enum_strings(items: &[(Value, f64)]) -> Vec<String> {
+        filter_items(items)
+            .into_iter()
+            .map(|v| v.as_str().unwrap_or_default().to_string())
+            .collect()
+    }
+
+    #[test]
+    fn filter_items_hedl_convert_to_format_keeps_top_three() {
+        let items = scored_enum_items(&[
+            ("yaml", 0.95),
+            ("csv", 0.89),
+            ("json", 0.0005),
+            ("xml", 0.0004),
+            ("parquet", 0.0003),
+            ("cypher", 0.0002),
+            ("toon", 0.0001),
+        ]);
+        assert_eq!(enum_strings(&items), vec!["yaml", "csv", "json"]);
+    }
+
+    #[test]
+    fn filter_items_index_folder_identity_mode_keeps_top_three() {
+        let items = scored_enum_items(&[("git", 0.9), ("local", 0.0008), ("config", 0.00006)]);
+        assert_eq!(enum_strings(&items), vec!["git", "local", "config"]);
+    }
+
+    #[test]
+    fn filter_items_includes_rank_four_plus_above_threshold() {
+        let items = scored_enum_items(&[
+            ("a", 0.9),
+            ("b", 0.88),
+            ("c", 0.87),
+            ("d", 0.86),
+            ("e", 0.1),
+        ]);
+        assert_eq!(enum_strings(&items), vec!["a", "b", "c", "d"]);
+    }
+
+    #[test]
+    fn filter_items_short_list_keeps_all() {
+        let items = scored_enum_items(&[("only", 0.01), ("two", 0.02)]);
+        assert_eq!(enum_strings(&items), vec!["only", "two"]);
+    }
+
+    #[test]
+    fn filter_and_sort_enums_prepends_preserved_values() {
+        let mut schema = json!({
+            "type": "string",
+            "enum": ["yaml", "csv", "json", "xml"]
+        });
+        let scores = HashMap::from([
+            ("yaml".to_string(), 0.95),
+            ("csv".to_string(), 0.89),
+            ("json".to_string(), 0.0005),
+            ("xml".to_string(), 0.0004),
+        ]);
+        let preserve: HashSet<String> = HashSet::from(["xml".to_string()]);
+        filter_and_sort_enums(&mut schema, &scores, Some(&preserve));
+        let kept = schema
+            .get("enum")
+            .and_then(Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let kept: Vec<_> = kept.iter().filter_map(|v| v.as_str()).collect();
+        assert_eq!(kept, vec!["xml", "yaml", "csv", "json"]);
     }
 
     #[test]

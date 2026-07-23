@@ -149,6 +149,9 @@ fn collect_catalog_files(
     for entry in fs::read_dir(dir).map_err(|e| e.to_string())? {
         let entry = entry.map_err(|e| e.to_string())?;
         let path = entry.path();
+        if should_skip_hidden(&path, root) {
+            continue;
+        }
         if path.is_dir() {
             collect_catalog_files(root, &path, files)?;
             continue;
@@ -227,6 +230,30 @@ mod tests {
                 .files
                 .contains_key("schemas/decomposed/metadata.json")
         );
+        let _ = fs::remove_dir_all(&dir);
+        Ok(())
+    }
+
+    #[test]
+    fn load_catalog_index_from_dir_skips_hidden_files() -> Result<(), String> {
+        let dir = temp_catalog_dir();
+        let tools = [json!({
+            "id": "Agent",
+            "full_schema": {
+                "id": "Agent",
+                "name": "Agent",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {"prompt": {"type": "string"}},
+                    "required": ["prompt"]
+                }
+            }
+        })];
+        let index = build_catalog_index(&tools, &[]);
+        write_catalog_index(&index, &dir, false)?;
+        fs::write(dir.join(".DS_Store"), b"\x00\x01\x02").map_err(|e| e.to_string())?;
+        let loaded = load_catalog_index_from_dir(&dir)?;
+        assert!(!loaded.files.contains_key(".DS_Store"));
         let _ = fs::remove_dir_all(&dir);
         Ok(())
     }

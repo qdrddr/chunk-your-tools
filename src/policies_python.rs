@@ -209,6 +209,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(write_catalog_index_py, m)?)?;
+    m.add_function(wrap_pyfunction!(load_catalog_index_from_dir_py, m)?)?;
     m.add_class::<PyCatalogBuilder>()?;
     m.add_function(wrap_pyfunction!(root_tool_id_from_chunk_py, m)?)?;
     m.add_function(wrap_pyfunction!(is_non_system_tool_id_py, m)?)?;
@@ -475,6 +476,20 @@ fn drop_recomposed_tools_with_empty_properties_py(
     let index = super::catalog_index_from_py(catalog_index)?;
     let result = policies::drop_recomposed_tools_with_empty_properties(&ctx, &arr, &index);
     super::value_to_py(py, &Value::Array(result))
+}
+
+#[pyfunction(name = "load_catalog_index_from_dir")]
+fn load_catalog_index_from_dir_py(py: Python<'_>, dir_path: &str) -> PyResult<Py<PyAny>> {
+    let index = crate::catalog_io::load_catalog_index_from_dir(std::path::Path::new(dir_path))
+        .map_err(PyErr::new::<pyo3::exceptions::PyOSError, _>)?;
+    let dict = PyDict::new(py);
+    dict.set_item("tools", super::value_to_py(py, &Value::Array(index.tools))?)?;
+    let files_dict = PyDict::new(py);
+    for (k, v) in &index.files {
+        files_dict.set_item(k, v)?;
+    }
+    dict.set_item("files", files_dict)?;
+    Ok(dict.into())
 }
 
 #[pyfunction(name = "write_catalog_index")]
