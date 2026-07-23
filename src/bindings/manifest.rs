@@ -111,6 +111,11 @@ pub const EXPORTS: &[FfiExport] = &[
         "policies",
     ),
     export(
+        "chunk_your_tools_ensure_root_json_for_surviving_tools",
+        "policies",
+    ),
+    export("chunk_your_tools_json_entries_for_recompose", "policies"),
+    export(
         "chunk_your_tools_append_description_reinstate_entries",
         "policies",
     ),
