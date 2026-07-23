@@ -55,6 +55,16 @@ func MitigateEmptyOptionalProperties(entriesJSON, catalogIndexJSON, ctxJSON, pos
 	return cgoMitigateEmptyOptionalProperties(entriesJSON, catalogIndexJSON, ctxJSON, postRerankScoredJSON, pipelineJSON)
 }
 
+// EnsureRootJSONForSurvivingTools injects root chunks for tools with surviving json chunks.
+func EnsureRootJSONForSurvivingTools(entriesJSON, buildCatalogJSON string) (string, error) {
+	return cgoEnsureRootJSONForSurvivingTools(entriesJSON, buildCatalogJSON)
+}
+
+// JSONEntriesForRecompose builds filtered json catalog entries for recompose.
+func JSONEntriesForRecompose(dataJSON, pinnedJSON, buildCatalogJSON, postRerankScoredJSON, ctxJSON, catalogIndexJSON, pipelineJSON string) (string, error) {
+	return cgoJSONEntriesForRecompose(dataJSON, pinnedJSON, buildCatalogJSON, postRerankScoredJSON, ctxJSON, catalogIndexJSON, pipelineJSON)
+}
+
 // AppendDescriptionReinstateEntries appends description reinstate entries.
 func AppendDescriptionReinstateEntries(entriesJSON, buildCatalogJSON, catalogIndexJSON, ctxJSON string) (string, error) {
 	return cgoAppendDescriptionReinstateEntries(entriesJSON, buildCatalogJSON, catalogIndexJSON, ctxJSON)
