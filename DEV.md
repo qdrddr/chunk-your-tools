@@ -44,8 +44,6 @@ cd sdk/python && uv run pytest
 ./scripts/local/dev/workflow.sh indexer all
 ```
 
-Legacy entry point `./scripts/local-dev.sh` delegates to `workflow.sh`.
-
 ## Version sync
 
 Version source of truth: `Cargo.toml`

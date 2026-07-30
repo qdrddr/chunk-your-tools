@@ -21,6 +21,7 @@ export SHORTEN_ROOT="${REPO_ROOT}"
 
 DO_MANIFEST_LINT=0
 DO_REPORT=1
+REPORT_EXPLICIT=0
 OUTPUT_DIR=""
 SHORT=0
 SKIP_PYTHON=0
@@ -208,6 +209,7 @@ while [[ $# -gt 0 ]]; do
 		;;
 	--no-report)
 		DO_REPORT=0
+		REPORT_EXPLICIT=1
 		shift
 		;;
 	--short)
@@ -216,6 +218,7 @@ while [[ $# -gt 0 ]]; do
 		;;
 	--report)
 		DO_REPORT=1
+		REPORT_EXPLICIT=1
 		shift
 		;;
 	--no-manifest-lint)
@@ -273,7 +276,7 @@ Options:
   --output-dir DIR      Directory for generated reports (default: timestamped)
   --report              Write audit reports (default)
   --no-report           Skip report files; console output only
-  --short               Emit only errors, warnings, and final pass/fail; shorten paths
+  --short               Lock checks only; on success print one line (use with --report for audit files)
   --manifest-lint       Verify SDK version sync (+ loose ranges when lockfiles missing;
                         Cargo.toml ranges are not linted — use rust lock step)
   --no-manifest-lint    Skip manifest checks; lockfiles only (default)
@@ -293,6 +296,10 @@ EOF
 		;;
 	esac
 done
+
+if [[ "${SHORT}" -eq 1 && "${REPORT_EXPLICIT}" -eq 0 ]]; then
+	DO_REPORT=0
+fi
 
 require_repo_root
 [[ "${DO_REPORT}" -eq 1 ]] && init_output_dir "${OUTPUT_DIR}"
@@ -347,9 +354,9 @@ report_python_inventory() {
 	info "python ${label}: export pinned versions"
 	(
 		cd "${project_dir}"
-		run_cmd uv export --frozen --all-extras --group dev \
+		run_cmd_quiet uv export --frozen --all-extras --group dev \
 			--format requirements.txt --output-file "${out_req}"
-		run_cmd uv export --frozen --all-extras --group dev \
+		run_cmd_quiet uv export --frozen --all-extras --group dev \
 			--format pylock.toml --output-file "${out_pylock}"
 	)
 	write_summary_line "python ${label}: inventory -> python-${slug_name}-requirements.txt, pylock.${slug_name}.toml"
@@ -393,7 +400,7 @@ report_rust_inventory() {
 	info "rust ${label}: export pinned packages"
 	(
 		cd "${crate_dir}"
-		run_cmd cargo metadata --locked --format-version 1 --quiet \
+		run_cmd_quiet cargo metadata --locked --format-version 1 --quiet \
 			>"${out_json}.raw" 2>/dev/null
 		if command -v jq >/dev/null 2>&1; then
 			jq '[.packages[] | {name, version, source}] | sort_by(.name)' \
@@ -402,7 +409,7 @@ report_rust_inventory() {
 		else
 			mv "${out_json}.raw" "${out_json}"
 		fi
-		run_cmd cargo tree --locked --prefix none >"${out_tree}" 2>/dev/null || true
+		run_cmd_quiet cargo tree --locked --prefix none >"${out_tree}" 2>/dev/null || true
 	)
 	write_summary_line "rust ${label}: inventory -> rust-${slug_name}-packages.json, rust-${slug_name}-tree.txt"
 }
@@ -538,7 +545,7 @@ report_go_inventory() {
 	info "go: export pinned modules"
 	(
 		cd "${mod_dir}"
-		run_cmd go list -m all | sort >"${out_mods}"
+		run_cmd_quiet go list -m all | sort >"${out_mods}"
 		cp go.sum "${out_sum}"
 	)
 	write_summary_line "go: inventory -> go-modules.txt, go-sum.txt"
