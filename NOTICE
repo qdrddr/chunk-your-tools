@@ -1,0 +1,24 @@
+chunk-your-tools
+Copyright 2026 Damien Berezenko
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes the following third-party components:
+
+---
+
+memchr (via serde_json)
+Runtime dependency. Dual-licensed under Unlicense and MIT; either license may apply.
+
+- https://github.com/BurntSushi/memchr/blob/master/COPYING
+- https://github.com/BurntSushi/memchr/blob/master/UNLICENSE
+- https://github.com/BurntSushi/memchr/blob/master/LICENSE-MIT
+
+---
+
+cbindgen (build dependency)
+Used at compile time to generate C bindings (chunk_your_tools.h). Licensed under MPL-2.0.
+MPL obligations apply only if you modify and distribute cbindgen itself; using the
+generated header or linked binary does not extend MPL to this project.
+
+- https://github.com/mozilla/cbindgen/blob/main/LICENSE

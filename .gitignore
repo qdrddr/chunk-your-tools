@@ -151,3 +151,4 @@ graphify-out/cache/
 .git_old
 .codebase-memory/
 .cursor/rules/cyt-injection.mdc
+scripts/legal/output/
