@@ -166,7 +166,7 @@ See [examples/README.md](examples/README.md) for survivor formats, output paths,
 
 ## Development
 
-See [DEV.md](DEV.md) and run `./scripts/local-dev.sh all` for the full monorepo check.
+See [DEV.md](DEV.md) and run `./scripts/local/dev/workflow.sh all` for the full monorepo check.
 
 ## License
 

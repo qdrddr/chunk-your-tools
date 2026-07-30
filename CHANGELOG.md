@@ -2,7 +2,7 @@
 
 All notable changes to [chunk-your-tools](https://github.com/qdrddr/chunk-your-tools) are
 documented here. Version numbers follow [Cargo.toml](Cargo.toml) and are propagated to Python,
-TypeScript, Go, and C SDKs via `./scripts/sync-version.sh`.
+TypeScript, Go, and C SDKs via `./scripts/publish/sync-version.sh`.
 
 ## 1.0.6
 

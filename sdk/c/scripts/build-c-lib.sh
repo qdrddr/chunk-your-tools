@@ -9,7 +9,7 @@ CRATE_DIR="${REPO_ROOT}"
 INCLUDE_DIR="${REPO_ROOT}/sdk/c/include"
 
 # shellcheck disable=SC1091
-source "${REPO_ROOT}/scripts/shorten-paths.sh"
+source "${REPO_ROOT}/scripts/lib/shorten-paths.sh"
 export SHORTEN_ROOT="${REPO_ROOT}"
 
 SUPPORTED_TARGETS=(
