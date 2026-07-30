@@ -1,6 +1,6 @@
 {
   "name": "chunk-your-tools",
-  "version": "2.2.3",
+  "version": "2.2.4",
   "description": "TypeScript SDK for chunk-your-tools — tool schema decomposition and recomposition",
   "keywords": [
     "mcp",
@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@napi-rs/cli": "^3.7.0",
-    "@types/node": "^22.15.21",
+    "@types/node": "^26.1.2",
     "typescript": "^5.8.3"
   },
   "engines": {
