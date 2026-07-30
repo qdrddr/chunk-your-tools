@@ -1,0 +1,40 @@
+Include Copyright
+
+Describes whether the original copyright must be retained.
+
+License: Apache-2.0
+
+You must include the copyright notice in all copies or substantial uses of the work.
+
+Component | Version | Dependency path
+chunk-your-tools | 2.2.4 | chunk-your-tools (Copyright 2026 Damien Berezenko)
+typescript | 5.9.3 | sdk/typescript devDependency
+typescript | 6.0.3 | repo root dependency
+
+License: MIT
+
+You must include the copyright notice in all copies or substantial uses of the work.
+
+Component | Version | Dependency path
+js-yaml | 4.3.0 | @napi-rs/cli -> js-yaml
+
+License: MIT and Unlicense
+
+You must include the copyright notice in all copies or substantial uses of the work.
+
+Component | Version | Dependency path
+memchr | 2.8.1 | runtime dependency (via serde_json)
+
+License: MPL-2.0
+
+You must include the copyright notice in all copies or substantial uses of the work.
+
+Component | Version | Dependency path
+cbindgen | 0.29.4 | build dependency
+
+License: Python-2.0
+
+You must include the copyright notice in all copies or substantial uses of the work.
+
+Component | Version | Dependency path
+argparse | 2.0.1 | @napi-rs/cli -> js-yaml -> argparse

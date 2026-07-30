@@ -152,3 +152,4 @@ graphify-out/cache/
 .codebase-memory/
 .cursor/rules/cyt-injection.mdc
 scripts/legal/output/
+scripts/deps/output/

@@ -113,6 +113,8 @@ EOF
 done
 
 legal_require_repo_root
+legal_require_cmd python3
+bash "${SCRIPT_DIR}/sync-policy.sh" >/dev/null
 legal_init_output_dir "${OUTPUT_DIR}"
 export LEGAL_OUTPUT_DIR
 legal_begin_summary
@@ -160,6 +162,18 @@ fi
 
 if [[ "${SKIP_C}" -eq 0 ]]; then
 	run_step "c" bash "${SCRIPT_DIR}/audit-c.sh" "${common_args[@]}"
+fi
+
+if [[ "${DO_REPORT}" -eq 1 ]]; then
+	legal_info "=== legal docs ==="
+	if python3 "${SCRIPT_DIR}/lib/generate-legal-docs.py" \
+		"${LEGAL_REPO_ROOT}" "${LEGAL_OUTPUT_DIR}"; then
+		legal_write_summary_line "legal docs: ok"
+	else
+		status=$?
+		legal_write_summary_line "legal docs: failed (exit ${status})"
+		exit "${status}"
+	fi
 fi
 
 legal_end_summary

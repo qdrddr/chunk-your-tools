@@ -1,0 +1,6 @@
+Give Credit
+
+Describes the need to give explicit credit to the author when distributing
+the software.
+
+(No tracked components require this obligation at audit time.)

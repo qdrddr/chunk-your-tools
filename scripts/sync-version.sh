@@ -51,6 +51,16 @@ validate_version() {
 	fi
 }
 
+write_if_changed() {
+	local file="$1"
+	local tmp="$2"
+	if cmp -s "${tmp}" "${file}"; then
+		rm -f "${tmp}"
+	else
+		mv "${tmp}" "${file}"
+	fi
+}
+
 update_toml_version() {
 	local file="$1"
 	local version="$2"
@@ -64,15 +74,19 @@ update_toml_version() {
     }
     { print }
   ' "${file}" >"${tmp}"
-	mv "${tmp}" "${file}"
+	write_if_changed "${file}" "${tmp}"
 }
 
 update_cargo_lock_version() {
 	local version="$1"
 	local tmp
 	tmp="$(mktemp)"
+	# Only update the real [[package]] entry. [[patch.unused]] blocks come from
+	# parent .cargo/config.toml [patch.crates-io] and are rewritten by cargo/maturin.
 	awk -v version="${version}" '
-    /^name = "chunk-your-tools"$/ { found=1 }
+    /^\[\[package\]\]$/ { block="package"; found=0; print; next }
+    /^\[\[patch\.unused\]\]$/ { block="patch"; found=0; print; next }
+    block == "package" && /^name = "chunk-your-tools"$/ { found=1; print; next }
     found && /^version = / {
       print "version = \"" version "\""
       found=0
@@ -80,7 +94,7 @@ update_cargo_lock_version() {
     }
     { print }
   ' "${CARGO_LOCK}" >"${tmp}"
-	mv "${tmp}" "${CARGO_LOCK}"
+	write_if_changed "${CARGO_LOCK}" "${tmp}"
 }
 
 update_package_json_version() {
@@ -95,7 +109,7 @@ update_package_json_version() {
     }
     { print }
   ' "${PACKAGE_JSON}" >"${tmp}"
-	mv "${tmp}" "${PACKAGE_JSON}"
+	write_if_changed "${PACKAGE_JSON}" "${tmp}"
 }
 
 update_package_lock_version() {
@@ -116,7 +130,7 @@ update_package_lock_version() {
     }
     { print }
   ' "${PACKAGE_LOCK}" >"${tmp}"
-	mv "${tmp}" "${PACKAGE_LOCK}"
+	write_if_changed "${PACKAGE_LOCK}" "${tmp}"
 }
 
 update_cmake_project_version() {
@@ -130,7 +144,7 @@ update_cmake_project_version() {
     }
     { print }
   ' "${C_CMAKE}" >"${tmp}"
-	mv "${tmp}" "${C_CMAKE}"
+	write_if_changed "${C_CMAKE}" "${tmp}"
 }
 
 update_go_module_version() {
@@ -144,7 +158,7 @@ update_go_module_version() {
     }
     { print }
   ' "${GO_VERSION}" >"${tmp}"
-	mv "${tmp}" "${GO_VERSION}"
+	write_if_changed "${GO_VERSION}" "${tmp}"
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then

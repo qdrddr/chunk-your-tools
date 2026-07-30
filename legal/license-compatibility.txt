@@ -1,0 +1,23 @@
+License Compatibility Summary
+
+Generated from legal/policy.toml. Edit that file, then re-run:
+  ./scripts/legal/audit-all.sh --with-dev
+
+The following table summarizes licenses tracked by project policy and their
+compatibility with this Apache 2.0 project.
+
+License | Permissive for Business Use? | Compatible with Apache 2.0? | Notes
+MIT | Yes (permissive) | Yes | Attribution in copies; common in Rust/JS ecosystems.
+Apache-2.0 | Yes (permissive) | Yes | Attribution + license + NOTICE when present.
+Apache-2.0 WITH LLVM-exception | Yes (permissive) | Yes | Apache-2.0 plus LLVM patent exception; common in Rust toolchain deps.
+BSD-2-Clause | Yes (permissive) | Yes | Attribution in source/binary distributions.
+BSD-3-Clause | Yes (permissive) | Yes | Attribution; no endorsement clause.
+0BSD | Yes (permissive) | Yes | Public-domain equivalent; no attribution required.
+ISC | Yes (permissive) | Yes | Functionally equivalent to simplified MIT/BSD.
+MPL-2.0 | Yes (weak copyleft) | Yes | File-level copyleft; obligations apply when modifying MPL-covered files.
+Python-2.0 | Yes (permissive) | Yes | PSF License; OSI-approved, similar obligations to BSD/MIT.
+Unicode-3.0 | Yes (permissive) | Yes | Similar to MIT/BSD; attribution only.
+Unlicense | Yes (permissive) | Yes | Public domain dedication.
+Zlib | Yes (permissive) | Yes | Attribution; no misrepresentation.
+CC-BY-4.0 | Yes (permissive) | Partially -- not recommended for software | Compatible for data, docs, assets but not for code.
+W3C Software Notice & Document License (2015) | Yes (permissive) | Yes | Very permissive; attribution only.

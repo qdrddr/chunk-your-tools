@@ -1,0 +1,7 @@
+version: 3
+
+project:
+  name: chunk-your-tools
+
+# SPDX allow-list and FOSSA-style obligations: legal/policy.toml
+# Mirror that policy in the FOSSA dashboard for CI parity with local audits.

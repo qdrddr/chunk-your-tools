@@ -98,6 +98,26 @@ legal_python_sync_args() {
 	fi
 }
 
+legal_python_run_in_project() {
+	local project_dir="$1"
+	local venv_dir="$2"
+	shift 2
+	local saved_uv="${UV_PROJECT_ENVIRONMENT:-}"
+	export UV_PROJECT_ENVIRONMENT="${venv_dir}"
+	local status=0
+
+	pushd "${project_dir}" >/dev/null || legal_die "cd failed: ${project_dir}"
+	legal_run "$@" || status=$?
+	popd >/dev/null || true
+
+	if [[ -n "${saved_uv}" ]]; then
+		export UV_PROJECT_ENVIRONMENT="${saved_uv}"
+	else
+		unset UV_PROJECT_ENVIRONMENT
+	fi
+	return "${status}"
+}
+
 legal_audit_python_project() {
 	local label="$1"
 	local project_dir="$2"
@@ -115,29 +135,27 @@ legal_audit_python_project() {
 	legal_python_sync_args "${project_dir}" sync_args
 
 	legal_info "python ${label}: uv sync (isolated venv)"
-	(
-		cd "${project_dir}"
-		if [[ -f uv.lock ]]; then
-			UV_PROJECT_ENVIRONMENT="${venv_dir}" legal_run uv sync --locked "${sync_args[@]}"
-		else
-			UV_PROJECT_ENVIRONMENT="${venv_dir}" legal_run uv sync "${sync_args[@]}"
-		fi
-	)
+	if [[ -f "${project_dir}/uv.lock" ]]; then
+		legal_python_run_in_project "${project_dir}" "${venv_dir}" \
+			uv sync --locked "${sync_args[@]}"
+	else
+		legal_python_run_in_project "${project_dir}" "${venv_dir}" \
+			uv sync "${sync_args[@]}"
+	fi
 
 	legal_info "python ${label}: install pip-licenses"
-	(
-		cd "${project_dir}"
-		UV_PROJECT_ENVIRONMENT="${venv_dir}" legal_run uv pip install --python "${venv_python}" pip-licenses
-	)
+	legal_python_run_in_project "${project_dir}" "${venv_dir}" \
+		uv pip install --python "${venv_python}" pip-licenses
 	[[ -x "${pip_licenses}" ]] ||
 		legal_die "python ${label}: pip-licenses not found in ${venv_dir}"
 
 	if [[ "${DO_REPORT}" -eq 1 ]]; then
 		legal_info "python ${label}: pip-licenses report"
-		"${pip_licenses}" --format=markdown "${license_args[@]}" \
-			>"${LEGAL_OUTPUT_DIR}/python-${slug}.md"
 		"${pip_licenses}" --format=json "${license_args[@]}" \
 			>"${LEGAL_OUTPUT_DIR}/python-${slug}.json"
+		"${venv_python}" "${SCRIPT_DIR}/lib/enrich-python-licenses.py" \
+			"${project_dir}" "${LEGAL_REPO_ROOT}" \
+			"${LEGAL_OUTPUT_DIR}/python-${slug}.json"
 		legal_write_summary_line "python ${label}: pip-licenses -> python-${slug}.{md,json}"
 	fi
 
@@ -146,17 +164,15 @@ legal_audit_python_project() {
 		local tmp_json unknown_output check_status
 		tmp_json="$(mktemp "${TMPDIR:-/tmp}/legal-python.XXXXXX.json")"
 		"${pip_licenses}" --format=json "${license_args[@]}" >"${tmp_json}"
+		"${venv_python}" "${SCRIPT_DIR}/lib/enrich-python-licenses.py" \
+			"${project_dir}" "${LEGAL_REPO_ROOT}" "${tmp_json}" --json-only
 		set +e
 		unknown_output="$(
 			"${venv_python}" - "${tmp_json}" <<'PY'
 import json
 import sys
 
-FIRST_PARTY = {
-    "clear-your-tools",
-    "cyt-indexer-sdk",
-    "chunk-your-tools",
-}
+FIRST_PARTY = {"chunk-your-tools"}
 
 
 def has_license_evidence(row: dict) -> bool:

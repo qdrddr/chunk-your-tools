@@ -67,6 +67,7 @@ done
 legal_require_repo_root
 legal_require_cmd npm
 legal_require_cmd npx
+legal_require_cmd python3
 
 if [[ -n "${OUTPUT_DIR}" ]]; then
 	legal_init_output_dir "${OUTPUT_DIR}"
@@ -122,7 +123,7 @@ legal_audit_npm_project() {
 		(
 			cd "${project_dir}"
 			legal_run npx --yes license-checker \
-				--onlyAllow "$(legal_allowed_licenses)" \
+				--onlyAllow "$(legal_allowed_licenses_csv)" \
 				"${checker_args[@]}" \
 				>/dev/null
 		)

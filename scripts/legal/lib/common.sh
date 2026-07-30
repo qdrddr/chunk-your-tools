@@ -6,18 +6,61 @@ if [[ -z "${LEGAL_LIB_SOURCED:-}" ]]; then
 	LEGAL_LIB_SOURCED=1
 
 	LEGAL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-	LEGAL_REPO_ROOT="$(cd "${LEGAL_SCRIPT_DIR}/../.." && pwd)"
 
-	# Mirrors deny.toml [licenses].allow (semicolon-separated for license-checker).
-	LEGAL_ALLOWED_LICENSES="MIT;Apache-2.0;Apache-2.0 WITH LLVM-exception;BSD-2-Clause;BSD-3-Clause;0BSD;ISC;MPL-2.0;Unicode-3.0;Unlicense;Zlib"
-
-	legal_allowed_licenses() {
-		printf '%s' "${LEGAL_ALLOWED_LICENSES}"
+	legal_is_repo_root() {
+		local dir="$1"
+		[[ -f "${dir}/Cargo.toml" ]] || return 1
+		[[ -f "${dir}/deny.toml" ]] || return 1
+		[[ -f "${dir}/legal/policy.toml" ]] || return 1
+		[[ -f "${dir}/sdk/python/pyproject.toml" ]] || return 1
 	}
 
-	legal_enable_install_tools() {
-		LEGAL_INSTALL_TOOLS=1
-		export LEGAL_INSTALL_TOOLS
+	legal_resolve_repo_root() {
+		local start_dir="$1"
+		local dir git_root
+
+		if [[ -n "${LEGAL_REPO_ROOT:-}" ]] && legal_is_repo_root "${LEGAL_REPO_ROOT}"; then
+			printf '%s\n' "$(cd "${LEGAL_REPO_ROOT}" && pwd)"
+			return 0
+		fi
+
+		if command -v git >/dev/null 2>&1; then
+			git_root="$(git -C "${start_dir}" rev-parse --show-toplevel 2>/dev/null || true)"
+			if [[ -n "${git_root}" ]] && legal_is_repo_root "${git_root}"; then
+				printf '%s\n' "$(cd "${git_root}" && pwd)"
+				return 0
+			fi
+		fi
+
+		dir="${start_dir}"
+		while [[ "${dir}" != "/" ]]; do
+			if legal_is_repo_root "${dir}"; then
+				printf '%s\n' "$(cd "${dir}" && pwd)"
+				return 0
+			fi
+			dir="$(dirname "${dir}")"
+		done
+		return 1
+	}
+
+	if [[ -z "${LEGAL_REPO_ROOT:-}" ]]; then
+		LEGAL_REPO_ROOT="$(legal_resolve_repo_root "${LEGAL_SCRIPT_DIR}" || true)"
+	fi
+	if [[ -z "${LEGAL_REPO_ROOT}" ]]; then
+		LEGAL_REPO_ROOT="$(cd "${LEGAL_SCRIPT_DIR}/../.." && pwd)"
+	fi
+
+	legal_policy_py() {
+		printf '%s/lib/policy.py' "${LEGAL_SCRIPT_DIR}"
+	}
+
+	legal_allowed_licenses_csv() {
+		python3 "$(legal_policy_py)" allowed-csv
+	}
+
+	legal_license_allowed() {
+		local license="$1"
+		python3 "$(legal_policy_py)" allowed "${license}"
 	}
 
 	legal_die() {
@@ -122,12 +165,16 @@ if [[ -z "${LEGAL_LIB_SOURCED:-}" ]]; then
 	}
 
 	legal_require_repo_root() {
-		[[ -f "${LEGAL_REPO_ROOT}/Cargo.toml" ]] ||
-			legal_die "not a repo root: ${LEGAL_REPO_ROOT}"
-		[[ -f "${LEGAL_REPO_ROOT}/deny.toml" ]] ||
-			legal_die "missing deny.toml at ${LEGAL_REPO_ROOT}"
-		[[ -f "${LEGAL_REPO_ROOT}/sdk/python/pyproject.toml" ]] ||
-			legal_die "missing sdk/python at ${LEGAL_REPO_ROOT}"
+		if ! legal_is_repo_root "${LEGAL_REPO_ROOT}"; then
+			local resolved
+			resolved="$(legal_resolve_repo_root "${LEGAL_SCRIPT_DIR}" || true)"
+			if [[ -n "${resolved}" ]]; then
+				LEGAL_REPO_ROOT="${resolved}"
+				export LEGAL_REPO_ROOT
+			fi
+		fi
+		legal_is_repo_root "${LEGAL_REPO_ROOT}" ||
+			legal_die "not a chunk-your-tools repo root: ${LEGAL_REPO_ROOT} (expected Cargo.toml, deny.toml, legal/policy.toml, and sdk/python/pyproject.toml)"
 	}
 
 	legal_write_summary_line() {

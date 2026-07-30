@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
-# Audit C SDK license metadata (sdk/c has no package-manager dependencies).
-#
-# The C SDK is a thin header + CMake wrapper over the Rust FFI library.
-# Runtime dependency licenses are covered by scripts/legal/audit-rust.sh.
+# Audit C SDK (sdk/c) first-party license metadata.
 #
 # Usage:
 #   ./scripts/legal/audit-c.sh [--output-dir DIR] [--check] [--report]
 #
-# Target: sdk/c/
+# The C SDK ships headers and links the Rust FFI crate; dependency licenses are
+# covered by audit-rust.sh (cargo-deny). This step records sdk/c LICENSE metadata.
 
 set -euo pipefail
 
@@ -50,8 +48,8 @@ while [[ $# -gt 0 ]]; do
 		cat <<'EOF'
 Usage: audit-c.sh [--output-dir DIR] [--check] [--no-check] [--report] [--no-report]
 
-Records sdk/c first-party license metadata and notes that native runtime
-dependency licenses are audited via audit-rust.sh (Rust FFI crate).
+Writes first-party license metadata for sdk/c (FFI headers and release artifacts).
+Native dependency licenses are audited separately via audit-rust.sh.
 EOF
 		exit 0
 		;;
@@ -65,11 +63,7 @@ legal_require_repo_root
 legal_require_cmd python3
 
 C_SDK_DIR="${LEGAL_REPO_ROOT}/sdk/c"
-CMAKE_FILE="${C_SDK_DIR}/CMakeLists.txt"
-LICENSE_FILE="${C_SDK_DIR}/LICENSE"
-
-[[ -f "${CMAKE_FILE}" ]] || legal_die "missing ${CMAKE_FILE}"
-[[ -f "${LICENSE_FILE}" ]] || legal_die "missing ${LICENSE_FILE}"
+[[ -d "${C_SDK_DIR}" ]] || legal_die "missing ${C_SDK_DIR}"
 
 if [[ -n "${OUTPUT_DIR}" ]]; then
 	legal_init_output_dir "${OUTPUT_DIR}"
@@ -79,89 +73,36 @@ else
 	legal_init_output_dir ""
 fi
 
-slug="sdk-c"
-report_json="${LEGAL_OUTPUT_DIR}/c-${slug}.json"
-report_md="${LEGAL_OUTPUT_DIR}/c-${slug}.md"
-
-legal_info "c sdk/c: collect license metadata"
-python3 - "${C_SDK_DIR}" "${CMAKE_FILE}" "${LICENSE_FILE}" "${report_json}" "${report_md}" \
-	"${DO_REPORT}" "${DO_CHECK}" "$(legal_allowed_licenses)" <<'PY'
-import json
-import re
-import sys
-from pathlib import Path
-
-c_dir = Path(sys.argv[1])
-cmake_file = Path(sys.argv[2])
-license_file = Path(sys.argv[3])
-report_json = Path(sys.argv[4])
-report_md = Path(sys.argv[5])
-do_report = sys.argv[6] == "1"
-do_check = sys.argv[7] == "1"
-allowed = {item.strip() for item in sys.argv[8].split(";") if item.strip()}
-
-cmake_text = cmake_file.read_text(encoding="utf-8")
-match = re.search(
-    r"project\s*\(\s*([^\s)]+)\s+VERSION\s+([^\s)]+)",
-    cmake_text,
-    re.MULTILINE,
-)
-if not match:
-    raise SystemExit(f"could not parse project name/version from {cmake_file}")
-name, version = match.group(1), match.group(2)
-
-license_text = license_file.read_text(encoding="utf-8")
-if "Apache License" in license_text and "Version 2.0" in license_text:
-    license_id = "Apache-2.0"
-else:
-    license_id = "UNKNOWN"
-
-url = "https://github.com/qdrddr/chunk-your-tools"
-license_path = str(license_file.resolve())
-
-row = {
-    "Name": name,
-    "Version": version,
-    "License": license_id,
-    "URL": url,
-    "LicenseFile": license_path,
-    "LicenseText": license_text,
-    "RuntimeDependency": "chunk-your-tools (Rust FFI)",
-    "RuntimeLicenseAudit": "scripts/legal/audit-rust.sh",
-    "PackageManagerDependencies": [],
-}
-
-if do_check:
-    if license_id == "UNKNOWN":
-        raise SystemExit(f"c sdk/c: could not identify license from {license_file}")
-    if license_id not in allowed:
-        raise SystemExit(
-            f"c sdk/c: license {license_id!r} is not in LEGAL_ALLOWED_LICENSES"
-        )
-
-if do_report:
-    report_json.write_text(json.dumps([row], indent=2) + "\n", encoding="utf-8")
-
-    lines = [
-        "| Name | Version | License | URL | LicenseFile | RuntimeDependency |",
-        "| --- | --- | --- | --- | --- | --- |",
-        (
-            f"| {name} | {version} | {license_id} | {url} | {license_path} | "
-            f"{row['RuntimeDependency']} (see rust-deny-chunk-your-tools.txt) |"
-        ),
-        "",
-        "Native runtime dependency licenses are audited by `audit-rust.sh`.",
-        "The C SDK itself has no CMake/vcpkg/Conan package dependencies.",
-    ]
-    report_md.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-print(f"{name} {version} {license_id}")
-PY
-
 if [[ "${DO_REPORT}" -eq 1 ]]; then
-	legal_write_summary_line "c sdk/c: license metadata -> c-${slug}.{md,json}"
+	legal_info "c sdk/c: first-party license report"
+	python3 "${SCRIPT_DIR}/lib/report-c-sdk.py" \
+		"${LEGAL_REPO_ROOT}" "${LEGAL_OUTPUT_DIR}"
+	legal_write_summary_line "c sdk/c: report -> c-sdk.{json,md}"
 fi
 
 if [[ "${DO_CHECK}" -eq 1 ]]; then
-	legal_write_summary_line "c sdk/c: license within allow-list"
+	legal_info "c sdk/c: license policy check"
+	[[ -f "${C_SDK_DIR}/LICENSE" ]] ||
+		legal_die "c sdk/c: missing LICENSE (expected ${C_SDK_DIR}/LICENSE)"
+
+	license="$(
+		python3 - "${LEGAL_REPO_ROOT}/Cargo.toml" <<'PY'
+import sys
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib  # type: ignore[no-redef]
+
+with open(sys.argv[1], "rb") as handle:
+    data = tomllib.load(handle)
+package = data.get("package", {})
+print(package.get("license", ""))
+PY
+	)"
+	[[ -n "${license}" ]] || legal_die "c sdk/c: missing license in Cargo.toml"
+	if ! legal_license_allowed "${license}"; then
+		legal_die "c sdk/c: license '${license}' not in allow-list"
+	fi
+	legal_write_summary_line "c sdk/c: LICENSE present; license ${license} allowed"
 fi

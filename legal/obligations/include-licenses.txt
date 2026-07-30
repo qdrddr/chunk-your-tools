@@ -1,0 +1,26 @@
+Include Licenses
+
+Including the full text of license in modified software.
+
+License: Apache-2.0
+
+You must include the license notice in all copies or substantial uses of the work.
+
+Component | Version | Dependency path
+chunk-your-tools | 2.2.4 | chunk-your-tools (Apache-2.0; see LICENSE)
+typescript | 5.9.3 | sdk/typescript devDependency
+typescript | 6.0.3 | repo root dependency
+
+License: MPL-2.0
+
+You must include the license notice in all copies or substantial uses of the work.
+
+Component | Version | Dependency path
+cbindgen | 0.29.4 | build dependency
+
+License: Python-2.0
+
+You must include the license notice in all copies or substantial uses of the work.
+
+Component | Version | Dependency path
+argparse | 2.0.1 | @napi-rs/cli -> js-yaml -> argparse

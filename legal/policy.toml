@@ -1,0 +1,186 @@
+# SPDX license policy for chunk-your-tools.
+# Single source of truth for allow-lists, FOSSA-style obligations, and compatibility notes.
+# Consumers: scripts/legal/*, deny.toml (via scripts/legal/sync-policy.sh).
+
+[project]
+name = "chunk-your-tools"
+license = "Apache-2.0"
+copyright = "Copyright 2026 Damien Berezenko"
+
+# FOSSA-style obligation buckets used in legal/obligations/*.txt
+[[obligation_types]]
+id = "give-credit"
+title = "Give Credit"
+description = """
+Describes the need to give explicit credit to the author when distributing
+the software.
+"""
+
+[[obligation_types]]
+id = "include-copyright"
+title = "Include Copyright"
+description = """
+Describes whether the original copyright must be retained.
+"""
+
+[[obligation_types]]
+id = "include-licenses"
+title = "Include Licenses"
+description = """
+Including the full text of license in modified software.
+"""
+
+[[obligation_types]]
+id = "include-notice"
+title = "Include Notice"
+description = """
+If the library has a "NOTICE" file with attribution notes, you must include
+that NOTICE when you distribute. You may append to this NOTICE file.
+"""
+
+# Allowed dependency licenses (synced to deny.toml [licenses].allow)
+[[licenses]]
+spdx = "MIT"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Attribution in copies; common in Rust/JS ecosystems."
+obligations = ["include-copyright"]
+
+[[licenses]]
+spdx = "Apache-2.0"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Attribution + license + NOTICE when present."
+obligations = ["include-copyright", "include-licenses", "include-notice"]
+requires_notice_file = true
+
+[[licenses]]
+spdx = "Apache-2.0 WITH LLVM-exception"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Apache-2.0 plus LLVM patent exception; common in Rust toolchain deps."
+obligations = ["include-copyright", "include-licenses", "include-notice"]
+requires_notice_file = true
+
+[[licenses]]
+spdx = "BSD-2-Clause"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Attribution in source/binary distributions."
+obligations = ["include-copyright"]
+
+[[licenses]]
+spdx = "BSD-3-Clause"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Attribution; no endorsement clause."
+obligations = ["include-copyright"]
+
+[[licenses]]
+spdx = "0BSD"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Public-domain equivalent; no attribution required."
+obligations = ["include-copyright"]
+
+[[licenses]]
+spdx = "ISC"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Functionally equivalent to simplified MIT/BSD."
+obligations = ["include-copyright"]
+
+[[licenses]]
+spdx = "MPL-2.0"
+allow = true
+business_use = "Yes (weak copyleft)"
+apache_compatible = "Yes"
+notes = "File-level copyleft; obligations apply when modifying MPL-covered files."
+obligations = ["include-copyright", "include-licenses"]
+
+[[licenses]]
+spdx = "Python-2.0"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "PSF License; OSI-approved, similar obligations to BSD/MIT."
+obligations = ["include-copyright", "include-licenses"]
+
+[[licenses]]
+spdx = "Unicode-3.0"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Similar to MIT/BSD; attribution only."
+obligations = ["include-copyright"]
+
+[[licenses]]
+spdx = "Unlicense"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Public domain dedication."
+obligations = ["include-copyright"]
+
+[[licenses]]
+spdx = "Zlib"
+allow = true
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Attribution; no misrepresentation."
+obligations = ["include-copyright"]
+
+# Reference-only entries (documented but not allowed in dependency scans)
+[[licenses]]
+spdx = "CC-BY-4.0"
+allow = false
+business_use = "Yes (permissive)"
+apache_compatible = "Partially -- not recommended for software"
+notes = "Compatible for data, docs, assets but not for code."
+obligations = ["give-credit"]
+
+[[licenses]]
+spdx = "W3C Software Notice & Document License (2015)"
+allow = false
+business_use = "Yes (permissive)"
+apache_compatible = "Yes"
+notes = "Very permissive; attribution only."
+obligations = ["include-copyright"]
+
+# SPDX / scanner aliases
+[aliases]
+"MIT License" = "MIT"
+"Python License 2.0" = "Python-2.0"
+
+# Components tracked in NOTICE and obligation reports (versions come from audits)
+[[tracked_components]]
+name = "memchr"
+kind = "rust-runtime"
+dependency_path = "runtime dependency (via serde_json)"
+
+[[tracked_components]]
+name = "cbindgen"
+kind = "rust-build"
+dependency_path = "build dependency"
+
+[[tracked_components]]
+name = "typescript"
+kind = "npm-dev"
+notice_url = "https://github.com/microsoft/TypeScript/blob/main/NOTICE.txt"
+
+[[tracked_components]]
+name = "js-yaml"
+kind = "npm-dev"
+dependency_path = "@napi-rs/cli -> js-yaml"
+
+[[tracked_components]]
+name = "argparse"
+kind = "npm-dev"
+dependency_path = "@napi-rs/cli -> js-yaml -> argparse"

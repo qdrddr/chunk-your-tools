@@ -1,0 +1,15 @@
+Include Notice
+
+If the library has a "NOTICE" file with attribution notes, you must include
+that NOTICE when you distribute. You may append to this NOTICE file.
+
+License: Apache-2.0
+
+Component | Version | Dependency path
+chunk-your-tools | 2.2.4 | chunk-your-tools (see ../NOTICE)
+typescript | 5.9.3 | sdk/typescript devDependency
+typescript | 6.0.3 | repo root dependency
+
+Third-party NOTICE sources:
+
+- https://github.com/microsoft/TypeScript/blob/main/NOTICE.txt
