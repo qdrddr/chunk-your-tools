@@ -68,11 +68,9 @@ update_cargo_lock_version() {
 	local version="$1"
 	local tmp
 	tmp="$(mktemp)"
-	# Only update the real [[package]] entry. [[patch.unused]] blocks come from
-	# parent .cargo/config.toml [patch.crates-io] and are rewritten by cargo/maturin.
 	awk -v version="${version}" '
     /^\[\[package\]\]$/ { block="package"; found=0; print; next }
-    /^\[\[patch\.unused\]\]$/ { block="patch"; found=0; print; next }
+    /^\[\[/ { block=""; found=0 }
     block == "package" && /^name = "chunk-your-tools"$/ { found=1; print; next }
     found && /^version = / {
       print "version = \"" version "\""
