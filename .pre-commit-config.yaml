@@ -106,7 +106,7 @@ repos:
         additional_dependencies:
           - tomli
         args:
-          - --skip=*.json,package-lock.json,sdk/typescript/package-lock.json
+          - --skip=*.json,*.sum,package-lock.json,sdk/typescript/package-lock.json
           - -L=fallow,Bui,FO
   - repo: https://github.com/crate-ci/committed
     rev: v1.1.11

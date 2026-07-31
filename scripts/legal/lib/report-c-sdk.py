@@ -12,6 +12,8 @@ try:
 except ModuleNotFoundError:  # pragma: no cover
     import tomli as tomllib  # type: ignore[no-redef]
 
+from safe_path import require_repo_root, require_under
+
 
 def load_toml(path: Path) -> dict:
     with path.open("rb") as handle:
@@ -105,8 +107,8 @@ def main(argv: list[str]) -> int:
         )
         return 2
 
-    repo_root = Path(argv[1]).resolve()
-    output_dir = Path(argv[2]).resolve()
+    repo_root = require_repo_root(argv[1])
+    output_dir = require_under(argv[2], repo_root, label="output dir")
     sdk_dir = repo_root / "sdk" / "c"
 
     if not sdk_dir.is_dir():

@@ -14,6 +14,7 @@ if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 
 from policy import Policy, load_policy, normalize_license  # noqa: E402
+from safe_path import require_repo_root, require_under  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -250,8 +251,8 @@ def main() -> int:
         )
         return 2
 
-    repo_root = Path(sys.argv[1]).resolve()
-    audit_dir = Path(sys.argv[2]).resolve()
+    repo_root = require_repo_root(sys.argv[1])
+    audit_dir = require_under(sys.argv[2], repo_root, label="audit dir")
     legal_dir = repo_root / "legal"
 
     if not audit_dir.is_dir():

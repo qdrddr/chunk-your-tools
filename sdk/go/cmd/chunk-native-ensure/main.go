@@ -285,7 +285,12 @@ func copyArtifacts(srcDir, destDir, triplet string, staticOnly bool) error {
 }
 
 func removeSharedLib(dir, triplet string) {
-	_ = os.Remove(filepath.Join(dir, sharedLibName(triplet)))
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return
+	}
+	defer root.Close()
+	_ = root.Remove(sharedLibName(triplet))
 }
 
 func copyFile(src, dest string) error {

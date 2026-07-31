@@ -14,6 +14,8 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - py3.10
     import tomli as tomllib  # type: ignore[no-redef]
 
+from safe_path import require_repo_root
+
 
 @dataclass(frozen=True)
 class LicensePolicy:
@@ -208,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         return 0 if policy.license_allowed(license_arg) else 1
     if command == "sync-deny":
-        root = Path(repo_root).resolve() if repo_root else repo_root_from_here()
+        root = require_repo_root(repo_root) if repo_root else repo_root_from_here()
         changed = sync_deny_toml(root, policy)
         print("updated deny.toml" if changed else "deny.toml already in sync")
         return 0

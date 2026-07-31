@@ -12,6 +12,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover
     import tomli as tomllib  # type: ignore[no-redef]
 
+from safe_path import require_repo_root, require_under
 
 FIRST_PARTY = {"chunk-your-tools"}
 
@@ -172,9 +173,9 @@ def main(argv: list[str]) -> int:
         )
         return 2
 
-    project_dir = Path(argv[1]).resolve()
-    repo_root = Path(argv[2]).resolve()
-    json_path = Path(argv[3]).resolve()
+    repo_root = require_repo_root(argv[2])
+    project_dir = require_under(argv[1], repo_root, label="project dir")
+    json_path = require_under(argv[3], repo_root, label="json path")
     json_only = len(argv) == 5 and argv[4] == "--json-only"
 
     rows = json.loads(json_path.read_text(encoding="utf-8"))
