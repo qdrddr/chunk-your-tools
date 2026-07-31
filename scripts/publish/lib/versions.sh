@@ -12,6 +12,7 @@ publish_init_paths() {
 	PUBLISH_CARGO_TOML="${PUBLISH_ROOT}/Cargo.toml"
 	PUBLISH_CARGO_LOCK="${PUBLISH_ROOT}/Cargo.lock"
 	PUBLISH_SDK_PYPROJECT="${PUBLISH_ROOT}/sdk/python/pyproject.toml"
+	PUBLISH_SDK_UV_LOCK="${PUBLISH_ROOT}/sdk/python/uv.lock"
 	PUBLISH_PACKAGE_JSON="${PUBLISH_ROOT}/sdk/typescript/package.json"
 	PUBLISH_PACKAGE_LOCK="${PUBLISH_ROOT}/sdk/typescript/package-lock.json"
 	PUBLISH_C_CMAKE="${PUBLISH_ROOT}/sdk/c/CMakeLists.txt"
@@ -25,6 +26,7 @@ publish_version_file_paths() {
 		"${PUBLISH_CARGO_TOML}" \
 		"${PUBLISH_CARGO_LOCK}" \
 		"${PUBLISH_SDK_PYPROJECT}" \
+		"${PUBLISH_SDK_UV_LOCK}" \
 		"${PUBLISH_PACKAGE_JSON}" \
 		"${PUBLISH_PACKAGE_LOCK}" \
 		"${PUBLISH_C_CMAKE}" \
@@ -90,6 +92,9 @@ publish_require_version_files() {
 	local file
 	for file in $(publish_version_file_paths); do
 		if [[ ! -f "${file}" ]]; then
+			if [[ "${file}" == "${PUBLISH_SDK_UV_LOCK}" ]]; then
+				continue
+			fi
 			printf 'error: missing %s\n' "${file}" >&2
 			return 1
 		fi
