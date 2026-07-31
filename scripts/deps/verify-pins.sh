@@ -491,6 +491,13 @@ run_rust_lock_checks() {
 	local label="$2"
 	local failed=0
 	local meta_log
+	local lock="${crate_dir}/Cargo.lock"
+
+	if grep -q '^\[\[patch\.unused\]\]' "${lock}" 2>/dev/null; then
+		printf 'Cargo.lock: [[patch.unused]] present (stale parent monorepo [patch.crates-io])\n'
+		printf 'fix: cargo generate-lockfile (parent root must not define patch.crates-io)\n'
+		failed=1
+	fi
 
 	meta_log="$(mktemp)"
 	if ! run_in_dir "${crate_dir}" cargo metadata --locked --format-version 1 --quiet \
