@@ -21,9 +21,10 @@
 #     sdk-all              all SDK targets above
 #
 #   Other:
+#     verify-pins          lockfiles match manifests (scripts/deps/verify-pins.sh)
 #     simulate-registry    isolated venv: install built wheels + cargo/npm dry-run checks
 #     ci                   sdk-python verify + ast-grep scan + pytest (sdk/python)
-#     all                  core-rust → all SDKs (full monorepo check)
+#     all                  verify-pins → core-rust → all SDKs (full monorepo check)
 #
 # Examples:
 #   ./scripts/local/dev/workflow.sh all
@@ -137,6 +138,10 @@ EOF
 	verify)
 		require_repo_root
 		chunk_your_tools_verify_sdk_python
+		;;
+	verify-pins)
+		require_repo_root
+		chunk_your_tools_verify_pins
 		;;
 	simulate-registry)
 		require_repo_root

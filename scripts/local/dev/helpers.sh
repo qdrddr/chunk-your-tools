@@ -544,7 +544,16 @@ PY
 		chunk_your_tools_run uv run pytest
 	}
 
+	chunk_your_tools_verify_pins() {
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}" || die "cd failed"
+		info "verify dependency pins"
+		chunk_your_tools_run bash scripts/deps/verify-pins.sh --short --no-report
+	}
+
 	chunk_your_tools_run_all() {
+		chunk_your_tools_section "Dependency pins"
+		chunk_your_tools_verify_pins
+
 		chunk_your_tools_section "Core (Rust)"
 		chunk_your_tools_build_rust
 

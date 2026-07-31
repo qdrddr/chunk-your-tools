@@ -268,6 +268,14 @@ repos:
         verbose: true
         pass_filenames: false
 
+      - id: verify-pins
+        name: verify dependency pins
+        entry: bash scripts/pre-commit-hooks/prek-hook.sh
+        args: ["rtk bash scripts/deps/verify-pins.sh --short --no-report"]
+        language: system
+        pass_filenames: false
+        files: ^(Cargo\.(toml|lock)|sdk/python/(pyproject\.toml|uv\.lock)|package(-lock)?\.json|sdk/typescript/package(-lock)?\.json|sdk/go/(go\.mod|go\.sum)|sdk/c/(CMakeLists\.txt|include/chunk_your_tools\.h)|scripts/deps/verify-pins\.sh|scripts/publish/sync-version\.sh)$
+
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.21.2
     hooks:

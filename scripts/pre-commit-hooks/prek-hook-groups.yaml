@@ -108,6 +108,7 @@ groups:
     - shellcheck
     - shfmt
     - sync-version
+    - verify-pins
     - talisman-commit
     - trailing-whitespace
     - trufflehog

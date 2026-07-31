@@ -26,6 +26,7 @@ Propagate VERSION to all SDK manifests and lockfiles:
   - Cargo.toml
   - Cargo.lock (chunk-your-tools)
   - sdk/python/pyproject.toml
+  - sdk/python/uv.lock (editable package version)
   - sdk/typescript/package.json
   - sdk/typescript/package-lock.json
   - sdk/c/CMakeLists.txt (project VERSION)
@@ -147,6 +148,19 @@ update_go_module_version() {
 	write_if_changed "${PUBLISH_GO_VERSION}" "${tmp}"
 }
 
+update_uv_lock() {
+	local py_dir="${PUBLISH_ROOT}/sdk/python"
+	[[ -f "${py_dir}/uv.lock" ]] || return 0
+	if ! command -v uv >/dev/null 2>&1; then
+		printf 'error: uv is required to refresh sdk/python/uv.lock after a version bump\n' | shorten_paths >&2
+		exit 1
+	fi
+	(
+		cd "${py_dir}"
+		uv lock
+	)
+}
+
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 	usage
 	exit 0
@@ -175,6 +189,7 @@ tag="$(publish_release_tag "${version}")"
 update_toml_version "${PUBLISH_CARGO_TOML}" "${version}"
 update_cargo_lock_version "${version}"
 update_toml_version "${PUBLISH_SDK_PYPROJECT}" "${version}"
+update_uv_lock
 update_package_json_version "${version}"
 update_package_lock_version "${version}"
 update_cmake_project_version "${version}"
@@ -188,6 +203,7 @@ synced version ${version} to:
   ${PUBLISH_CARGO_TOML}
   ${PUBLISH_CARGO_LOCK} (chunk-your-tools)
   ${PUBLISH_SDK_PYPROJECT}
+  ${PUBLISH_ROOT}/sdk/python/uv.lock
   ${PUBLISH_PACKAGE_JSON}
   ${PUBLISH_PACKAGE_LOCK}
   ${PUBLISH_C_CMAKE} (project VERSION)
