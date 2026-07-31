@@ -265,7 +265,7 @@ Writes pinned-version inventory and check results under:
   scripts/deps/output/audit-YYYYMMDD-HHMMSS/
 
 Checked targets:
-  sdk/python     uv.lock
+  sdk/python     uv.lock, requirements.txt, requirements-dev.txt
   Cargo.toml     Cargo.lock (workspace root; lock step verifies all manifest deps
                  are locked; manifests must not use exact = pins)
   sdk/c          CMakeLists.txt VERSION + synced chunk_your_tools.h
@@ -362,6 +362,36 @@ report_python_inventory() {
 	write_summary_line "python ${label}: inventory -> python-${slug_name}-requirements.txt, pylock.${slug_name}.toml"
 }
 
+verify_python_requirements_exports() {
+	local project_dir="$1"
+	local prod_file="${project_dir}/requirements.txt"
+	local dev_file="${project_dir}/requirements-dev.txt"
+	local prod_tmp dev_tmp
+
+	require_cmd uv
+	[[ -f "${prod_file}" ]] ||
+		die "python requirements export: missing ${prod_file} (run: ./scripts/deps/export-python-requirements.sh)"
+	[[ -f "${dev_file}" ]] ||
+		die "python requirements export: missing ${dev_file} (run: ./scripts/deps/export-python-requirements.sh)"
+
+	prod_tmp="$(mktemp)"
+	dev_tmp="$(mktemp)"
+	(
+		cd "${project_dir}"
+		run_cmd_quiet uv export --frozen --no-dev --no-header --output-file "${prod_tmp}"
+		run_cmd_quiet uv export --frozen --only-group dev --no-header --output-file "${dev_tmp}"
+	)
+	if ! cmp -s "${prod_file}" "${prod_tmp}"; then
+		rm -f "${prod_tmp}" "${dev_tmp}"
+		die "python requirements export: ${prod_file} is out of sync with uv.lock (run: ./scripts/deps/export-python-requirements.sh)"
+	fi
+	if ! cmp -s "${dev_file}" "${dev_tmp}"; then
+		rm -f "${prod_tmp}" "${dev_tmp}"
+		die "python requirements export: ${dev_file} is out of sync with uv.lock (run: ./scripts/deps/export-python-requirements.sh)"
+	fi
+	rm -f "${prod_tmp}" "${dev_tmp}"
+}
+
 verify_python_lock() {
 	local label="$1"
 	local project_dir="$2"
@@ -381,6 +411,7 @@ verify_python_lock() {
 	if run_checked "${out_check}" run_in_dir "${project_dir}" uv lock --check; then
 		[[ "${DO_REPORT}" -eq 1 ]] &&
 			write_summary_line "python ${label}: lock check -> python-${slug_name}-lock-check.txt"
+		verify_python_requirements_exports "${project_dir}"
 		[[ "${DO_REPORT}" -eq 1 ]] && report_python_inventory "${label}" "${project_dir}"
 		return 0
 	fi

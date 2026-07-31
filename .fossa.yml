@@ -1,7 +1,16 @@
+# FOSSA scans Cargo.lock for shipped native dependencies. The Python SDK has no
+# runtime Python deps; sdk/python/requirements.txt documents the production
+# manifest for compliance audits.
+#
+# uv.lock and setuptools targets under sdk/python/ are excluded so dev-only
+# tools (pytest, pygments, maturin, …) are not reported as shipped deps.
 version: 3
-
-project:
-  name: chunk-your-tools
-
-# SPDX allow-list and FOSSA-style obligations: legal/policy.toml
-# Mirror that policy in the FOSSA dashboard for CI parity with local audits.
+paths:
+  exclude:
+    - sdk/python/requirements-dev.txt
+targets:
+  exclude:
+    - type: uv
+      path: sdk/python/
+    - type: setuptools
+      path: sdk/python/

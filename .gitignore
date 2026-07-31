@@ -19,6 +19,8 @@ env/
 *.tsv
 *.txt
 !sdk/c/CMakeLists.txt
+!sdk/python/requirements.txt
+!sdk/python/requirements-dev.txt
 # Generated benchmark artifacts
 src/catalog/tools.json
 #src/catalog/schemas/decomposed
