@@ -49,13 +49,13 @@ groups:
 
   go:
     - build-c-lib-for-go
-    - go-build-repo-mod
-    - go-critic
+    - go-mod-tidy-repo
     - go-fumpt
     - go-imports
-    - go-mod-tidy-repo
-    - go-sec-repo-mod
     - go-staticcheck-repo-mod
+    - go-critic
+    - go-sec-repo-mod
+    - go-build-repo-mod
     - go-test-repo-mod
     - local-dev-sdk-go
 

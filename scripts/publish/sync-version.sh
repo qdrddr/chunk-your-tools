@@ -12,15 +12,11 @@ ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/../lib/shorten-paths.sh"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/versions.sh"
+
 export SHORTEN_ROOT="${ROOT}"
-CARGO_TOML="${ROOT}/Cargo.toml"
-CARGO_LOCK="${ROOT}/Cargo.lock"
-SDK_PYPROJECT="${ROOT}/sdk/python/pyproject.toml"
-PACKAGE_JSON="${ROOT}/sdk/typescript/package.json"
-PACKAGE_LOCK="${ROOT}/sdk/typescript/package-lock.json"
-C_CMAKE="${ROOT}/sdk/c/CMakeLists.txt"
-GO_VERSION="${ROOT}/sdk/go/moduleversion/version.go"
-TAG_FILE="${ROOT}/search/.publish-tag"
+publish_init_paths "${ROOT}"
 
 usage() {
 	cat <<EOF
@@ -35,20 +31,10 @@ Propagate VERSION to all SDK manifests and lockfiles:
   - sdk/c/CMakeLists.txt (project VERSION)
   - sdk/go/moduleversion/version.go (Version)
 
-If VERSION is omitted, read it from ${CARGO_TOML}.
+If VERSION is omitted, read it from ${PUBLISH_CARGO_TOML}.
+
+Also used by pre-commit (sync-version hook) and scripts/publish/publish-git.sh.
 EOF
-}
-
-read_cargo_version() {
-	awk -F'"' '/^version = / { print $2; exit }' "${CARGO_TOML}"
-}
-
-validate_version() {
-	local version="$1"
-	if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
-		echo "error: invalid semver: ${version}" >&2
-		exit 1
-	fi
 }
 
 write_if_changed() {
@@ -93,8 +79,8 @@ update_cargo_lock_version() {
       next
     }
     { print }
-  ' "${CARGO_LOCK}" >"${tmp}"
-	write_if_changed "${CARGO_LOCK}" "${tmp}"
+  ' "${PUBLISH_CARGO_LOCK}" >"${tmp}"
+	write_if_changed "${PUBLISH_CARGO_LOCK}" "${tmp}"
 }
 
 update_package_json_version() {
@@ -108,8 +94,8 @@ update_package_json_version() {
       next
     }
     { print }
-  ' "${PACKAGE_JSON}" >"${tmp}"
-	write_if_changed "${PACKAGE_JSON}" "${tmp}"
+  ' "${PUBLISH_PACKAGE_JSON}" >"${tmp}"
+	write_if_changed "${PUBLISH_PACKAGE_JSON}" "${tmp}"
 }
 
 update_package_lock_version() {
@@ -129,8 +115,8 @@ update_package_lock_version() {
       next
     }
     { print }
-  ' "${PACKAGE_LOCK}" >"${tmp}"
-	write_if_changed "${PACKAGE_LOCK}" "${tmp}"
+  ' "${PUBLISH_PACKAGE_LOCK}" >"${tmp}"
+	write_if_changed "${PUBLISH_PACKAGE_LOCK}" "${tmp}"
 }
 
 update_cmake_project_version() {
@@ -143,8 +129,8 @@ update_cmake_project_version() {
       next
     }
     { print }
-  ' "${C_CMAKE}" >"${tmp}"
-	write_if_changed "${C_CMAKE}" "${tmp}"
+  ' "${PUBLISH_C_CMAKE}" >"${tmp}"
+	write_if_changed "${PUBLISH_C_CMAKE}" "${tmp}"
 }
 
 update_go_module_version() {
@@ -157,8 +143,8 @@ update_go_module_version() {
       next
     }
     { print }
-  ' "${GO_VERSION}" >"${tmp}"
-	write_if_changed "${GO_VERSION}" "${tmp}"
+  ' "${PUBLISH_GO_VERSION}" >"${tmp}"
+	write_if_changed "${PUBLISH_GO_VERSION}" "${tmp}"
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
@@ -174,48 +160,37 @@ fi
 if [[ $# -eq 1 ]]; then
 	version="$1"
 else
-	version="$(read_cargo_version)"
+	version="$(publish_read_cargo_version)"
 	if [[ -z "${version}" ]]; then
-		printf 'error: could not read version from %s\n' "${CARGO_TOML}" | shorten_paths >&2
+		printf 'error: could not read version from %s\n' "${PUBLISH_CARGO_TOML}" | shorten_paths >&2
 		exit 1
 	fi
 fi
 
-validate_version "${version}"
+publish_validate_semver "${version}"
+publish_require_version_files
 
-for file in \
-	"${CARGO_TOML}" \
-	"${CARGO_LOCK}" \
-	"${SDK_PYPROJECT}" \
-	"${PACKAGE_JSON}" \
-	"${PACKAGE_LOCK}" \
-	"${C_CMAKE}" \
-	"${GO_VERSION}"; do
-	if [[ ! -f "${file}" ]]; then
-		printf 'error: missing %s\n' "${file}" | shorten_paths >&2
-		exit 1
-	fi
-done
+tag="$(publish_release_tag "${version}")"
 
-tag="v${version}"
-
-update_toml_version "${CARGO_TOML}" "${version}"
+update_toml_version "${PUBLISH_CARGO_TOML}" "${version}"
 update_cargo_lock_version "${version}"
-update_toml_version "${SDK_PYPROJECT}" "${version}"
+update_toml_version "${PUBLISH_SDK_PYPROJECT}" "${version}"
 update_package_json_version "${version}"
 update_package_lock_version "${version}"
 update_cmake_project_version "${version}"
 update_go_module_version "${version}"
-printf 'tag=%s\n' "${tag}" >"${TAG_FILE}"
+printf 'tag=%s\n' "${tag}" >"$(publish_tag_file_path)"
+
+publish_verify_versions "${version}"
 
 cat <<EOF | shorten_paths
 synced version ${version} to:
-  ${CARGO_TOML}
-  ${CARGO_LOCK} (chunk-your-tools)
-  ${SDK_PYPROJECT}
-  ${PACKAGE_JSON}
-  ${PACKAGE_LOCK}
-  ${C_CMAKE} (project VERSION)
-  ${GO_VERSION} (Version)
-  ${TAG_FILE} (tag=${tag})
+  ${PUBLISH_CARGO_TOML}
+  ${PUBLISH_CARGO_LOCK} (chunk-your-tools)
+  ${PUBLISH_SDK_PYPROJECT}
+  ${PUBLISH_PACKAGE_JSON}
+  ${PUBLISH_PACKAGE_LOCK}
+  ${PUBLISH_C_CMAKE} (project VERSION)
+  ${PUBLISH_GO_VERSION} (Version)
+  $(publish_tag_file_path) (tag=${tag})
 EOF

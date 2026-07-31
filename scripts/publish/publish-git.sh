@@ -17,7 +17,11 @@ EXPECTED_REPO="qdrddr/chunk-your-tools"
 
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/../lib/shorten-paths.sh"
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/lib/versions.sh"
+
 export SHORTEN_ROOT="${ROOT}"
+publish_init_paths "${ROOT}"
 
 usage() {
 	cat <<EOF
@@ -36,11 +40,12 @@ Auto-bump (bump-patch / bump-minor):
 
 Steps:
   1. Run scripts/publish/sync-version.sh with the semver (without the leading v)
-  2. Commit only the version manifest files
-  3. Push the current branch (expected: main)
-  4. Force-create the git tag vX.Y.Z and push it
-  5. Force-create the Go module tag sdk/go/vX.Y.Z and push it
-  6. Create (or recreate) a GitHub Release for the tag (marked as pre-release)
+  2. Verify all SDK manifests match (Cargo, Python, npm, C, Go moduleversion)
+  3. Commit only the version manifest files
+  4. Push the current branch (expected: main)
+  5. Force-create the git tag vX.Y.Z and push it
+  6. Force-create the Go module tag sdk/go/vX.Y.Z and push it
+  7. Create (or recreate) a GitHub Release for the tag (marked as pre-release)
 
 Tag push triggers:
   - publish-crates.yml  -> crates.io chunk-your-tools
@@ -75,15 +80,7 @@ require_repo() {
 }
 
 version_files() {
-	cat <<EOF
-${ROOT}/Cargo.toml
-${ROOT}/Cargo.lock
-${ROOT}/sdk/python/pyproject.toml
-${ROOT}/sdk/typescript/package.json
-${ROOT}/sdk/typescript/package-lock.json
-${ROOT}/sdk/c/CMakeLists.txt
-${ROOT}/sdk/go/moduleversion/version.go
-EOF
+	publish_version_file_paths
 }
 
 semver_tag_pattern='^v[0-9]+\.[0-9]+\.[0-9]+$'
@@ -192,7 +189,7 @@ esac
 
 validate_tag "${tag}"
 semver="${tag#v}"
-go_tag="sdk/go/v${semver}"
+go_tag="$(publish_go_module_tag "${semver}")"
 
 cd "${ROOT}"
 
@@ -215,6 +212,7 @@ fi
 mapfile -t files < <(version_files)
 
 "${SCRIPT_DIR}/sync-version.sh" "${semver}"
+publish_verify_versions "${semver}"
 
 git add -- "${files[@]}"
 if git diff --cached --quiet; then

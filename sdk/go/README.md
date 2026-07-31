@@ -78,6 +78,56 @@ cd sdk/go
 go test ./...
 ```
 
+## Dev tools (pre-commit / CI)
+
+All Go formatters and linters run through
+[scripts/pre-commit-hooks/go-sdk-precommit.sh](../../scripts/pre-commit-hooks/go-sdk-precommit.sh)
+(pinned `go run ...@version`, not in `go.mod`).
+
+| pre-commit hook | Script command |
+| --- | --- |
+| `go-fumpt` | `fumpt` |
+| `go-imports` | `imports` |
+| `go-mod-tidy-repo` | `tidy` |
+| `go-staticcheck-repo-mod` | `staticcheck` |
+| `go-critic` | `critic` |
+| `go-sec-repo-mod` | `sec` |
+| `go-build-repo-mod` | `build` |
+| `go-test-repo-mod` | `test` |
+
+`prek-loop.sh -g go` runs the same hooks (see
+[prek-hook-groups.yaml](../../scripts/pre-commit-hooks/prek-hook-groups.yaml)).
+
+Aggregates for local dev / one-shot checks:
+
+```bash
+bash scripts/pre-commit-hooks/go-sdk-precommit.sh fmt    # gofumpt + goimports
+bash scripts/pre-commit-hooks/go-sdk-precommit.sh lint   # staticcheck + gocritic
+bash scripts/pre-commit-hooks/go-sdk-precommit.sh check  # tidy + fmt + lint + sec
+```
+
+Override tool versions with `GOFUMPT_VERSION`, `GOIMPORTS_VERSION`, `STATICCHECK_VERSION`,
+`GOCRITIC_VERSION`, `GOSEC_VERSION`.
+
+**gosec in CI:** when `CI` is set, the `sec` command runs
+`go install github.com/securego/gosec/v2/cmd/gosec@<version>`. Or install explicitly:
+
+```bash
+./scripts/deps/ensure-go-gosec.sh
+bash scripts/pre-commit-hooks/go-sdk-precommit.sh sec
+```
+
+Locally (no `CI`), gosec uses `go run ...@version`.
+
+## Version bump
+
+SDK semver is propagated by [scripts/publish/sync-version.sh](../../scripts/publish/sync-version.sh)
+(Cargo.toml → Python, npm, C CMake, `sdk/go/moduleversion/version.go`). Release with
+[scripts/publish/publish-git.sh](../../scripts/publish/publish-git.sh) (`bump-patch`, `bump-minor`, or `vX.Y.Z`).
+
+Pre-commit runs `sync-version` when manifests drift. `go test` includes
+[versionsync_test.go](versionsync_test.go) to catch Go/Cargo version mismatch.
+
 ## Related SDKs
 
 - [C SDK](../c/README.md)

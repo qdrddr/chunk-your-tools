@@ -767,12 +767,13 @@ read_go_module_version() {
 }
 
 lint_sdk_version_sync() {
-	local cargo_version py_version npm_version go_version
+	local cargo_version py_version npm_version go_version cmake_version
 
 	cargo_version="$(read_cargo_version)"
 	py_version="$(read_pyproject_version "${REPO_ROOT}/sdk/python/pyproject.toml")"
 	npm_version="$(read_package_json_version "${REPO_ROOT}/sdk/typescript/package.json")"
 	go_version="$(read_go_module_version "${REPO_ROOT}/sdk/go/moduleversion/version.go")"
+	cmake_version="$(read_cmake_project_version)"
 
 	[[ -n "${cargo_version}" ]] ||
 		{
@@ -790,10 +791,14 @@ lint_sdk_version_sync() {
 	if [[ "${go_version}" != "${cargo_version}" ]]; then
 		append_manifest_lint "sdk/go/moduleversion/version.go version ${go_version} != Cargo.toml ${cargo_version}"
 	fi
+	if [[ "${cmake_version}" != "${cargo_version}" ]]; then
+		append_manifest_lint "sdk/c/CMakeLists.txt VERSION ${cmake_version} != Cargo.toml ${cargo_version}"
+	fi
 
 	if [[ "${py_version}" != "${cargo_version}" ||
 		"${npm_version}" != "${cargo_version}" ||
-		"${go_version}" != "${cargo_version}" ]]; then
+		"${go_version}" != "${cargo_version}" ||
+		"${cmake_version}" != "${cargo_version}" ]]; then
 		record_failure "manifest SDK version sync" "run ./scripts/publish/sync-version.sh"
 		return 1
 	fi

@@ -2,14 +2,21 @@
 # Create and push sdk/go/vX.Y.Z if missing (same commit as vX.Y.Z).
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/publish/lib/versions.sh"
+publish_init_paths "${ROOT}"
+
 VERSION="${1:-${CHUNK_YOUR_TOOLS_RELEASE_VERSION:-}}"
 if [[ -z "$VERSION" ]]; then
 	echo "usage: $0 <X.Y.Z>  (or set CHUNK_YOUR_TOOLS_RELEASE_VERSION)" >&2
 	exit 1
 fi
 
-release_tag="v${VERSION}"
-go_tag="sdk/go/v${VERSION}"
+release_tag="$(publish_release_tag "${VERSION}")"
+go_tag="$(publish_go_module_tag "${VERSION}")"
 
 if git ls-remote --exit-code origin "refs/tags/${go_tag}" >/dev/null 2>&1; then
 	remote_sha="$(git ls-remote origin "refs/tags/${go_tag}" | awk '{print $1}')"

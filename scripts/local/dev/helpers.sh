@@ -458,6 +458,8 @@ if [[ -z "${CHUNK_YOUR_TOOLS_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 		require_cmd go
 		require_cmd rustc
 		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}" || die "cd failed"
+		info "go sdk: format + lint (pre-commit tools)"
+		chunk_your_tools_run bash scripts/pre-commit-hooks/go-sdk-precommit.sh check
 		info "build C FFI (sdk/go)"
 		chunk_your_tools_run env -u CARGO_TARGET_DIR bash sdk/c/scripts/build-c-lib.sh --no-sync-header
 		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}/sdk/go" || die "cd failed"
