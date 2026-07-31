@@ -98,8 +98,11 @@ def policy_path(repo_root: Path | None = None) -> Path:
 
 
 @lru_cache(maxsize=4)
-def load_policy(repo_root: str | None = None) -> Policy:
-    root = Path(repo_root).resolve() if repo_root else repo_root_from_here()
+def load_policy(repo_root: str | Path | None = None) -> Policy:
+    if repo_root is None:
+        root = repo_root_from_here()
+    else:
+        root = require_repo_root(repo_root)
     path = policy_path(root)
     with path.open("rb") as handle:
         data = tomllib.load(handle)
@@ -166,9 +169,10 @@ def render_deny_toml_licenses_allow(policy: Policy) -> str:
     return "\n".join(lines)
 
 
-def sync_deny_toml(repo_root: Path, policy: Policy | None = None) -> bool:
-    policy = policy or load_policy(str(repo_root))
-    deny_path = repo_root / "deny.toml"
+def sync_deny_toml(repo_root: Path | str, policy: Policy | None = None) -> bool:
+    root = require_repo_root(repo_root)
+    policy = policy or load_policy(root)
+    deny_path = root / "deny.toml"
     text = deny_path.read_text(encoding="utf-8")
     replacement = render_deny_toml_licenses_allow(policy)
     updated, count = re.subn(
@@ -193,13 +197,20 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     command = args[0]
-    repo_root = args[1] if len(args) > 1 and command in {"sync-deny"} else None
+    repo_root_arg = args[1] if len(args) > 1 and command in {"sync-deny"} else None
     if len(args) > 1 and command == "allowed":
         license_arg = args[1]
     else:
         license_arg = None
 
-    policy = load_policy(repo_root)
+    if command == "sync-deny":
+        root = require_repo_root(repo_root_arg) if repo_root_arg else repo_root_from_here()
+        policy = load_policy(root)
+        changed = sync_deny_toml(root, policy)
+        print("updated deny.toml" if changed else "deny.toml already in sync")
+        return 0
+
+    policy = load_policy(repo_root_arg)
 
     if command == "allowed-csv":
         print(policy.allowed_csv())
@@ -209,11 +220,6 @@ def main(argv: list[str] | None = None) -> int:
             print("usage: policy.py allowed SPDX", file=sys.stderr)
             return 2
         return 0 if policy.license_allowed(license_arg) else 1
-    if command == "sync-deny":
-        root = require_repo_root(repo_root) if repo_root else repo_root_from_here()
-        changed = sync_deny_toml(root, policy)
-        print("updated deny.toml" if changed else "deny.toml already in sync")
-        return 0
 
     print(f"unknown command: {command}", file=sys.stderr)
     return 2

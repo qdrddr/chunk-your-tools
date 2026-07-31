@@ -22,7 +22,5 @@ go -C tools tool gofumpt -l -w ./...
 [pins.go](pins.go) keeps patched versions in `go.mod` for known advisories (grpc, AWS eventstream, MCP SDK,
 JWT, goldmark). Re-run `go mod tidy` after changing pins.
 
-## Known open advisory
-
-- **CVE-2024-51744** (`github.com/golang-jwt/jwt` documentation issue, CVSS 2.3): no upstream fix as of
-  2026-07. Dev-tool exposure only; tracked on this tools module, not the runtime SDK.
+Current security pins: `eventstream v1.7.15` (eventstream decoder CWE-248), `jwt/v5 v5.3.1`
+(CVE-2024-51744), plus grpc, MCP SDK, and goldmark as listed in `go.mod`.

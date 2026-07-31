@@ -2,6 +2,7 @@ package e2esupport
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -51,6 +52,20 @@ func ParseTestArgs() (file *string, output *string) {
 			output = &v
 		}
 	}
+	if file != nil {
+		resolved, err := resolveUnderRepo(*file)
+		if err != nil {
+			panic(err.Error())
+		}
+		file = &resolved
+	}
+	if output != nil {
+		resolved, err := resolveOutputUnderRepo(*output)
+		if err != nil {
+			panic(err.Error())
+		}
+		output = &resolved
+	}
 	return file, output
 }
 
@@ -63,11 +78,42 @@ func ResolveSnapshotPath(path string) string {
 }
 
 func LoadSnapshot(path string) map[string]any {
-	resolved, err := resolveUnderRepo(path)
+	root := repoRoot()
+	candidates := []string{path}
+	if !filepath.IsAbs(path) {
+		candidates = append(candidates, filepath.Join(root, path))
+	}
+
+	var resolved string
+	for _, candidate := range candidates {
+		abs, err := filepath.Abs(candidate)
+		if err != nil {
+			continue
+		}
+		abs = filepath.Clean(abs)
+		rel, err := filepath.Rel(root, abs)
+		if err != nil || strings.HasPrefix(rel, "..") {
+			continue
+		}
+		if _, err := os.Stat(abs); err != nil {
+			continue
+		}
+		resolved = abs
+		break
+	}
+	if resolved == "" {
+		panic(fmt.Sprintf("snapshot file not found under repo root %s: %s", root, path))
+	}
+	rel, err := filepath.Rel(root, resolved)
+	if err != nil || strings.HasPrefix(rel, "..") {
+		panic(fmt.Sprintf("path must stay under repo root %s, got %s", root, resolved))
+	}
+	rootHandle, err := os.OpenRoot(root)
 	if err != nil {
 		panic(err.Error())
 	}
-	raw, err := os.ReadFile(resolved)
+	defer rootHandle.Close()
+	raw, err := rootHandle.ReadFile(rel)
 	if err != nil {
 		panic("read " + resolved + ": " + err.Error())
 	}
@@ -199,12 +245,67 @@ func WriteOutput(catalog map[string]any, outputPath *string) error {
 		_, err = os.Stdout.Write(payload)
 		return err
 	}
-	resolved, err := resolveOutputUnderRepo(*outputPath)
+	root := repoRoot()
+	resolved, err := filepath.Abs(*outputPath)
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(resolved), 0o755); err != nil && !os.IsExist(err) {
+	resolved = filepath.Clean(resolved)
+	rel, err := filepath.Rel(root, resolved)
+	if err != nil || strings.HasPrefix(rel, "..") {
+		return fmt.Errorf("output path must stay under repo root %s, got %s", root, resolved)
+	}
+	rootHandle, err := os.OpenRoot(root)
+	if err != nil {
 		return err
 	}
-	return os.WriteFile(resolved, payload, 0o644)
+	defer rootHandle.Close()
+	if err := rootHandle.MkdirAll(filepath.Dir(rel), 0o755); err != nil {
+		return err
+	}
+	return rootHandle.WriteFile(rel, payload, 0o644)
+}
+
+func RunDecomposeFromExampleFile(t *testing.T) {
+	exampleFile, outputFile := ParseTestArgs()
+	if exampleFile == nil {
+		t.Skip("set CHUNK_YOUR_TOOLS_E2E_FILE or pass --file after go test --")
+	}
+
+	data := LoadSnapshot(*exampleFile)
+	_, _, _ = ExtractSnapshotParts(data)
+
+	catalog, err := CatalogDictFromSnapshot(data)
+	if err != nil {
+		t.Fatalf("catalog from snapshot: %v", err)
+	}
+
+	jsonChunks, _ := catalog["json"].([]any)
+	mdChunks, _ := catalog["md"].([]any)
+	if len(jsonChunks) == 0 {
+		t.Fatal("build_catalog_index produced no json chunks")
+	}
+	if len(mdChunks) == 0 {
+		t.Fatal("build_catalog_index produced no md enum chunks")
+	}
+
+	foundDecomposed := false
+	for _, entry := range jsonChunks {
+		obj, ok := entry.(map[string]any)
+		if !ok {
+			continue
+		}
+		path, _ := obj["file_path"].(string)
+		if strings.Contains(path, "/schemas/decomposed/") && strings.HasSuffix(path, ".json") {
+			foundDecomposed = true
+			break
+		}
+	}
+	if !foundDecomposed {
+		t.Fatal("expected per-property decomposed json chunks")
+	}
+
+	if err := WriteOutput(catalog, outputFile); err != nil {
+		t.Fatalf("write output: %v", err)
+	}
 }

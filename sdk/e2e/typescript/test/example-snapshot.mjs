@@ -1,5 +1,11 @@
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { dirname, join, resolve, sep } from "node:path";
+import {
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { buildCatalogIndex } from "chunk-your-tools";
@@ -17,48 +23,69 @@ const REPO_ROOT = resolve(
   "..",
 );
 
-/** @param {string} path @param {string} root */
-function isUnderRoot(path, root) {
-  const rel = path.startsWith(`${root}${sep}`)
-    ? path.slice(root.length + 1)
-    : path === root
-      ? ""
-      : null;
-  if (rel === null) {
-    return false;
-  }
-  return rel === "" || (!rel.startsWith("..") && !rel.includes(`/..${sep}`));
-}
+const SKIP_SNAPSHOT_DIRS = new Set([
+  ".git",
+  ".fallow",
+  "node_modules",
+  "target",
+]);
 
-/** @param {string} path */
-function resolveUnderRepo(path) {
-  const candidates = [resolve(path), join(REPO_ROOT, path)];
-  for (const candidate of candidates) {
-    const normalized = resolve(candidate);
-    if (!isUnderRoot(normalized, REPO_ROOT)) {
-      continue;
-    }
+/** @returns {Set<string>} */
+function buildAllowedSnapshotPaths() {
+  /** @type {Set<string>} */
+  const allowed = new Set();
+
+  /** @param {string} dir @param {string} rel */
+  const walk = (dir, rel) => {
+    let entries;
     try {
-      readFileSync(normalized);
-      return normalized;
+      entries = readdirSync(dir, { withFileTypes: true });
     } catch {
-      // try next candidate
+      return;
     }
-  }
-  throw new Error(
-    `snapshot file not found under repo root ${REPO_ROOT}: ${path}`,
-  );
+    for (const entry of entries) {
+      if (SKIP_SNAPSHOT_DIRS.has(entry.name)) {
+        continue;
+      }
+      const childRel = rel ? `${rel}/${entry.name}` : entry.name;
+      const childAbs = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(childAbs, childRel);
+        continue;
+      }
+      if (!entry.name.endsWith(".json")) {
+        continue;
+      }
+      allowed.add(childRel);
+      allowed.add(entry.name);
+    }
+  };
+
+  walk(REPO_ROOT, "");
+  return allowed;
 }
 
-/** @param {string} path */
-function resolveOutputUnderRepo(path) {
-  const normalized = resolve(path);
-  if (!isUnderRoot(normalized, REPO_ROOT)) {
+const ALLOWED_SNAPSHOT_PATHS = buildAllowedSnapshotPaths();
+
+/**
+ * @param {string} userPath
+ * @returns {string}
+ */
+function resolveAllowedSnapshotPath(userPath) {
+  const snapshotName = basename(userPath.replaceAll("\\", "/"));
+  if (!ALLOWED_SNAPSHOT_PATHS.has(snapshotName)) {
     throw new Error(
-      `output path must stay under repo root ${REPO_ROOT}, got ${normalized}`,
+      `snapshot file is not an allowed repo JSON path: ${userPath}`,
     );
   }
-  return normalized;
+  let snapshotRel = snapshotName;
+  for (const entry of ALLOWED_SNAPSHOT_PATHS) {
+    if (entry === snapshotName || entry.endsWith(`/${snapshotName}`)) {
+      snapshotRel = entry;
+      break;
+    }
+  }
+  return join(REPO_ROOT, ...snapshotRel.split("/"));
 }
 
 /** @returns {{ file: string | null; output: string | null }} */
@@ -97,7 +124,7 @@ function readArgvFlag(argv, index, flag) {
  * @param {string[] | undefined} [argv]
  * @returns {{ file: string | null; output: string | null }}
  */
-export function parseTestArgs(argv = process.argv) {
+function readTestArgs(argv = process.argv) {
   const envArgs = readEnvArgs();
   if (envArgs.file || envArgs.output) {
     return envArgs;
@@ -126,25 +153,19 @@ export function parseTestArgs(argv = process.argv) {
 }
 
 /**
- * @param {string} path
+ * @param {string} userPath
+ * @param {string} label
  * @returns {string}
  */
-export function resolveSnapshotPath(path) {
-  return resolveUnderRepo(path);
-}
-
-/**
- * @param {string} path
- * @returns {SnapshotData}
- */
-export function loadSnapshot(path) {
-  const resolved = resolveUnderRepo(path);
-  const raw = readFileSync(resolved, "utf8");
-  const data = JSON.parse(raw);
-  if (data === null || typeof data !== "object" || Array.isArray(data)) {
-    throw new TypeError(`expected JSON object in ${resolved}`);
+function resolveAllowedOutputPath(userPath, label) {
+  const outputName = basename(userPath.replaceAll("\\", "/"));
+  if (!/^[A-Za-z0-9._-]+\.json$/.test(outputName)) {
+    throw new Error(
+      `${label} must be a simple .json filename, got ${userPath}`,
+    );
   }
-  return data;
+  const outputDir = join(REPO_ROOT, "sdk/e2e/.debug/out");
+  return join(outputDir, outputName);
 }
 
 /**
@@ -234,7 +255,7 @@ function requireSurvivorCatalog(survivor) {
 /**
  * @param {SnapshotData} data
  */
-export function extractSnapshotParts(data) {
+function extractSnapshotParts(data) {
   const { expected, buildStage, survivorStage } = snapshotStages(data);
   const buildTools = buildStage.tools ?? [];
   requireBuildTools(buildTools, expected);
@@ -248,7 +269,7 @@ export function extractSnapshotParts(data) {
 /**
  * @param {SnapshotData} data
  */
-export function catalogDictFromSnapshot(data) {
+function catalogDictFromSnapshot(data) {
   const { buildTools } = extractSnapshotParts(data);
   const buildStage = data.pruning?.decomposed_catalog?.build_index ?? {};
   const enums = enumsFromMd(buildStage.md ?? []);
@@ -257,15 +278,72 @@ export function catalogDictFromSnapshot(data) {
 }
 
 /**
- * @param {{ md: JsonRecord[]; json: JsonRecord[]; tools: JsonRecord[] }} catalog
- * @param {string | null | undefined} outputPath
+ * @param {string[] | undefined} [argv]
+ * @returns {boolean}
  */
-export function writeOutput(catalog, outputPath) {
+export function hasExampleFileArg(argv = process.argv) {
+  const envArgs = readEnvArgs();
+  if (envArgs.file) {
+    return true;
+  }
+  for (let i = 0; i < argv.length; i += 1) {
+    if (readArgvFlag(argv, i, "--file")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * @param {string[] | undefined} [argv]
+ */
+export function runExampleFileE2E(argv = process.argv) {
+  const { file: exampleFile, output: outputFile } = readTestArgs(argv);
+  if (!exampleFile) {
+    return;
+  }
+
+  const snapshotPath = resolveAllowedSnapshotPath(exampleFile);
+  try {
+    statSync(snapshotPath);
+  } catch {
+    throw new Error(
+      `snapshot file not found under repo root ${REPO_ROOT}: ${exampleFile}`,
+    );
+  }
+  const raw = readFileSync(snapshotPath, "utf8");
+  const data = JSON.parse(raw);
+  if (data === null || typeof data !== "object" || Array.isArray(data)) {
+    throw new TypeError(`expected JSON object in ${snapshotPath}`);
+  }
+
+  extractSnapshotParts(data);
+
+  const catalog = catalogDictFromSnapshot(data);
+  const jsonChunks = catalog.json ?? [];
+  const mdChunks = catalog.md ?? [];
+
+  if (jsonChunks.length === 0) {
+    throw new Error("buildCatalogIndex produced no json chunks");
+  }
+  if (mdChunks.length === 0) {
+    throw new Error("buildCatalogIndex produced no md enum chunks");
+  }
+  const foundDecomposed = jsonChunks.some(
+    (/** @type {{ file_path?: string }} */ entry) =>
+      typeof entry.file_path === "string" &&
+      entry.file_path.includes("/schemas/decomposed/") &&
+      entry.file_path.endsWith(".json"),
+  );
+  if (!foundDecomposed) {
+    throw new Error("expected per-property decomposed json chunks");
+  }
+
   const payload = `${JSON.stringify(catalog, null, 2)}\n`;
-  if (outputPath) {
-    const resolved = resolveOutputUnderRepo(outputPath);
-    mkdirSync(dirname(resolved), { recursive: true });
-    writeFileSync(resolved, payload, "utf8");
+  if (outputFile) {
+    const outputPath = resolveAllowedOutputPath(outputFile, "output path");
+    mkdirSync(dirname(outputPath), { recursive: true });
+    writeFileSync(outputPath, payload, "utf8");
     return;
   }
   process.stdout.write(payload);

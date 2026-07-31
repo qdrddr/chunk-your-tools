@@ -72,46 +72,5 @@ func TestBuildCatalogIndexFromReleaseModule(t *testing.T) {
 }
 
 func TestDecomposeFromExampleFile(t *testing.T) {
-	exampleFile, outputFile := e2esupport.ParseTestArgs()
-	if exampleFile == nil {
-		t.Skip("set CHUNK_YOUR_TOOLS_E2E_FILE or pass --file after go test --")
-	}
-
-	snapshotPath := e2esupport.ResolveSnapshotPath(*exampleFile)
-	data := e2esupport.LoadSnapshot(snapshotPath)
-	_, _, _ = e2esupport.ExtractSnapshotParts(data)
-
-	catalog, err := e2esupport.CatalogDictFromSnapshot(data)
-	if err != nil {
-		t.Fatalf("catalog from snapshot: %v", err)
-	}
-
-	jsonChunks, _ := catalog["json"].([]any)
-	mdChunks, _ := catalog["md"].([]any)
-	if len(jsonChunks) == 0 {
-		t.Fatal("build_catalog_index produced no json chunks")
-	}
-	if len(mdChunks) == 0 {
-		t.Fatal("build_catalog_index produced no md enum chunks")
-	}
-
-	foundDecomposed := false
-	for _, entry := range jsonChunks {
-		obj, ok := entry.(map[string]any)
-		if !ok {
-			continue
-		}
-		path, _ := obj["file_path"].(string)
-		if strings.Contains(path, "/schemas/decomposed/") && strings.HasSuffix(path, ".json") {
-			foundDecomposed = true
-			break
-		}
-	}
-	if !foundDecomposed {
-		t.Fatal("expected per-property decomposed json chunks")
-	}
-
-	if err := e2esupport.WriteOutput(catalog, outputFile); err != nil {
-		t.Fatalf("write output: %v", err)
-	}
+	e2esupport.RunDecomposeFromExampleFile(t)
 }

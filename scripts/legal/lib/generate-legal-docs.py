@@ -259,7 +259,7 @@ def main() -> int:
         print(f"error: audit output dir not found: {audit_dir}", file=sys.stderr)
         return 1
 
-    policy = load_policy(str(repo_root))
+    policy = load_policy(repo_root)
     legal_dir.mkdir(parents=True, exist_ok=True)
     components = build_tracked_components(repo_root, audit_dir, policy)
     write_license_compatibility(legal_dir, policy)
