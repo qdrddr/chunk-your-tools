@@ -14,7 +14,10 @@
     "directory": "sdk/typescript"
   },
   "license": "Apache-2.0",
-  "author": "Damien Berezenko",
+  "author": {
+    "name": "Damien Berezenko",
+    "linkedin": "https://www.linkedin.com/in/damien-e"
+  },
   "type": "module",
   "exports": {
     ".": {

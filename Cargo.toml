@@ -11,6 +11,9 @@ keywords = ["mcp", "json-schema", "tools"]
 categories = ["command-line-utilities", "development-tools"]
 exclude = ["assets/"]
 
+[package.metadata.authors]
+main = { name = "Damien Berezenko", linkedin = "https://www.linkedin.com/in/damien-e" }
+
 [lib]
 name = "chunk_your_tools"
 crate-type = ["rlib", "cdylib", "staticlib"]
