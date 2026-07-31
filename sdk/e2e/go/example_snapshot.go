@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"testing"
 
 	chunkindexer "github.com/qdrddr/chunk-your-tools/sdk/go/v2"
 )
