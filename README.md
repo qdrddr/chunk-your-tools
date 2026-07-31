@@ -9,6 +9,7 @@
 [![version][version-shield]][release-link]
 [![discord][discord-shield]][discord-link]
 [![FOSSA Status][fossa-shield]][fossa-link]
+[![Skyk Vulnerabilities][snyk-shield]][snyk-link]
 
 [![Rust][rust-tech-shield]][rust-link]
 [![Python][python-tech-shield]][pypi-link]
@@ -204,3 +205,5 @@ Apache-2.0 — see [LICENSE](LICENSE).
 [discord-link]: https://discord.com/invite/FhACaAAW9C
 [fossa-shield]: https://app.fossa.com/api/projects/git%2Bgithub.com%2Fqdrddr%2Fchunk-your-tools.svg?type=shield&issueType=security
 [fossa-link]: https://app.fossa.com/projects/git%2Bgithub.com%2Fqdrddr%2Fchunk-your-tools?ref=badge_shield&issueType=security
+[snyk-shield]: https://snyk.io/test/github/qdrddr/chunk-your-tools/badge.svg
+[snyk-link]: https://snyk.io/test/github/qdrddr/chunk-your-tools
