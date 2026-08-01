@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(chunk-your-tools-c VERSION 2.3.7 LANGUAGES C)
+project(chunk-your-tools-c VERSION 2.3.8 LANGUAGES C)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

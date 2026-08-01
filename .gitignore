@@ -157,3 +157,4 @@ scripts/legal/output/
 scripts/deps/output/
 fossa-deps.yml.example
 .fossa.yml.example
+fossa.debug.zip
