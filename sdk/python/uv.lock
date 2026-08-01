@@ -16,7 +16,7 @@ wheels = [
 
 [[package]]
 name = "chunk-your-tools"
-version = "2.3.8"
+version = "2.3.9"
 source = { editable = "." }
 
 [package.dev-dependencies]
