@@ -7,5 +7,3 @@ require github.com/qdrddr/chunk-your-tools/sdk/go/v2 v@CHUNK_YOUR_TOOLS_GIT_VERS
 replace github.com/qdrddr/chunk-your-tools/sdk/go/v2 => @CHUNK_YOUR_TOOLS_GIT_STAGING@/sdk/go
 
 tool github.com/qdrddr/chunk-your-tools/sdk/go/v2/cmd/chunk-native-ensure
-
-

@@ -38,11 +38,11 @@
   "scripts": {
     "build": "npm run build:native && npm run build:js",
     "build:js": "tsc",
-    "build:native": "napi build --platform --release --manifest-path ../../Cargo.toml -p chunk-your-tools --features node --no-default-features --output-dir . --js native.cjs --dts native.d.ts",
+    "build:native": "bash ../../scripts/local/dev/napi-build.sh",
     "test": "npm run build && node --test dist/test/*.test.js"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^3.7.0",
+    "@napi-rs/cli": "^3.8.2",
     "@types/node": "^26.1.2",
     "typescript": "^5.8.3"
   },

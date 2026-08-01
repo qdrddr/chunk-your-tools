@@ -87,4 +87,3 @@ Decompose/recompose walkthroughs live in the parent `examples/` directory, not h
 ```
 
 See [`../README.md`](../README.md) for survivor formats, fixtures, and output files.
-

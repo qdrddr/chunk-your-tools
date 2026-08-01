@@ -243,10 +243,39 @@ parse_prek_output() {
 }
 
 run_hook() {
+	local hook="$1"
 	local output exit_code=0
-	output=$(rtk uv run prek run "$1" --all-files 2>&1) || exit_code=$?
+
+	if [[ "${hook}" == "shellcheck" ]]; then
+		mapfile -t shell_files < <(git ls-files '*.sh')
+		if ((${#shell_files[@]})); then
+			output=$(rtk bash scripts/pre-commit-hooks/shellcheck-precommit.sh "${shell_files[@]}" 2>&1) || exit_code=$?
+		else
+			output=""
+		fi
+		if ((exit_code == 0)); then
+			PREK_STATUSES="Passed"
+		else
+			PREK_STATUSES="Failed"
+		fi
+		PREK_DETAILS="${output}"
+		return "${exit_code}"
+	fi
+
+	if [[ "${hook}" == "export-rust-sbom" ]]; then
+		output=$(rtk bash scripts/deps/export-rust-sbom-precommit.sh 2>&1) || exit_code=$?
+		if ((exit_code == 0)); then
+			PREK_STATUSES="Passed"
+		else
+			PREK_STATUSES="Failed"
+		fi
+		PREK_DETAILS="${output}"
+		return "${exit_code}"
+	fi
+
+	output=$(rtk uv run prek run "$hook" --all-files 2>&1) || exit_code=$?
 	parse_prek_output "$output"
-	return "$exit_code"
+	return "${exit_code}"
 }
 
 if ((total == 0)); then

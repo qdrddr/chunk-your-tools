@@ -3,6 +3,12 @@
 fail_fast: false
 default_language_version:
   python: "3.13"
+# Generated SBOM artifacts (scripts/deps/export-rust-sbom.sh):
+#   chunk-your-tools.cdx.json
+#   chunk-your-tools.snyk.json
+# Exclude pattern (auto-fix / spell / secret scanners / verify-pins trigger):
+#   ^chunk-your-tools\.(cdx|snyk)\.json$
+# Only export-rust-sbom may rewrite these files (on Cargo.toml/Cargo.lock changes).
 repos:
   # 1year old
   #  - repo: https://github.com/backplane/pre-commit-rust-hooks
@@ -41,11 +47,13 @@ repos:
   #      - id: cargo-check
   #      - id: cargo-test
   # 1year old
-  - repo: https://github.com/koalaman/shellcheck-precommit
-    rev: v0.11.0
+  - repo: local
     hooks:
       - id: shellcheck
-        args: ["-x"]
+        name: ShellCheck v0.11.0
+        entry: bash scripts/pre-commit-hooks/shellcheck-precommit.sh
+        language: system
+        types: [shell]
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.13.1-1
     hooks:
@@ -87,7 +95,7 @@ repos:
     hooks:
       - id: prettier
         types_or: [yaml, json5, bash, javascript, ts, tsx]
-        exclude: ^(\.github/workflows/.*\.ya?ml|examples/)
+        exclude: ^(\.github/workflows/.*\.ya?ml|examples/catalog/.*|chunk-your-tools\.(cdx|snyk)\.json)$
       - id: prettier
         name: prettier github workflow yaml
         files: ^\.github/workflows/.*\.ya?ml$
@@ -107,11 +115,12 @@ repos:
           - tomli
         args:
           - --skip=*.json,*.sum,package-lock.json,sdk/typescript/package-lock.json
-          - -L=fallow,Bui,FO
+          - -L=fallow,Bui,FO,Provices
   - repo: https://github.com/crate-ci/committed
     rev: v1.1.11
     hooks:
       - id: committed
+        exclude: ^chunk-your-tools\.(cdx|snyk)\.json$
 
   - repo: https://github.com/Yelp/detect-secrets
     rev: v1.5.0
@@ -122,13 +131,14 @@ repos:
             "--baseline",
             ".secrets.baseline",
             "--exclude-files",
-            "app/migrations/versions/.*|ast-grep/rule-tests/.*|.env.example|.ast-grep/.*|.talismanrc",
+            "app/migrations/versions/.*|ast-grep/rule-tests/.*|.env.example|.ast-grep/.*|.talismanrc|chunk-your-tools\\.cdx\\.json|chunk-your-tools\\.snyk\\.json",
           ]
 
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.0
     hooks:
       - id: gitleaks
+        exclude: ^chunk-your-tools\.(cdx|snyk)\.json$
 
   - repo: https://github.com/trufflesecurity/trufflehog
     rev: v3.92.3
@@ -137,11 +147,13 @@ repos:
         entry: bash scripts/pre-commit-hooks/trufflehog-hook.sh
         args: ["--only-verified"]
         pass_filenames: false
+        exclude: ^chunk-your-tools\.(cdx|snyk)\.json$
 
   - repo: https://github.com/thoughtworks/talisman
     rev: v1.37.0
     hooks:
       - id: talisman-commit
+        exclude: ^chunk-your-tools\.(cdx|snyk)\.json$
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.10
@@ -290,6 +302,16 @@ repos:
         pass_filenames: false
         files: ^(Cargo\.(toml|lock)|src/|build\.rs|scripts/local/dev/(workflow|helpers)\.sh)$
 
+  - repo: local
+    hooks:
+      - id: export-rust-sbom
+        name: export-rust-sbom
+        entry: bash scripts/deps/export-rust-sbom-precommit.sh
+        language: system
+        files: ^(Cargo\.(toml|lock)|src/|build\.rs|scripts/deps/export-rust-sbom\.sh)$
+        exclude: ^chunk-your-tools\.(cdx|snyk)\.json$
+        pass_filenames: false
+
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.21.2
     hooks:
@@ -334,7 +356,7 @@ repos:
         args: ["--maxkb=1024"]
         exclude: ^assets/.*\.gif$
       - id: trailing-whitespace
-        exclude: ^examples/
+        exclude: ^(examples/catalog/.*|chunk-your-tools\.(cdx|snyk)\.json)$
       - id: check-yaml
         exclude: ^(.ast-grep/rules/.*|\.github/workflows/.*)$
       - id: check-yaml
@@ -345,9 +367,9 @@ repos:
         exclude: ^examples/
       - id: check-toml
       - id: end-of-file-fixer
-        exclude: ^examples/
+        exclude: ^(examples/catalog/.*|chunk-your-tools\.(cdx|snyk)\.json)$
       - id: mixed-line-ending
-        exclude: ^examples/
+        exclude: ^(examples/catalog/.*|chunk-your-tools\.(cdx|snyk)\.json)$
       - id: detect-private-key
       - id: check-case-conflict
       - id: check-merge-conflict
@@ -522,7 +544,10 @@ repos:
       - id: typescript-test
         name: TypeScript SDK test
         entry: bash scripts/pre-commit-hooks/prek-hook.sh
-        args: ["cd sdk/typescript && rtk npm test"]
+        args:
+          [
+            "cd sdk/typescript && rtk bash -c 'env -u npm_config_devdir npm ci && env -u npm_config_devdir npm test'",
+          ]
         language: system
         files: ^(sdk/typescript/|src/|Cargo\.toml)
         pass_filenames: false
@@ -530,7 +555,10 @@ repos:
       - id: typescript-build
         name: TypeScript SDK build
         entry: bash scripts/pre-commit-hooks/prek-hook.sh
-        args: ["cd sdk/typescript && rtk npm run build"]
+        args:
+          [
+            "cd sdk/typescript && rtk bash -c 'env -u npm_config_devdir npm ci && env -u npm_config_devdir npm run build'",
+          ]
         language: system
         files: ^sdk/typescript/
         pass_filenames: false

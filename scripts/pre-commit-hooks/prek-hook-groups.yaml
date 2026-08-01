@@ -46,6 +46,7 @@ groups:
     - c-header-sync
     - local-dev-core-rust
     - cargo-build-sdk-release
+    - export-rust-sbom
     - verify-sdk
 
   go:

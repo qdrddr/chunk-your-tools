@@ -1,0 +1,29 @@
+{
+  "dependencyCount": 47,
+  "displayTargetFile": "chunk-your-tools.cdx.json",
+  "filesystemPolicy": true,
+  "filtered": {
+    "ignore": [],
+    "patch": []
+  },
+  "hasUnknownVersions": false,
+  "ignoreSettings": {
+    "adminOnly": false,
+    "autoApproveIgnores": false,
+    "disregardFilesystemIgnores": false,
+    "reasonRequired": false
+  },
+  "isPrivate": true,
+  "licensesPolicy": {
+    "orgLicenseRules": null,
+    "severities": null
+  },
+  "ok": true,
+  "org": "qdrddr",
+  "path": ".",
+  "policy": "version: v1.25.0\nignore: {}\npatch: {}\n",
+  "summary": "No known vulnerabilities",
+  "targetFile": "chunk-your-tools.cdx.json",
+  "uniqueCount": 0,
+  "vulnerabilities": []
+}

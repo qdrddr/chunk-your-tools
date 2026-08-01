@@ -33,4 +33,3 @@ func main() {
 		fmt.Printf("  cwd: %s\n", wd)
 	}
 }
-
