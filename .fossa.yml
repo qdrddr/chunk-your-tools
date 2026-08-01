@@ -1,16 +1,37 @@
-# FOSSA scans Cargo.lock for shipped native dependencies. The Python SDK has no
-# runtime Python deps; sdk/python/requirements.txt documents the production
-# manifest for compliance audits.
+# FOSSA reports shipped native dependencies from Cargo.lock (CLI, FFI, Python/Node
+# bindings) and the Go SDK module graph. The Python SDK has no runtime pip deps;
+# sdk/python/requirements.txt documents the production manifest for audits.
 #
-# uv.lock and setuptools targets under sdk/python/ are excluded so dev-only
-# tools (pytest, pygments, maturin, …) are not reported as shipped deps.
+# Dev/CI lockfiles, audit sandboxes, venvs, build output, and e2e fixtures are
+# excluded so tools like pytest, pygments, maturin, fallow, and @napi-rs/cli are
+# not reported as shipped dependencies.
 version: 3
 paths:
   exclude:
-    - sdk/python/requirements-dev.txt
+    - "**/uv.lock"
+    - "**/requirements-dev.txt"
+    - "**/scripts/deps/output/**"
+    - "**/scripts/legal/output/**"
+    - "target/**"
+    - ".uv-cache/**"
+    - "chunk-your-*/**"
+    - "sdk/e2e/**"
+    - "**/.venv/**"
 targets:
   exclude:
+    # Python SDK — dev lockfile/tools only (pytest, pygments, maturin, …)
     - type: uv
       path: sdk/python/
     - type: setuptools
       path: sdk/python/
+    # Audit sandboxes that replay requirements-dev.txt (pygments, pytest, …)
+    - type: setuptools
+      path: scripts/deps/output/
+    # Root + TypeScript npm — build/CI tooling only (no runtime npm deps shipped)
+    - type: npm
+      path: ./
+    - type: npm
+      path: sdk/typescript/
+    # Legal audit venvs (basedpyright and its node toolchain)
+    - type: npm
+      path: scripts/legal/output/
