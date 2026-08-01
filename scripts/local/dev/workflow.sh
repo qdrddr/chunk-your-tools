@@ -9,8 +9,9 @@
 #
 # Commands:
 #   Core (Rust):
-#     core-rust | rust     cargo test -p chunk-your-tools + release CLI catalog build
-#     indexer [subcmd]     chunk-your-tools decompose / recompose (see help)
+#     core-rust | rust       cargo test -p chunk-your-tools + release CLI catalog build
+#     sdk-rust-release       resolve python+node SDK deps in Cargo.lock (FOSSA / verify-pins)
+#     indexer [subcmd]       chunk-your-tools decompose / recompose (see help)
 #
 #   SDKs:
 #     sdk-python           maturin develop --release + verify sdk/python
@@ -68,6 +69,10 @@ _chunk_your_tools_local_dev_main() {
 	core-rust | rust)
 		require_repo_root
 		chunk_your_tools_build_rust
+		;;
+	sdk-rust-release)
+		require_repo_root
+		chunk_your_tools_sdk_rust_release "$@"
 		;;
 	indexer)
 		require_repo_root

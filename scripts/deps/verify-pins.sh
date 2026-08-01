@@ -517,6 +517,27 @@ verify_cargo_manifest_lock_policy() {
 	return 0
 }
 
+verify_rust_sdk_binding_lock() {
+	local lock="$1"
+	local pkg
+	local -a required_packages=(pyo3 napi napi-derive pythonize)
+	local missing=0
+
+	for pkg in "${required_packages[@]}"; do
+		if ! cargo_lock_has_package "${lock}" "${pkg}"; then
+			printf 'Cargo.lock: missing SDK binding crate %s (run: ./scripts/local/dev/workflow.sh sdk-rust-release)\n' \
+				"${pkg}"
+			missing=1
+		fi
+	done
+
+	if [[ "${missing}" -gt 0 ]]; then
+		return 1
+	fi
+	printf 'Cargo.lock: SDK binding crates resolved (python,node)\n'
+	return 0
+}
+
 run_rust_lock_checks() {
 	local crate_dir="$1"
 	local label="$2"
@@ -542,6 +563,10 @@ run_rust_lock_checks() {
 	rm -f "${meta_log}"
 
 	if ! verify_cargo_manifest_lock_policy "${crate_dir}" "${label}"; then
+		failed=1
+	fi
+
+	if ! verify_rust_sdk_binding_lock "${lock}"; then
 		failed=1
 	fi
 

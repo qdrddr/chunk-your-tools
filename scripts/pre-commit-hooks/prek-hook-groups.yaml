@@ -45,6 +45,7 @@ groups:
     - cbindgen-header-drift
     - c-header-sync
     - local-dev-core-rust
+    - cargo-build-sdk-release
     - verify-sdk
 
   go:

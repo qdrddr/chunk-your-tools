@@ -155,3 +155,5 @@ graphify-out/cache/
 .cursor/rules/cyt-injection.mdc
 scripts/legal/output/
 scripts/deps/output/
+fossa-deps.yml.example
+.fossa.yml.example

@@ -400,6 +400,73 @@ if [[ -z "${CHUNK_YOUR_TOOLS_LOCAL_DEV_LIB_SOURCED:-}" ]]; then
 		chunk_your_tools_test_indexer_build
 	}
 
+	# Resolve Python/Node SDK optional Rust deps into Cargo.lock (pyo3, napi, …).
+	# Maturin and napi-rs build with --features python / node (no default CLI).
+	chunk_your_tools_sdk_rust_release() {
+		local check_only=0
+		local lock_file="${CHUNK_YOUR_TOOLS_REPO_ROOT}/Cargo.lock"
+		local lock_before=""
+		local pkg=""
+		local -a required_packages=(pyo3 napi napi-derive pythonize)
+
+		while (($#)); do
+			case "$1" in
+			--check)
+				check_only=1
+				shift
+				;;
+			-h | --help)
+				cat <<'EOF'
+Usage: ./scripts/local/dev/workflow.sh sdk-rust-release [--check]
+
+Resolve SDK binding crates into Cargo.lock for FOSSA and verify-pins.
+Default mode builds with python+node features and fails if Cargo.lock drifted.
+
+  --check   Verify lockfile already contains SDK packages (no compile).
+EOF
+				return 0
+				;;
+			*)
+				die "unknown sdk-rust-release arg: $1 (try --check)"
+				;;
+			esac
+		done
+
+		require_cmd cargo
+		cd "${CHUNK_YOUR_TOOLS_REPO_ROOT}" || die "cd failed"
+		[[ -f Cargo.toml ]] || die "missing Cargo.toml"
+		[[ -f "${lock_file}" ]] ||
+			die "missing Cargo.lock (run: cargo generate-lockfile)"
+
+		for pkg in "${required_packages[@]}"; do
+			if ! grep -q "^name = \"${pkg}\"" "${lock_file}"; then
+				die "${pkg} missing from Cargo.lock (run: workflow.sh sdk-rust-release)"
+			fi
+		done
+
+		if [[ "${check_only}" -eq 1 ]]; then
+			chunk_your_tools_run cargo metadata --locked --format-version=1 --quiet >/dev/null ||
+				die "Cargo.lock out of sync with Cargo.toml (run: workflow.sh sdk-rust-release)"
+			info "Cargo.lock includes SDK feature deps (python,node)"
+			return 0
+		fi
+
+		lock_before="$(mktemp)"
+		cp "${lock_file}" "${lock_before}"
+
+		info "cargo build -p chunk-your-tools --features python,node --no-default-features"
+		chunk_your_tools_run env -u CARGO_TARGET_DIR \
+			cargo build -p chunk-your-tools --features python,node --no-default-features
+
+		if ! cmp -s "${lock_before}" "${lock_file}"; then
+			rm -f "${lock_before}"
+			die "Cargo.lock changed after resolving SDK features (python,node); git add Cargo.lock"
+		fi
+
+		rm -f "${lock_before}"
+		info "Cargo.lock includes SDK feature deps (python,node)"
+	}
+
 	chunk_your_tools_build_sdk_python() {
 		require_cmd uv
 		chunk_your_tools_sync_sdk_python

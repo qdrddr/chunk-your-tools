@@ -37,6 +37,9 @@ Propagate VERSION to all SDK manifests and lockfiles:
 If VERSION is omitted, read it from ${PUBLISH_CARGO_TOML}.
 
 Also used by pre-commit (sync-version hook) and scripts/publish/publish-git.sh.
+
+After syncing manifests, resolves python+node SDK crates in Cargo.lock and runs
+scripts/deps/verify-pins.sh --manifest-lint.
 EOF
 }
 
@@ -167,6 +170,14 @@ export_python_requirements() {
 	bash "${PUBLISH_ROOT}/scripts/deps/export-python-requirements.sh"
 }
 
+ensure_rust_sdk_lock() {
+	bash "${PUBLISH_ROOT}/scripts/local/dev/workflow.sh" sdk-rust-release
+}
+
+verify_dependency_pins() {
+	bash "${PUBLISH_ROOT}/scripts/deps/verify-pins.sh" --short --no-report --manifest-lint
+}
+
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
 	usage
 	exit 0
@@ -204,6 +215,9 @@ update_go_module_version "${version}"
 printf 'tag=%s\n' "${tag}" >"$(publish_tag_file_path)"
 
 publish_verify_versions "${version}"
+
+ensure_rust_sdk_lock
+verify_dependency_pins
 
 cat <<EOF | shorten_paths
 synced version ${version} to:
