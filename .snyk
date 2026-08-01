@@ -1,0 +1,4 @@
+# Snyk policy — https://docs.snyk.io/scan-fix-and-prevent/prevent/policies/the-.snyk-file
+version: v1.25.0
+language-settings:
+  python: "3.13"
