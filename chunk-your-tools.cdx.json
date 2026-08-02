@@ -19,10 +19,10 @@
     ],
     "component": {
       "type": "application",
-      "bom-ref": "path+file://chunk-your-tools#2.3.8",
+      "bom-ref": "path+file://chunk-your-tools#2.3.9",
       "author": "Damien Berezenko",
       "name": "chunk-your-tools",
-      "version": "2.3.8",
+      "version": "2.3.9",
       "description": "MCP tool schema decomposition and recomposition",
       "scope": "required",
       "licenses": [
@@ -30,7 +30,7 @@
           "expression": "Apache-2.0"
         }
       ],
-      "purl": "pkg:cargo/chunk-your-tools@2.3.8?download_url=file://.",
+      "purl": "pkg:cargo/chunk-your-tools@2.3.9?download_url=file://.",
       "externalReferences": [
         {
           "type": "vcs",
@@ -40,17 +40,17 @@
       "components": [
         {
           "type": "library",
-          "bom-ref": "path+file://chunk-your-tools#2.3.8 bin-target-0",
+          "bom-ref": "path+file://chunk-your-tools#2.3.9 bin-target-0",
           "name": "chunk_your_tools",
-          "version": "2.3.8",
-          "purl": "pkg:cargo/chunk-your-tools@2.3.8?download_url=file://.#src/lib.rs"
+          "version": "2.3.9",
+          "purl": "pkg:cargo/chunk-your-tools@2.3.9?download_url=file://.#src/lib.rs"
         },
         {
           "type": "application",
-          "bom-ref": "path+file://chunk-your-tools#2.3.8 bin-target-1",
+          "bom-ref": "path+file://chunk-your-tools#2.3.9 bin-target-1",
           "name": "chunk-your-tools",
-          "version": "2.3.8",
-          "purl": "pkg:cargo/chunk-your-tools@2.3.8?download_url=file://.#src/bin/chunk-your-tools.rs"
+          "version": "2.3.9",
+          "purl": "pkg:cargo/chunk-your-tools@2.3.9?download_url=file://.#src/bin/chunk-your-tools.rs"
         }
       ]
     },
@@ -1423,7 +1423,7 @@
   ],
   "dependencies": [
     {
-      "ref": "path+file://chunk-your-tools#2.3.8",
+      "ref": "path+file://chunk-your-tools#2.3.9",
       "dependsOn": [
         "registry+https://github.com/rust-lang/crates.io-index#cbindgen@0.29.4",
         "registry+https://github.com/rust-lang/crates.io-index#clap@4.6.5",
